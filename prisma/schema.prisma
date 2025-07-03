@@ -31,15 +31,10 @@ model User {
   resetToken       String?
   resetTokenExpiry DateTime?
   subscriptions    Subscription[]
-  progresses       Progress[]
   isSubscribed     Boolean?       @default(false)
   role             Role           @default(USER)
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
-
-  FavoriteContents FavoriteContent[]
-  SavedQuotes      SavedQuote[]
-  // Profile          Profile?
 
   notifications Notification[]
 }
@@ -55,48 +50,7 @@ model OtpVerification {
   createdAt  DateTime    @default(now())
 }
 
-model Course {
-  id          String     @id @default(uuid())
-  title       String
-  description String
-  thumbnail   String?
-  category    String[]
-  modules     Module[]
-  progresses  Progress[]
-  isPaid      Boolean
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-}
 
-model Module {
-  id          String    @id @default(uuid())
-  title       String
-  description String
-  courseId    String
-  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
-  contents    Content[]
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-}
-
-model Content {
-  id          String   @id @default(uuid())
-  title       String
-  url         String
-  duration    Int
-  description String?
-  viewCount   Int?
-  tags        String[]
-
-  moduleId String
-  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-
-  progresses      Progress[]
-  favoriteByUsers FavoriteContent[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
 
 model Notification {
   id        String   @id @default(uuid())
@@ -108,44 +62,6 @@ model Notification {
   createdAt DateTime @default(now())
 }
 
-model Progress {
-  id          String   @id @default(uuid())
-  percentage  Int      @default(0)
-  userId      String
-  courseId    String
-  contentId   String?
-  isCompleted Boolean  @default(false)
-  user        User     @relation(fields: [userId], references: [id])
-  course      Course   @relation(fields: [courseId], references: [id])
-  content     Content? @relation(fields: [contentId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([userId, contentId]) // One progress per user per content
-}
-
-model FavoriteContent {
-  id        String   @id @default(uuid())
-  userId    String
-  contentId String
-  user      User     @relation(fields: [userId], references: [id])
-  content   Content  @relation(fields: [contentId], references: [id])
-  createdAt DateTime @default(now())
-
-  @@unique([userId, contentId])
-}
-
-model SavedQuote {
-  id      String   @id @default(uuid())
-  userId  String
-  quoteId String
-  user    User     @relation(fields: [userId], references: [id])
-  quote   Quote    @relation(fields: [quoteId], references: [id])
-  savedAt DateTime @default(now())
-
-  @@unique([userId, quoteId])
-}
 
 model Plan {
   id            String         @id @default(uuid())
@@ -195,13 +111,6 @@ model Contact {
   createdAt DateTime @default(now())
 }
 
-model Quote {
-  id         String       @id @default(uuid())
-  quote      String
-  author     String
-  createdAt  DateTime     @default(now())
-  SavedQuote SavedQuote[]
-}
 
 model FAQCategory {
   id        String   @id @default(uuid())
