@@ -7,7 +7,6 @@ import { AuthModule } from './main/auth/auth.module';
 import { MailService } from './main/mail/mail.service';
 import { ContactModule } from './main/contact/contact.module';
 import { ContentModule } from './main/content/content.module';
-import { CourseModule } from './main/course/course.module';
 import { FAQModule } from './main/faq/faq.module';
 import { TermsModule } from './main/terms/terms.module';
 import { PlanModule } from './main/plan/plan.module';
@@ -26,7 +25,6 @@ import { TwilioModule } from './main/twilio/twilio.module';
     PrismaModule,
     AuthModule,
     ContactModule,
-    CourseModule,
     ContentModule,
     FAQModule,
     TermsModule,
