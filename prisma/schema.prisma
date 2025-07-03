@@ -1,0 +1,264 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model PendingUser {
+  id          String   @id @default(uuid())
+  fullName    String
+  email       String   @unique
+  phoneNumber String   @unique
+  password    String
+  createdAt   DateTime @default(now())
+
+  otps OtpVerification[] @relation("PendingUserOtp")
+}
+
+model User {
+  id               String         @id @default(uuid())
+  fullName         String
+  email            String         @unique
+  phoneNumber      String         @unique
+  photo            String?
+  password         String
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  subscriptions    Subscription[]
+  progresses       Progress[]
+  isSubscribed     Boolean?       @default(false)
+  role             Role           @default(USER)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  FavoriteContents FavoriteContent[]
+  SavedQuotes      SavedQuote[]
+  // Profile          Profile?
+
+  notifications Notification[]
+}
+
+model OtpVerification {
+  id         String      @id @default(uuid())
+  userId     String
+  user       PendingUser @relation("PendingUserOtp", fields: [userId], references: [id], onDelete: Cascade)
+  otp        String
+  method     String
+  expiresAt  DateTime
+  verifiedAt DateTime?
+  createdAt  DateTime    @default(now())
+}
+
+model Course {
+  id          String     @id @default(uuid())
+  title       String
+  description String
+  thumbnail   String?
+  category    String[]
+  modules     Module[]
+  progresses  Progress[]
+  isPaid      Boolean
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+model Module {
+  id          String    @id @default(uuid())
+  title       String
+  description String
+  courseId    String
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  contents    Content[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Content {
+  id          String   @id @default(uuid())
+  title       String
+  url         String
+  duration    Int
+  description String?
+  viewCount   Int?
+  tags        String[]
+
+  moduleId String
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  progresses      Progress[]
+  favoriteByUsers FavoriteContent[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Progress {
+  id          String   @id @default(uuid())
+  percentage  Int      @default(0)
+  userId      String
+  courseId    String
+  contentId   String?
+  isCompleted Boolean  @default(false)
+  user        User     @relation(fields: [userId], references: [id])
+  course      Course   @relation(fields: [courseId], references: [id])
+  content     Content? @relation(fields: [contentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, contentId]) // One progress per user per content
+}
+
+model FavoriteContent {
+  id        String   @id @default(uuid())
+  userId    String
+  contentId String
+  user      User     @relation(fields: [userId], references: [id])
+  content   Content  @relation(fields: [contentId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, contentId])
+}
+
+model SavedQuote {
+  id      String   @id @default(uuid())
+  userId  String
+  quoteId String
+  user    User     @relation(fields: [userId], references: [id])
+  quote   Quote    @relation(fields: [quoteId], references: [id])
+  savedAt DateTime @default(now())
+
+  @@unique([userId, quoteId])
+}
+
+model Plan {
+  id            String         @id @default(uuid())
+  name          String         @unique
+  description   String?
+  price         Float
+  features      String[]
+  planType      PlanType
+  status        PlanStatus     @default(ACTIVE)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id        String   @id @default(uuid())
+  userId    String
+  planId    String
+  startDate DateTime @default(now())
+  endDate   DateTime
+
+  user     User      @relation(fields: [userId], references: [id])
+  plan     Plan      @relation(fields: [planId], references: [id])
+  payments Payment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Payment {
+  id             String        @id @default(uuid())
+  amount         Float
+  currency       String        @default("USD")
+  status         PaymentStatus
+  transactionId  String        @unique
+  subscriptionId String
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id])
+  createdAt    DateTime     @default(now())
+}
+
+model Contact {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  opinion   String
+  createdAt DateTime @default(now())
+}
+
+model Quote {
+  id         String       @id @default(uuid())
+  quote      String
+  author     String
+  createdAt  DateTime     @default(now())
+  SavedQuote SavedQuote[]
+}
+
+model FAQCategory {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  faqs      FAQ[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model FAQ {
+  id         String      @id @default(uuid())
+  question   String
+  answer     String
+  categoryId String
+  category   FAQCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model TermsCategory {
+  id          String     @id @default(uuid())
+  title       String
+  lastUpdated DateTime   @default(now())
+  keyPoints   KeyPoint[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model KeyPoint {
+  id         String        @id @default(uuid())
+  point      String
+  categoryId String
+  category   TermsCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum PlanStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum PlanType {
+  MONTHLY
+  YEARLY
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  CANCELLED
+}
+
+enum Role {
+  ADMIN
+  USER
+}
