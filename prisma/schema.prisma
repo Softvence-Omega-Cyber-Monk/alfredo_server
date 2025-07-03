@@ -36,6 +36,12 @@ model User {
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
 
+  properties               Property[]        @relation("UserProperties")
+  sentMessages             ChatMessage[]     @relation("Sender")
+  receivedMessages         ChatMessage[]     @relation("Receiver")
+  exchangeRequestsSent     ExchangeRequest[] @relation("FromUser")
+  exchangeRequestsReceived ExchangeRequest[] @relation("ToUser")
+
   notifications Notification[]
 }
 
@@ -50,7 +56,62 @@ model OtpVerification {
   createdAt  DateTime    @default(now())
 }
 
+model Property {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  location    String
+  city        String
+  country     String
+  price       Float?
+  size        Float?
+  bedrooms    Int?
+  bathrooms   Int?
+  images      String[]
+  isAvailable Boolean  @default(true)
 
+  ownerId String
+  owner   User   @relation("UserProperties", fields: [ownerId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  exchangeRequestsSent     ExchangeRequest[] @relation("FromProperty")
+  exchangeRequestsReceived ExchangeRequest[] @relation("ToProperty")
+}
+
+model ChatMessage {
+  id         String   @id @default(uuid())
+  senderId   String
+  receiverId String
+  content    String
+  createdAt  DateTime @default(now())
+
+  sender   User @relation("Sender", fields: [senderId], references: [id])
+  receiver User @relation("Receiver", fields: [receiverId], references: [id])
+
+  exchangeRequestId String? // Optional link to exchange request discussion
+  exchangeRequest   ExchangeRequest? @relation(fields: [exchangeRequestId], references: [id])
+}
+
+model ExchangeRequest {
+  id             String         @id @default(uuid())
+  fromUserId     String
+  toUserId       String
+  fromPropertyId String
+  toPropertyId   String
+  status         ExchangeStatus @default(PENDING)
+  message        String? // Optional message
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  fromUser     User     @relation("FromUser", fields: [fromUserId], references: [id])
+  toUser       User     @relation("ToUser", fields: [toUserId], references: [id])
+  fromProperty Property @relation("FromProperty", fields: [fromPropertyId], references: [id])
+  toProperty   Property @relation("ToProperty", fields: [toPropertyId], references: [id])
+
+  chatMessages ChatMessage[]
+}
 
 model Notification {
   id        String   @id @default(uuid())
@@ -61,7 +122,6 @@ model Notification {
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
 }
-
 
 model Plan {
   id            String         @id @default(uuid())
@@ -111,7 +171,6 @@ model Contact {
   createdAt DateTime @default(now())
 }
 
-
 model FAQCategory {
   id        String   @id @default(uuid())
   name      String   @unique
@@ -148,6 +207,13 @@ model KeyPoint {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+enum ExchangeStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
 }
 
 enum PlanStatus {

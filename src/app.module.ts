@@ -16,6 +16,7 @@ import { ConfigModule } from '@nestjs/config';
 import { NotificationModule } from './main/notification/notification.module';
 import { TwilioService } from './main/twilio/twilio.service';
 import { TwilioModule } from './main/twilio/twilio.module';
+import { ChatModule } from './main/chat/chat.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { TwilioModule } from './main/twilio/twilio.module';
     UserModule,
     NotificationModule,
     TwilioModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, MailService, TwilioService],
