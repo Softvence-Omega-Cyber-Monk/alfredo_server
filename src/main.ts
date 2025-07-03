@@ -10,11 +10,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: '*', // Allow any origin
+    origin: '*',
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   });
 
-  // ✅ This catches all requests — including Stripe's — and preserves rawBody
   app.use(
     express.json({
       verify: (req: any, res, buf) => {
@@ -35,6 +34,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  await app.listen(process.env.PORT ?? 7005);
+  await app.listen(process.env.PORT ?? 7002);
 }
 bootstrap();
