@@ -6,7 +6,6 @@ import { PrismaModule } from './main/prisma/prisma.module';
 import { AuthModule } from './main/auth/auth.module';
 import { MailService } from './main/mail/mail.service';
 import { ContactModule } from './main/contact/contact.module';
-import { ContentModule } from './main/content/content.module';
 import { FAQModule } from './main/faq/faq.module';
 import { TermsModule } from './main/terms/terms.module';
 import { PlanModule } from './main/plan/plan.module';
@@ -26,7 +25,6 @@ import { ChatModule } from './main/chat/chat.module';
     PrismaModule,
     AuthModule,
     ContactModule,
-    ContentModule,
     FAQModule,
     TermsModule,
     PlanModule,
