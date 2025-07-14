@@ -23,7 +23,7 @@ import { ChatModule } from './main/chat/chat.module';
       isGlobal: true, // Makes .env available app-wide
     }),
     PrismaModule,
-    AuthModule,
+    AuthModule, 
     ContactModule,
     FAQModule,
     TermsModule,
