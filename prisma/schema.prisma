@@ -23,7 +23,8 @@ model PendingUser {
 
 model User {
   id               String         @id @default(uuid())
-  fullName         String
+  firstName        String
+  lastName         String
   email            String         @unique
   phoneNumber      String         @unique
   photo            String?
