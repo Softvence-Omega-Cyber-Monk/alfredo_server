@@ -40,10 +40,11 @@ async register(dto: RegisterDto) {
 
   const hashedPassword = await bcrypt.hash(dto.password, 10);
 
+  const fullName = `${dto.firstName} ${dto.lastName}`;
+
   const pending = await this.prisma.pendingUser.create({
     data: {
-      firstName: dto.firstName,
-      lastName: dto.lastName,
+      fullName,
       email: dto.email,
       password: hashedPassword,
     },
@@ -55,6 +56,7 @@ async register(dto: RegisterDto) {
     userId: pending.id,
   };
 }
+
 
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({
@@ -177,11 +179,12 @@ async sendOtp(pendingUserId: string, method: 'email' | 'phone') {
       expiresAt: new Date(Date.now() + 1000 * 60 * 5),
     },
   });
+  
 
   if (method === 'email') {
     await this.otpService.sendOtpByEmail(user.email, otp);
   } else {
-    await this.otpService.sendOtpByPhone(user.phoneNumber, otp);
+    await this.otpService.sendOtpByPhone(user.phoneNumber!, otp);
   }
 
   return { message: 'OTP sent successfully' };
@@ -221,7 +224,7 @@ async verifyOtp(pendingUserId: string, otp: string) {
     data: {
       fullName: pending.fullName,
       email: pending.email,
-      phoneNumber: pending.phoneNumber,
+      phoneNumber: pending.phoneNumber!,
       password: pending.password,
       // isVerified: true, // ✅ Optional: Set user as verified
     },

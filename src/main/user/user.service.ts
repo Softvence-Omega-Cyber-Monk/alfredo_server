@@ -50,7 +50,7 @@ export class UserService {
       where: { id: userId },
       select: {
         id: true,
-        fullName: true,
+       fullName: true,
         email: true,
         phoneNumber: true,
         photo: true,
