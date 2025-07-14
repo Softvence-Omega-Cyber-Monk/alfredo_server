@@ -191,6 +191,7 @@ async sendOtp(pendingUserId: string, method: 'email' | 'phone') {
 }
 
 async verifyOtp(pendingUserId: string, otp: string) {
+  // 1. Check if OTP is valid and not expired
   const record = await this.prisma.otpVerification.findFirst({
     where: {
       userId: pendingUserId,
@@ -204,13 +205,13 @@ async verifyOtp(pendingUserId: string, otp: string) {
     throw new BadRequestException('Invalid or expired OTP');
   }
 
-  // Mark OTP as verified
+  // 2. Mark OTP as verified
   await this.prisma.otpVerification.update({
     where: { id: record.id },
     data: { verifiedAt: new Date() },
   });
 
-  // Fetch the pending user
+  // 3. Fetch the pending user
   const pending = await this.prisma.pendingUser.findUnique({
     where: { id: pendingUserId },
   });
@@ -219,27 +220,31 @@ async verifyOtp(pendingUserId: string, otp: string) {
     throw new BadRequestException('Pending user not found');
   }
 
-  // Create actual user
+  // // 4. Ensure phoneNumber is not null (avoid runtime error)
+  // if (!pending.phoneNumber) {
+  //   throw new BadRequestException('Phone number is missing for the user');
+  // }
+
+  // 5. Create actual user
   const user = await this.prisma.user.create({
     data: {
       fullName: pending.fullName,
       email: pending.email,
-      phoneNumber: pending.phoneNumber!,
       password: pending.password,
-      // isVerified: true, // ✅ Optional: Set user as verified
     },
   });
 
-  // First, delete all OTPs linked to pendingUserId to avoid FK constraint issue
+  // 6. Clean up related OTPs to avoid FK issues
   await this.prisma.otpVerification.deleteMany({
     where: { userId: pendingUserId },
   });
 
-  // Then delete the pending user
+  // 7. Delete pending user entry
   await this.prisma.pendingUser.delete({
     where: { id: pendingUserId },
   });
 
+  // 8. Generate token
   const tokenData = await this.signToken(user);
 
   return {
@@ -248,6 +253,7 @@ async verifyOtp(pendingUserId: string, otp: string) {
     ...tokenData,
   };
 }
+
 
   async resendOtp(userId: string, method: 'email' | 'phone') {
     // Optional: Enforce 60-second delay

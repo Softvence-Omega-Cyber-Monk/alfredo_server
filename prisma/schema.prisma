@@ -25,7 +25,7 @@ model User {
   id               String         @id @default(uuid())
   fullName String
   email            String         @unique
-  phoneNumber      String         @unique
+  phoneNumber      String?         @unique
   photo            String?
   password         String
   resetToken       String?
