@@ -32,31 +32,19 @@ async register(dto: RegisterDto) {
   });
   if (emailExists) throw new BadRequestException('Email already in use');
 
-  const phoneExists = await this.prisma.user.findUnique({
-    where: { phoneNumber: dto.phoneNumber },
-  });
-  if (phoneExists)
-    throw new BadRequestException('Phone number already in use');
-
   const pendingEmail = await this.prisma.pendingUser.findUnique({
     where: { email: dto.email },
   });
   if (pendingEmail)
     throw new BadRequestException('Email already pending verification');
 
-  const pendingPhone = await this.prisma.pendingUser.findUnique({
-    where: { phoneNumber: dto.phoneNumber },
-  });
-  if (pendingPhone)
-    throw new BadRequestException('Phone number already pending verification');
-
   const hashedPassword = await bcrypt.hash(dto.password, 10);
 
   const pending = await this.prisma.pendingUser.create({
     data: {
-      fullName: dto.fullName,
+      firstName: dto.firstName,
+      lastName: dto.lastName,
       email: dto.email,
-      phoneNumber: dto.phoneNumber,
       password: hashedPassword,
     },
   });

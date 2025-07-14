@@ -12,7 +12,8 @@ datasource db {
 
 model PendingUser {
   id          String   @id @default(uuid())
-  fullName    String
+  firstName        String
+  lastName         String
   email       String   @unique
   phoneNumber String   @unique
   password    String

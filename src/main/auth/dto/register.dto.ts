@@ -27,14 +27,14 @@ export class RegisterDto {
   lastName: string;
 
   @ApiProperty({
-    example: 'johndoe@example.com',
+    example: 'rahmanaq777@gmail.com',
     description: 'User email address',
   })
   @IsEmail()
   email: string;
 
   @ApiProperty({
-    example: 'strongPassword123',
+    example: 'rahman123',
     description: 'Password (min 6 characters)',
     minLength: 6,
   })
