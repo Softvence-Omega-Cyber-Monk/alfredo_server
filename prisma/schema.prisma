@@ -69,11 +69,11 @@ model Onboarding {
   isMainResidence   Boolean?
 
   // Relations
-  favouriteDestinations FavouriteDestination[]
+  favoriteDestinations FavoriteDestination[]
   travelReasons         TravelReason[]
 }
 
-model FavouriteDestination {
+model FavoriteDestination {
   id          String           @id @default(cuid())
   type        DestinationType
   onboarding  Onboarding       @relation(fields: [onboardingId], references: [id])
