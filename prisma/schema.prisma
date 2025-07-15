@@ -44,39 +44,47 @@ model User {
 
   notifications Notification[]
 
-   // === New Fields From Onboarding ===
+   // Onboarding relation
+  onboarding      Onboarding?
+}
+
+model Onboarding {
+  id                String              @id @default(cuid())
+  user              User                @relation(fields: [userId], references: [id])
+  userId            String              @unique
 
   // Step 1: Home Listing
-  homeAddress     String?
-  destination     String?
+  homeAddress       String?
+  destination       String?
 
   // Step 2: Verification Info
-  ageRange        AgeRange?
-  gender          Gender?
-  employmentStatus EmploymentStatus?
-  travelMostlyWith TravelGroup?
-  notes           String?
-
-  favouriteDestinations FavouriteDestination[]
-  travelReasons         TravelReason[]
+  ageRange          AgeRange?
+  gender            Gender?
+  employmentStatus  EmploymentStatus?
+  travelMostlyWith  TravelGroup?
+  notes             String?
 
   // Step 3: Property Type Info
-  propertyType     PropertyType?
-  isMainResidence  Boolean?
+  propertyType      PropertyType?
+  isMainResidence   Boolean?
+
+  // Relations
+  favouriteDestinations FavouriteDestination[]
+  travelReasons         TravelReason[]
 }
 
 model FavouriteDestination {
-  id       String          @id @default(cuid())
-  type     DestinationType
-  user     User            @relation(fields: [userId], references: [id])
-  userId   String
+  id          String           @id @default(cuid())
+  type        DestinationType
+  onboarding  Onboarding       @relation(fields: [onboardingId], references: [id])
+  onboardingId String
 }
 
 model TravelReason {
-  id       String            @id @default(cuid())
-  reason   TravelReasonType
-  user     User              @relation(fields: [userId], references: [id])
-  userId   String
+  id          String           @id @default(cuid())
+  reason      TravelReasonType
+  onboarding  Onboarding       @relation(fields: [onboardingId], references: [id])
+  onboardingId String
 }
 
 model OtpVerification {
