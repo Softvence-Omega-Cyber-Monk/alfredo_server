@@ -43,6 +43,40 @@ model User {
   exchangeRequestsReceived ExchangeRequest[] @relation("ToUser")
 
   notifications Notification[]
+
+   // === New Fields From Onboarding ===
+
+  // Step 1: Home Listing
+  homeAddress     String?
+  destination     String?
+
+  // Step 2: Verification Info
+  ageRange        AgeRange?
+  gender          Gender?
+  employmentStatus EmploymentStatus?
+  travelMostlyWith TravelGroup?
+  notes           String?
+
+  favouriteDestinations FavouriteDestination[]
+  travelReasons         TravelReason[]
+
+  // Step 3: Property Type Info
+  propertyType     PropertyType?
+  isMainResidence  Boolean?
+}
+
+model FavouriteDestination {
+  id       String          @id @default(cuid())
+  type     DestinationType
+  user     User            @relation(fields: [userId], references: [id])
+  userId   String
+}
+
+model TravelReason {
+  id       String            @id @default(cuid())
+  reason   TravelReasonType
+  user     User              @relation(fields: [userId], references: [id])
+  userId   String
 }
 
 model OtpVerification {
