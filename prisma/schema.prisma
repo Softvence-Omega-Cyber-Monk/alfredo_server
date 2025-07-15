@@ -209,6 +209,52 @@ model KeyPoint {
   updatedAt DateTime @updatedAt
 }
 
+
+enum AgeRange {
+  AGE_18_30
+  AGE_30_50
+  AGE_50_65
+  AGE_65_PLUS
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  NOT_SPECIFIED
+}
+
+enum EmploymentStatus {
+  WORKER
+  RETIRED
+  STUDENT
+  UNEMPLOYED
+}
+
+enum TravelGroup {
+  BY_MYSELF
+  FAMILY
+  COUPLE
+  FRIENDS
+}
+
+enum DestinationType {
+  BIG_CITIES
+  SMALL_CITIES
+  SEASIDE
+  MOUNTAIN
+}
+
+enum TravelReasonType {
+  RELAX
+  ADVENTURE
+  WORK
+}
+
+enum PropertyType {
+  HOME
+  APARTMENT
+}
+
 enum ExchangeStatus {
   PENDING
   ACCEPTED
