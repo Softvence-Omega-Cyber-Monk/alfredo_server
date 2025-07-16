@@ -12,9 +12,9 @@ datasource db {
 
 model PendingUser {
   id          String   @id @default(uuid())
-  fullName String
+  fullName    String
   email       String   @unique
-  phoneNumber String?   @unique
+  phoneNumber String?  @unique
   password    String
   createdAt   DateTime @default(now())
 
@@ -23,9 +23,9 @@ model PendingUser {
 
 model User {
   id               String         @id @default(uuid())
-  fullName String
+  fullName         String
   email            String         @unique
-  phoneNumber      String?         @unique
+  phoneNumber      String?        @unique
   photo            String?
   password         String
   resetToken       String?
@@ -44,46 +44,65 @@ model User {
 
   notifications Notification[]
 
-   // Onboarding relation
-  onboarding      Onboarding?
+  // Onboarding relation
+  onboarding Onboarding?
 }
 
 model Onboarding {
-  id                String              @id @default(cuid())
-  user              User                @relation(fields: [userId], references: [id])
-  userId            String              @unique
+  id     String @id @default(cuid())
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique
 
   // Step 1: Home Listing
-  homeAddress       String?
-  destination       String?
+  homeAddress String?
+  destination String?
 
   // Step 2: Verification Info
-  ageRange          AgeRange?
-  gender            Gender?
-  employmentStatus  EmploymentStatus?
-  travelMostlyWith  TravelGroup?
-  notes             String?
+  ageRange         AgeRange?
+  gender           Gender?
+  employmentStatus EmploymentStatus?
+  travelMostlyWith TravelGroup?
+  notes            String?
 
   // Step 3: Property Type Info
-  propertyType      PropertyType?
-  isMainResidence   Boolean?
+  propertyType    PropertyType?
+  isMainResidence Boolean?
+
+  // Step 4: Amenities & Environment
+  onboardedAmenities  OnboardingAmenity[]   // ✅ Relational approach
+  // You can create similar models for transportOptions and surroundings
 
   // Relations
   favoriteDestinations FavoriteDestination[]
-  travelReasons         TravelReason[]
+  travelReasons        TravelReason[]
+}
+
+model Amenity {
+  id       String   @id @default(cuid())
+  name     String   @unique
+  icon     String?  // Optional icon reference
+  onboardings OnboardingAmenity[]
+}
+
+model OnboardingAmenity {
+  id           String      @id @default(cuid())
+  onboarding   Onboarding  @relation(fields: [onboardingId], references: [id])
+  onboardingId String
+  amenity      Amenity     @relation(fields: [amenityId], references: [id])
+  amenityId    String
 }
 
 model FavoriteDestination {
-  id          String           @id @default(cuid())
-  type        DestinationType
-  onboarding  Onboarding       @relation(fields: [onboardingId], references: [id])
+  id           String          @id @default(cuid())
+  type         DestinationType
+  onboarding   Onboarding      @relation(fields: [onboardingId], references: [id])
   onboardingId String
 }
 
 model TravelReason {
-  id          String           @id @default(cuid())
-  reason      TravelReasonType
-  onboarding  Onboarding       @relation(fields: [onboardingId], references: [id])
+  id           String           @id @default(cuid())
+  reason       TravelReasonType
+  onboarding   Onboarding       @relation(fields: [onboardingId], references: [id])
   onboardingId String
 }
 
@@ -110,7 +129,8 @@ model Property {
   bedrooms    Int?
   bathrooms   Int?
   images      String[]
-  isAvailable Boolean  @default(true)
+
+  isAvailable Boolean @default(true)
 
   ownerId String
   owner   User   @relation("UserProperties", fields: [ownerId], references: [id])
@@ -250,7 +270,6 @@ model KeyPoint {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
-
 
 enum AgeRange {
   AGE_18_30
