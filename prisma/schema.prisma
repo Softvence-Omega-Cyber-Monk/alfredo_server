@@ -74,6 +74,19 @@ model Onboarding {
   onboardedSurroundings OnboardingSurrounding[]
   // You can create similar models for transportOptions and surroundings
 
+  // ✅ Step 5: About Home
+  homeName          String? // e.g., "Cozy Family Retreat"
+  homeDescription   String? // e.g., "A lovely cabin near the woods with great sunlight"
+  aboutNeighborhood String? // e.g., "Quiet area with access to local parks and bakeries"
+
+  // ✅ Step 6: Upload Photo
+  homeImages String[] // Array of image URLs
+
+  // ✅ Step 7: Home Availability
+  isAvailableForExchange Boolean   @default(true) // true = open, false = unavailable
+  availabilityStartDate  DateTime?
+  availabilityEndDate    DateTime?
+
   // Relations
   favoriteDestinations FavoriteDestination[]
   travelReasons        TravelReason[]
@@ -95,35 +108,35 @@ model OnboardingAmenity {
 }
 
 model TransportOption {
-  id         String                 @id @default(cuid())
-  name       String                 @unique
-  icon       String?
+  id          String                @id @default(cuid())
+  name        String                @unique
+  icon        String?
   onboardings OnboardingTransport[]
 }
 
 model OnboardingTransport {
-  id            String           @id @default(cuid())
-  onboarding    Onboarding       @relation(fields: [onboardingId], references: [id], onDelete: Cascade)
-  onboardingId  String
-  transport     TransportOption  @relation(fields: [transportId], references: [id], onDelete: Cascade)
-  transportId   String
-  createdAt     DateTime         @default(now())
+  id           String          @id @default(cuid())
+  onboarding   Onboarding      @relation(fields: [onboardingId], references: [id], onDelete: Cascade)
+  onboardingId String
+  transport    TransportOption @relation(fields: [transportId], references: [id], onDelete: Cascade)
+  transportId  String
+  createdAt    DateTime        @default(now())
 }
 
 model SurroundingType {
-  id         String                   @id @default(cuid())
-  name       String                   @unique
-  icon       String?
+  id          String                  @id @default(cuid())
+  name        String                  @unique
+  icon        String?
   onboardings OnboardingSurrounding[]
 }
 
 model OnboardingSurrounding {
-  id              String             @id @default(cuid())
-  onboarding      Onboarding         @relation(fields: [onboardingId], references: [id], onDelete: Cascade)
-  onboardingId    String
-  surrounding     SurroundingType    @relation(fields: [surroundingId], references: [id], onDelete: Cascade)
-  surroundingId   String
-  createdAt       DateTime           @default(now())
+  id            String          @id @default(cuid())
+  onboarding    Onboarding      @relation(fields: [onboardingId], references: [id], onDelete: Cascade)
+  onboardingId  String
+  surrounding   SurroundingType @relation(fields: [surroundingId], references: [id], onDelete: Cascade)
+  surroundingId String
+  createdAt     DateTime        @default(now())
 }
 
 model FavoriteDestination {
