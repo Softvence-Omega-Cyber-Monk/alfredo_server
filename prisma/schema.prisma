@@ -37,6 +37,7 @@ model User {
   resetTokenExpiry   DateTime?
   subscriptions      Subscription[]
   isSubscribed       Boolean?            @default(false)
+  achievementBadges  String[]
   paymentCardNumber  String[]
   role               Role                @default(USER)
   createdAt          DateTime            @default(now())
