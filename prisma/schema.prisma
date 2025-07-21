@@ -76,7 +76,7 @@ model Onboarding {
   isMainResidence Boolean?
 
   // Step 4: Amenities & Environment
-  onboardedAmenities    OnboardingAmenity[] // ✅ Relational approach
+  onboardedAmenities    OnboardingAmenity[] 
   onboardedTransports   OnboardingTransport[]
   onboardedSurroundings OnboardingSurrounding[]
   // You can create similar models for transportOptions and surroundings
@@ -194,6 +194,22 @@ model Property {
 
   exchangeRequestsSent     ExchangeRequest[] @relation("FromProperty")
   exchangeRequestsReceived ExchangeRequest[] @relation("ToProperty")
+}
+
+model Article {
+  id           String   @id @default(uuid())
+  title        String
+  slug         String   @unique
+  description  String
+  content      String
+  image        String
+  category     String
+  authorName   String
+  authorImage  String
+  lastUpdated  DateTime @default(now())
+  isFeatured   Boolean  @default(false)
+
+  @@map("articles")
 }
 
 model ChatMessage {
