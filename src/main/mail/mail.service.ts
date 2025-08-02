@@ -1,6 +1,4 @@
-// 
-
-
+//
 
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
@@ -16,7 +14,12 @@ export class MailService {
   });
 
   // Generic sendMail method for sending emails
-  async sendMail(options: { to: string; subject: string; text?: string; html?: string }) {
+  async sendMail(options: {
+    to: string;
+    subject: string;
+    text?: string;
+    html?: string;
+  }) {
     const mailOptions = {
       from: process.env.MAIL_FROM,
       to: options.to,
@@ -36,7 +39,7 @@ export class MailService {
 
   // Specific method for sending reset password emails
   async sendResetPasswordEmail(email: string, token: string) {
-    const resetUrl = `http://localhost:3000/reset-password?token=${token}`;
+    const resetUrl = `http://localhost:5173/reset-password?token=${token}`;
     const mailOptions = {
       to: email,
       subject: 'Reset your password',
