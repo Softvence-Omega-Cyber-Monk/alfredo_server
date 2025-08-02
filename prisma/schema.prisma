@@ -55,6 +55,17 @@ model User {
   onboarding Onboarding?
 }
 
+model OtpVerification {
+  id         String      @id @default(uuid())
+  userId     String
+  user       PendingUser @relation("PendingUserOtp", fields: [userId], references: [id], onDelete: Cascade)
+  otp        String
+  method     String
+  expiresAt  DateTime
+  verifiedAt DateTime?
+  createdAt  DateTime    @default(now())
+}
+
 model Onboarding {
   id     String @id @default(cuid())
   user   User   @relation(fields: [userId], references: [id])
@@ -158,17 +169,6 @@ model TravelReason {
   reason       TravelReasonType
   onboarding   Onboarding       @relation(fields: [onboardingId], references: [id])
   onboardingId String
-}
-
-model OtpVerification {
-  id         String      @id @default(uuid())
-  userId     String
-  user       PendingUser @relation("PendingUserOtp", fields: [userId], references: [id], onDelete: Cascade)
-  otp        String
-  method     String
-  expiresAt  DateTime
-  verifiedAt DateTime?
-  createdAt  DateTime    @default(now())
 }
 
 model Property {
