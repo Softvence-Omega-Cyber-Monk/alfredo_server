@@ -12,7 +12,6 @@ import { PlanModule } from './main/plan/plan.module';
 import { SubscriptionModule } from './main/subscription/subscription.module';
 import { UserModule } from './main/user/user.module';
 import { ConfigModule } from '@nestjs/config';
-import { NotificationModule } from './main/notification/notification.module';
 import { TwilioService } from './main/twilio/twilio.service';
 import { TwilioModule } from './main/twilio/twilio.module';
 import { ChatModule } from './main/chat/chat.module';
@@ -31,7 +30,6 @@ import { ArticleModule } from './main/article/article.module';
     PlanModule,
     SubscriptionModule,
     UserModule,
-    NotificationModule,
     TwilioModule,
     ChatModule,
     ArticleModule,
