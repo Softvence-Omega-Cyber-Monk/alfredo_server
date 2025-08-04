@@ -76,38 +76,37 @@ model Onboarding {
   destination String?
 
   // Step 2: Verification Info
-  ageRange         AgeRange?
-  gender           Gender?
-  employmentStatus EmploymentStatus?
-  travelMostlyWith TravelGroup?
-  notes            String?
+  ageRange             AgeRange?
+  gender               Gender?
+  employmentStatus     EmploymentStatus?
+  travelType           String[]
+  favoriteDestinations FavoriteDestination[]
+  travelMostlyWith     TravelGroup?
+  isTravelWithPets     Boolean
+  notes                String?
 
   // Step 3: Property Type Info
   propertyType    PropertyType?
   isMainResidence Boolean?
 
   // Step 4: Amenities & Environment
-  onboardedAmenities    OnboardingAmenity[] 
+  onboardedAmenities    OnboardingAmenity[]
   onboardedTransports   OnboardingTransport[]
   onboardedSurroundings OnboardingSurrounding[]
   // You can create similar models for transportOptions and surroundings
 
-  // ✅ Step 5: About Home
+  // Step 5: About Home
   homeName          String? // e.g., "Cozy Family Retreat"
   homeDescription   String? // e.g., "A lovely cabin near the woods with great sunlight"
   aboutNeighborhood String? // e.g., "Quiet area with access to local parks and bakeries"
 
-  // ✅ Step 6: Upload Photo
+  // Step 6: Upload Photo
   homeImages String[] // Array of image URLs
 
-  // ✅ Step 7: Home Availability
+  // Step 7: Home Availability
   isAvailableForExchange Boolean   @default(true) // true = open, false = unavailable
   availabilityStartDate  DateTime?
   availabilityEndDate    DateTime?
-
-  // Relations
-  favoriteDestinations FavoriteDestination[]
-  travelReasons        TravelReason[]
 }
 
 model Amenity {
@@ -164,13 +163,6 @@ model FavoriteDestination {
   onboardingId String
 }
 
-model TravelReason {
-  id           String           @id @default(cuid())
-  reason       TravelReasonType
-  onboarding   Onboarding       @relation(fields: [onboardingId], references: [id])
-  onboardingId String
-}
-
 model Property {
   id          String   @id @default(uuid())
   title       String
@@ -197,17 +189,17 @@ model Property {
 }
 
 model Article {
-  id           String   @id @default(uuid())
-  title        String
-  slug         String   @unique
-  description  String
-  content      String
-  image        String
-  category     String
-  authorName   String
-  authorImage  String
-  lastUpdated  DateTime @default(now())
-  isFeatured   Boolean  @default(false)
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  description String
+  content     String
+  image       String
+  category    String
+  authorName  String
+  authorImage String
+  lastUpdated DateTime @default(now())
+  isFeatured  Boolean  @default(false)
 
   @@map("articles")
 }
@@ -384,12 +376,6 @@ enum DestinationType {
   SMALL_CITIES
   SEASIDE
   MOUNTAIN
-}
-
-enum TravelReasonType {
-  RELAX
-  ADVENTURE
-  WORK
 }
 
 enum PropertyType {
