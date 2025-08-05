@@ -3,13 +3,6 @@ import { ApiProperty } from '@nestjs/swagger';
 import { AgeRange, Gender, EmploymentStatus, TravelGroup, DestinationType, PropertyType } from '@prisma/client';
 
 export class CreateOnboardingDto {
-  @ApiProperty({
-    description: 'Unique identifier of the user associated with the onboarding',
-    example: 'cly0z5k3k0000v1x1y2z3a4b5',
-  })
-  @IsString()
-  userId: string;
-
   // Step 1: Home Listing
   @ApiProperty({
     description: 'Address of the user’s home',
@@ -183,13 +176,11 @@ export class CreateOnboardingDto {
 
   // Step 6: Upload Photo
   @ApiProperty({
-    description: 'Array of image URLs for the home',
-    example: ['https://example.com/image1.jpg', 'https://example.com/image2.jpg'],
-    type: [String],
+    description: 'Array of image files for the home (uploaded to Cloudinary)',
+    type: 'array',
+    items: { type: 'string', format: 'binary' },
   })
-  @IsArray()
-  @IsString({ each: true })
-  homeImages: string[];
+  homeImages: Express.Multer.File[];
 
   // Step 7: Home Availability
   @ApiProperty({
@@ -404,15 +395,13 @@ export class UpdateOnboardingDto {
 
   // Step 6: Upload Photo
   @ApiProperty({
-    description: 'Array of image URLs for the home',
-    example: ['https://example.com/image1.jpg', 'https://example.com/image2.jpg'],
-    type: [String],
+    description: 'Array of image files for the home (uploaded to Cloudinary)',
+    type: 'array',
+    items: { type: 'string', format: 'binary' },
     required: false,
   })
   @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  homeImages?: string[];
+  homeImages?: Express.Multer.File[];
 
   // Step 7: Home Availability
   @ApiProperty({
