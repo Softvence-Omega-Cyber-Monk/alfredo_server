@@ -1,100 +1,72 @@
-// src/onboarding/onboarding.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { CreateOnboardingDto } from './dto/create-onboarding.dto';
-import { Prisma } from '@prisma/client';
-import { CloudinaryService } from 'src/common/services/cloudinary.service';
+import { cloudinary } from 'src/config/cloudinary.config'; // 👈 using existing cloudinary setup
+import * as fs from 'fs';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class OnboardingService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly cloudinary: CloudinaryService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-  async create(userId: string, dto: CreateOnboardingDto, homeImages: Express.Multer.File[]) {
-    const imageUrls: string[] = [];
+  async createOnboarding(
+    userId: string,
+    dto: CreateOnboardingDto,
+    files: Express.Multer.File[],
+  ) {
+    // ❗ 1. Check if onboarding already exists
+    const existing = await this.prisma.onboarding.findUnique({
+      where: { userId },
+    });
+    if (existing) throw new BadRequestException('User already onboarded');
 
-    if (homeImages?.length) {
-      for (const file of homeImages) {
-        const uploaded = await this.cloudinary.uploadImage(file);
-        imageUrls.push(uploaded.secure_url);
-      }
+    // ✅ 2. Upload images to Cloudinary
+    const uploadedImages: string[] = [];
+
+    for (const file of files) {
+      const result = await cloudinary.uploader.upload(file.path, {
+        folder: 'onboarding_images',
+        resource_type: 'image',
+      });
+      uploadedImages.push(result.secure_url);
+
+      // ✅ Clean up local file (optional)
+      fs.unlinkSync(file.path);
     }
 
-    // Handle nested relations like favoriteDestinations
-    const favoriteDestinations: Prisma.FavoriteDestinationCreateWithoutOnboardingInput[] =
-      dto.favoriteDestinations?.map((fd) => ({
-        type: fd.type,
-      })) || [];
-
+    // ✅ 3. Create Onboarding
     const onboarding = await this.prisma.onboarding.create({
       data: {
         userId,
-        homeAddress: dto.homeAddress,
-        destination: dto.destination,
-        ageRange: dto.ageRange,
-        gender: dto.gender,
-        employmentStatus: dto.employmentStatus,
-        travelType: dto.travelType,
-        travelMostlyWith: dto.travelMostlyWith,
-        isTravelWithPets: dto.isTravelWithPets ?? false,
-        notes: dto.notes,
-        propertyType: dto.propertyType,
-        isMainResidence: dto.isMainResidence,
-        homeName: dto.homeName,
-        homeDescription: dto.homeDescription,
-        aboutNeighborhood: dto.aboutNeighborhood,
-        homeImages: imageUrls,
-        isAvailableForExchange: dto.isAvailableForExchange ?? true,
-        availabilityStartDate: dto.availabilityStartDate,
-        availabilityEndDate: dto.availabilityEndDate,
-
+        ...dto,
+        isTravelWithPets: dto.isTravelWithPets ?? false, // 👈 FIX HERE
+        homeImages: uploadedImages,
         favoriteDestinations: {
-          create: favoriteDestinations,
+          create:
+            dto.favoriteDestinations?.map((d) => ({
+              type: d.type,
+            })) || [],
         },
-
         onboardedAmenities: {
-          create: dto.onboardedAmenities?.map((id) => ({
-            amenity: { connect: { id } },
-          })) || [],
+          create:
+            dto.onboardedAmenities?.map((id) => ({
+              amenity: { connect: { id } },
+            })) || [],
         },
         onboardedTransports: {
-          create: dto.onboardedTransports?.map((id) => ({
-            transport: { connect: { id } },
-          })) || [],
+          create:
+            dto.onboardedTransports?.map((id) => ({
+              transport: { connect: { id } },
+            })) || [],
         },
         onboardedSurroundings: {
-          create: dto.onboardedSurroundings?.map((id) => ({
-            surrounding: { connect: { id } },
-          })) || [],
+          create:
+            dto.onboardedSurroundings?.map((id) => ({
+              surrounding: { connect: { id } },
+            })) || [],
         },
       },
     });
 
     return onboarding;
-  }
-
-  async findByUserId(userId: string) {
-    const onboarding = await this.prisma.onboarding.findUnique({
-      where: { userId },
-      include: {
-        onboardedAmenities: { include: { amenity: true } },
-        onboardedTransports: { include: { transport: true } },
-        onboardedSurroundings: { include: { surrounding: true } },
-        favoriteDestinations: true,
-      },
-    });
-
-    if (!onboarding) throw new NotFoundException('Onboarding not found');
-
-    return onboarding;
-  }
-
-  async delete(userId: string) {
-    return this.prisma.onboarding.delete({
-      where: { userId },
-    });
   }
 }

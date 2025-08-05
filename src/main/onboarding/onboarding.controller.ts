@@ -1,21 +1,19 @@
-// src/onboarding/onboarding.controller.ts
 import {
-  Body,
   Controller,
-  Delete,
-  Get,
-  Param,
   Post,
   UploadedFiles,
+  Body,
   UseInterceptors,
+  UseGuards,
+  Req
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { OnboardingService } from './onboarding.service';
+import { diskStorage } from 'multer';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateOnboardingDto } from './dto/create-onboarding.dto';
-import { User } from '../user/user.decorator'; // custom auth decorator
-import { UserPayload } from 'src/common/interfaces/user-payload.interface';
-
+import { OnboardingService } from './onboarding.service';
+import { User } from 'src/common/decorators/user.decorator';
 
 @ApiTags('Onboarding')
 @Controller('onboarding')
@@ -23,24 +21,26 @@ export class OnboardingController {
   constructor(private readonly onboardingService: OnboardingService) {}
 
   @Post()
-  @UseInterceptors(FilesInterceptor('homeImages', 10))
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(
+    FilesInterceptor('homeImages', 5, {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          const filename = `${Date.now()}-${file.originalname}`;
+          cb(null, filename);
+        }
+      })
+    })
+  )
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: CreateOnboardingDto })
-  async create(
-    @UploadedFiles() homeImages: Express.Multer.File[],
-    @Body() body: CreateOnboardingDto,
- 
+  async createOnboarding(
+    @User() user: any,
+    @Body() dto: CreateOnboardingDto,
+    @UploadedFiles() files: Express.Multer.File[]
   ) {
-    return this.onboardingService.create(user.id, body, homeImages);
-  }
-
-  @Get(':userId')
-  async findByUserId(@Param('userId') userId: string) {
-    return this.onboardingService.findByUserId(userId);
-  }
-
-  @Delete(':userId')
-  async delete(@Param('userId') userId: string) {
-    return this.onboardingService.delete(userId);
+    return this.onboardingService.createOnboarding(user.id, dto, files);
   }
 }
