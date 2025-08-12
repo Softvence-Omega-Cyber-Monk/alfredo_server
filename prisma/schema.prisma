@@ -80,7 +80,7 @@ model Onboarding {
   gender               Gender?
   employmentStatus     EmploymentStatus?
   travelType           String[]
-  favoriteDestinations FavoriteDestination[]
+  favoriteDestinations DestinationType[]
   travelMostlyWith     TravelGroup?
   isTravelWithPets     Boolean
   notes                String?
@@ -154,13 +154,6 @@ model OnboardingSurrounding {
   surrounding   SurroundingType @relation(fields: [surroundingId], references: [id], onDelete: Cascade)
   surroundingId String
   createdAt     DateTime        @default(now())
-}
-
-model FavoriteDestination {
-  id           String          @id @default(cuid())
-  type         DestinationType
-  onboarding   Onboarding      @relation(fields: [onboardingId], references: [id])
-  onboardingId String
 }
 
 model Property {
@@ -288,11 +281,12 @@ model Payment {
 }
 
 model Contact {
-  id        String   @id @default(uuid())
-  name      String
-  email     String
-  opinion   String
-  createdAt DateTime @default(now())
+  id          String   @id @default(uuid())
+  name        String
+  email       String
+  phoneNumber String
+  opinion     String
+  createdAt   DateTime @default(now())
 }
 
 model FAQCategory {

@@ -17,6 +17,11 @@ export class CreateContactDto {
   email: string;
 
   @ApiProperty({
+    example: "+8801601146777",
+    description: 'Phone number of the person',
+  })
+
+  @ApiProperty({
     example: 'I really love your platform!',
     description: 'Message or opinion from the user',
   })

@@ -5,7 +5,7 @@ import {
   Body,
   UseInterceptors,
   UseGuards,
-  Req
+  Req,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -30,16 +30,16 @@ export class OnboardingController {
         filename: (req, file, cb) => {
           const filename = `${Date.now()}-${file.originalname}`;
           cb(null, filename);
-        }
-      })
-    })
+        },
+      }),
+    }),
   )
   @ApiConsumes('multipart/form-data')
   @ApiBody({ type: CreateOnboardingDto })
   async createOnboarding(
     @User() user: any,
     @Body() dto: CreateOnboardingDto,
-    @UploadedFiles() files: Express.Multer.File[]
+    @UploadedFiles() files: Express.Multer.File[],
   ) {
     return this.onboardingService.createOnboarding(user.id, dto, files);
   }
