@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -79,7 +76,7 @@ model Onboarding {
   ageRange             AgeRange?
   gender               Gender?
   employmentStatus     EmploymentStatus?
-  travelType           String[]
+  travelType           String
   favoriteDestinations DestinationType[]
   travelMostlyWith     TravelGroup?
   isTravelWithPets     Boolean
@@ -89,71 +86,47 @@ model Onboarding {
   propertyType    PropertyType?
   isMainResidence Boolean?
 
-  // Step 4: Amenities & Environment
-  onboardedAmenities    OnboardingAmenity[]
-  onboardedTransports   OnboardingTransport[]
-  onboardedSurroundings OnboardingSurrounding[]
-  // You can create similar models for transportOptions and surroundings
+  // Step 4: Amenities & Environment (One-to-Many)
+  amenities    Amenity[]         @relation("OnboardingAmenities")
+  transports   TransportOption[] @relation("OnboardingTransports")
+  surroundings SurroundingType[] @relation("OnboardingSurroundings")
 
   // Step 5: About Home
-  homeName          String? // e.g., "Cozy Family Retreat"
-  homeDescription   String? // e.g., "A lovely cabin near the woods with great sunlight"
-  aboutNeighborhood String? // e.g., "Quiet area with access to local parks and bakeries"
+  homeName          String?
+  homeDescription   String?
+  aboutNeighborhood String?
 
   // Step 6: Upload Photo
   homeImages String[] // Array of image URLs
 
   // Step 7: Home Availability
-  isAvailableForExchange Boolean   @default(true) // true = open, false = unavailable
+  isAvailableForExchange Boolean   @default(true)
   availabilityStartDate  DateTime?
   availabilityEndDate    DateTime?
 }
 
 model Amenity {
-  id          String              @id @default(cuid())
-  name        String              @unique
-  icon        String? // Optional icon reference
-  onboardings OnboardingAmenity[]
-}
-
-model OnboardingAmenity {
-  id           String     @id @default(cuid())
-  onboarding   Onboarding @relation(fields: [onboardingId], references: [id])
-  onboardingId String
-  amenity      Amenity    @relation(fields: [amenityId], references: [id])
-  amenityId    String
+  id           String      @id @default(cuid())
+  name         String
+  icon         String?
+  onboardingId String?
+  onboarding   Onboarding? @relation("OnboardingAmenities", fields: [onboardingId], references: [id])
 }
 
 model TransportOption {
-  id          String                @id @default(cuid())
-  name        String                @unique
-  icon        String?
-  onboardings OnboardingTransport[]
-}
-
-model OnboardingTransport {
-  id           String          @id @default(cuid())
-  onboarding   Onboarding      @relation(fields: [onboardingId], references: [id], onDelete: Cascade)
-  onboardingId String
-  transport    TransportOption @relation(fields: [transportId], references: [id], onDelete: Cascade)
-  transportId  String
-  createdAt    DateTime        @default(now())
+  id           String      @id @default(cuid())
+  name         String
+  icon         String?
+  onboardingId String?
+  onboarding   Onboarding? @relation("OnboardingTransports", fields: [onboardingId], references: [id])
 }
 
 model SurroundingType {
-  id          String                  @id @default(cuid())
-  name        String                  @unique
-  icon        String?
-  onboardings OnboardingSurrounding[]
-}
-
-model OnboardingSurrounding {
-  id            String          @id @default(cuid())
-  onboarding    Onboarding      @relation(fields: [onboardingId], references: [id], onDelete: Cascade)
-  onboardingId  String
-  surrounding   SurroundingType @relation(fields: [surroundingId], references: [id], onDelete: Cascade)
-  surroundingId String
-  createdAt     DateTime        @default(now())
+  id           String      @id @default(cuid())
+  name         String
+  icon         String?
+  onboardingId String?
+  onboarding   Onboarding? @relation("OnboardingSurroundings", fields: [onboardingId], references: [id])
 }
 
 model Property {
@@ -193,7 +166,6 @@ model Article {
   authorImage String
   lastUpdated DateTime @default(now())
   isFeatured  Boolean  @default(false)
-
   @@map("articles")
 }
 
@@ -207,7 +179,7 @@ model ChatMessage {
   sender   User @relation("Sender", fields: [senderId], references: [id])
   receiver User @relation("Receiver", fields: [receiverId], references: [id])
 
-  exchangeRequestId String? // Optional link to exchange request discussion
+  exchangeRequestId String? 
   exchangeRequest   ExchangeRequest? @relation(fields: [exchangeRequestId], references: [id])
 }
 

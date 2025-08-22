@@ -5,9 +5,8 @@ import {
   IsEnum,
   IsOptional,
   IsString,
-  ValidateNested,
 } from 'class-validator';
-import { Type } from 'class-transformer';
+import { ApiPropertyOptional } from '@nestjs/swagger';
 import {
   AgeRange,
   EmploymentStatus,
@@ -16,16 +15,10 @@ import {
   TravelGroup,
   DestinationType,
 } from '@prisma/client';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-
-class FavoriteDestinationDto {
-  @ApiProperty({ enum: DestinationType })
-  @IsEnum(DestinationType)
-  type: DestinationType;
-}
+import { Transform } from 'class-transformer';
 
 export class CreateOnboardingDto {
-  // Step 1
+  // Step 1: Home Listing
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
@@ -36,7 +29,7 @@ export class CreateOnboardingDto {
   @IsString()
   destination?: string;
 
-  // Step 2
+  // Step 2: Verification Info
   @ApiPropertyOptional({ enum: AgeRange })
   @IsOptional()
   @IsEnum(AgeRange)
@@ -52,18 +45,17 @@ export class CreateOnboardingDto {
   @IsEnum(EmploymentStatus)
   employmentStatus?: EmploymentStatus;
 
-  @ApiPropertyOptional({ type: [String] })
+  @ApiPropertyOptional({ type: [String], description: 'Travel types (will be stored as CSV)' })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   travelType?: string[];
 
-  @ApiPropertyOptional({ type: [FavoriteDestinationDto] })
+  @ApiPropertyOptional({ type: [String], enum: DestinationType, description: 'Favorite destinations' })
   @IsOptional()
   @IsArray()
-  @IsString({ each: true }) // ensures each item in the array is a string
-  @Type(() => String) // ensures incoming data is cast to string array
-  favoriteDestinations?: string[];
+  @IsEnum(DestinationType, { each: true })
+  favoriteDestinations?: DestinationType[];
 
   @ApiPropertyOptional({ enum: TravelGroup })
   @IsOptional()
@@ -80,7 +72,7 @@ export class CreateOnboardingDto {
   @IsString()
   notes?: string;
 
-  // Step 3
+  // Step 3: Property Type Info
   @ApiPropertyOptional({ enum: PropertyType })
   @IsOptional()
   @IsEnum(PropertyType)
@@ -91,26 +83,29 @@ export class CreateOnboardingDto {
   @IsBoolean()
   isMainResidence?: boolean;
 
-  // Step 4
-  @ApiPropertyOptional({ type: [String], description: 'Amenity IDs' })
+  // Step 4: Amenities, Transports & Surroundings (as codes)
+  @ApiPropertyOptional({ type: [String], description: 'Amenity codes' })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
+  @Transform(({ value }) => (typeof value === 'string' ? value.split(',').map(v => v.trim()) : value))
   onboardedAmenities?: string[];
 
-  @ApiPropertyOptional({ type: [String], description: 'Transport Option IDs' })
+  @ApiPropertyOptional({ type: [String], description: 'Transport option codes' })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
+  @Transform(({ value }) => (typeof value === 'string' ? value.split(',').map(v => v.trim()) : value))
   onboardedTransports?: string[];
 
-  @ApiPropertyOptional({ type: [String], description: 'Surrounding Type IDs' })
+  @ApiPropertyOptional({ type: [String], description: 'Surrounding type codes' })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
+  @Transform(({ value }) => (typeof value === 'string' ? value.split(',').map(v => v.trim()) : value))
   onboardedSurroundings?: string[];
 
-  // Step 5
+  // Step 5: About Home
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
@@ -126,9 +121,10 @@ export class CreateOnboardingDto {
   @IsString()
   aboutNeighborhood?: string;
 
-  // Step 6 – Images via req.files
+  // Step 6: Home images uploaded via req.files
+  // (No DTO field needed; handled in the service as files[])
 
-  // Step 7
+  // Step 7: Home Availability
   @ApiPropertyOptional({ default: true })
   @IsOptional()
   @IsBoolean()

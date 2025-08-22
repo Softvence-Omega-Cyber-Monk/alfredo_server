@@ -17,6 +17,8 @@ import { TwilioModule } from './main/twilio/twilio.module';
 import { ChatModule } from './main/chat/chat.module';
 import { ArticleModule } from './main/article/article.module';
 import { OnboardingModule } from './main/onboarding/onboarding.module';
+import { PropertyModule } from './main/property/property.module';
+import { ExchangeRequestModule } from './main/exchange-request/exchange-request.module';
 
 @Module({
   imports: [
@@ -35,6 +37,8 @@ import { OnboardingModule } from './main/onboarding/onboarding.module';
     ChatModule,
     ArticleModule,
     OnboardingModule,
+    PropertyModule,
+    ExchangeRequestModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, MailService, TwilioService],
