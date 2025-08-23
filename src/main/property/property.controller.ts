@@ -13,6 +13,7 @@ import {
 import { PropertyService } from './property.service';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiTags, ApiOperation, ApiBody, ApiConsumes, ApiParam } from '@nestjs/swagger';
+import { diskStorage } from 'multer';
 
 @ApiTags('Property')
 @Controller('property')
@@ -21,7 +22,14 @@ export class PropertyController {
 
   /** CREATE PROPERTY WITH FILES */
   @Post()
-  @UseInterceptors(FilesInterceptor('files'))
+  @UseInterceptors( FilesInterceptor('files', 5, {
+        storage: diskStorage({
+          destination: './uploads',
+          filename: (req, file, cb) => {
+            cb(null, `${Date.now()}-${file.originalname}`);
+          },
+        }),
+      }),)
   @ApiOperation({ summary: 'Create a new property with multiple images' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({

@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { User } from 'src/common/decorators/user.decorator';
 import { OnboardingService } from './onboarding.service';
@@ -21,6 +21,7 @@ import { CreateOnboardingDto } from './dto/create-onboarding.dto';
 import { CreateAmenityDto } from './dto/create-animity.dto';
 import { CreateTransportDto } from './dto/create-transport.dto';
 import { CreateSurroundingDto } from './dto/create-sorrouding.dto';
+import { get } from 'http';
 
 @ApiTags('Onboarding')
 @Controller('onboarding')
@@ -42,13 +43,33 @@ export class OnboardingController {
     }),
   )
   @ApiConsumes('multipart/form-data')
-  @ApiBody({ type: CreateOnboardingDto })
+   @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        data: { type: 'string', description: 'JSON string of property details' },
+        homeImages: {
+          type: 'array',
+          items: { type: 'string', format: 'binary' },
+        },
+      },
+    },
+  })
+    @ApiConsumes('multipart/form-data')
   async createOnboarding(
     @User() user: any,
-    @Body() dto: CreateOnboardingDto,
+    @Body('data') data:string,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    return this.onboardingService.createOnboarding(user.id, dto, files);
+     let parsedDto;
+    try {
+      parsedDto = JSON.parse(data);
+    } catch (error) {
+      throw new Error('Invalid JSON in data field');
+    }
+    console.log(parsedDto)
+    console.log(files)
+    return this.onboardingService.createOnboarding(user.id, parsedDto, files);
   }
 
   @Get()
@@ -61,6 +82,35 @@ export class OnboardingController {
       data: res,
     };
   }
+
+  
+@Get('user')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+async getOnboardByUser(@User() user:any) {
+  const id=user.id
+  const res = await this.onboardingService.getUserOnboarding(id);
+  return {
+    status: HttpStatus.OK,
+    success: true,
+    message: 'Onboarding Deleted',
+    data: res,
+  };
+}
+
+@Delete('onboard/:id')
+async deleteOnboard(@Param('id') id: string) {
+  console.log(id)
+  const res = await this.onboardingService.deleteOnboard(id);
+  return {
+    status: HttpStatus.OK,
+    success: true,
+    message: 'Onboarding Deleted',
+    data: res,
+  };
+}
+
+
 
   // ------------------ Amenities ------------------
   @Post('amenities')

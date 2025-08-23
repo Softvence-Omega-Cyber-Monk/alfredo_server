@@ -47,7 +47,6 @@ model User {
   exchangeRequestsReceived ExchangeRequest[] @relation("ToUser")
 
   notifications Notification[]
-
   // Onboarding relation
   onboarding Onboarding?
 }
@@ -73,11 +72,11 @@ model Onboarding {
   destination String?
 
   // Step 2: Verification Info
-  ageRange             AgeRange?
+  ageRange             String
   gender               Gender?
   employmentStatus     EmploymentStatus?
   travelType           String
-  favoriteDestinations DestinationType[]
+  favoriteDestinations String[]
   travelMostlyWith     TravelGroup?
   isTravelWithPets     Boolean
   notes                String?
@@ -86,7 +85,7 @@ model Onboarding {
   propertyType    PropertyType?
   isMainResidence Boolean?
 
-  // Step 4: Amenities & Environment (One-to-Many)
+  // Step 4: Amenities & Environment (Many-to-Many)
   amenities    Amenity[]         @relation("OnboardingAmenities")
   transports   TransportOption[] @relation("OnboardingTransports")
   surroundings SurroundingType[] @relation("OnboardingSurroundings")
@@ -106,28 +105,29 @@ model Onboarding {
 }
 
 model Amenity {
-  id           String      @id @default(cuid())
-  name         String
-  icon         String?
-  onboardingId String?
-  onboarding   Onboarding? @relation("OnboardingAmenities", fields: [onboardingId], references: [id])
+  id          String       @id @default(cuid())
+  name        String
+  icon        String?
+
+  onboardings Onboarding[] @relation("OnboardingAmenities")
 }
 
 model TransportOption {
-  id           String      @id @default(cuid())
-  name         String
-  icon         String?
-  onboardingId String?
-  onboarding   Onboarding? @relation("OnboardingTransports", fields: [onboardingId], references: [id])
+  id          String       @id @default(cuid())
+  name        String
+  icon        String?
+
+  onboardings Onboarding[] @relation("OnboardingTransports")
 }
 
 model SurroundingType {
-  id           String      @id @default(cuid())
-  name         String
-  icon         String?
-  onboardingId String?
-  onboarding   Onboarding? @relation("OnboardingSurroundings", fields: [onboardingId], references: [id])
+  id          String       @id @default(cuid())
+  name        String
+  icon        String?
+
+  onboardings Onboarding[] @relation("OnboardingSurroundings")
 }
+
 
 model Property {
   id          String   @id @default(uuid())
