@@ -84,6 +84,18 @@ export class StripePaymentService {
               isSubscribed: true
             }
           });
+
+          await this.prisma.payment.create({
+            data: {
+              subscription:{
+                connect: { id: subscription.id }
+              },
+              amount: session.amount_total ? session.amount_total / 100 : 0, 
+              currency: session.currency || 'USD',
+              status: 'SUCCESS',
+              
+            },
+          });
         }
         break;
 

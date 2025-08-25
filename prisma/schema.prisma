@@ -245,7 +245,6 @@ model Payment {
   amount         Float
   currency       String        @default("USD")
   status         PaymentStatus
-  transactionId  String        @unique
   subscriptionId String
 
   subscription Subscription @relation(fields: [subscriptionId], references: [id])

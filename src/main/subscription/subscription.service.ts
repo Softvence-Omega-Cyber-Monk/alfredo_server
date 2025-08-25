@@ -99,7 +99,7 @@ export class SubscriptionService {
               amount,
               currency: 'USD',
               status: PaymentStatus.SUCCESS, // ✅ Use enum value from Prisma
-              transactionId: session.payment_intent as string,
+             
             },
           },
         },
