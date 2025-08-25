@@ -1,9 +1,12 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Headers, BadRequestException, RawBodyRequest } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Headers, BadRequestException, RawBodyRequest, UseGuards } from '@nestjs/common';
 import { Request } from 'express';
 import { StripePaymentService } from './stripe-payment.service';
 import { CreateStripePaymentDto } from './dto/create-stripe-payment.dto';
 import { UpdateStripePaymentDto } from './dto/update-stripe-payment.dto';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { User } from 'src/common/decorators/user.decorator';
+
 
 @ApiTags('Stripe Payment')
 @Controller('stripe-payment')
@@ -11,13 +14,18 @@ export class StripePaymentController {
   constructor(private readonly stripePaymentService: StripePaymentService) {}
 
   /** Checkout Session */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
   @Post('checkout')
+  
   @ApiBody({ type: CreateStripePaymentDto })
-  async checkout(@Body() body: CreateStripePaymentDto) {
+  async checkout(@User() user:any,@Body() body: CreateStripePaymentDto,) {
+    console.log(user)
     return this.stripePaymentService.createCheckoutSession(
       body.priceId,
-      body.successUrl,
-      body.cancelUrl,
+      user,
+      body.planId,
+      body.planDuration
     );
   }
 

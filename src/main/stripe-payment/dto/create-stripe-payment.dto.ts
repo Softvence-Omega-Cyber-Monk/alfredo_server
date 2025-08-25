@@ -4,9 +4,9 @@ export class CreateStripePaymentDto {
     @ApiProperty({ example: 'price_1RuIsDCiM0crZsfwlscvEMHT' })
   priceId: string;
 
-  @ApiProperty({ example: 'https://example.com/success' })
-  successUrl: string;
+  @ApiProperty({ example: '1503ad99-f64b-4181-8bdb-767def84a517' })
+  planId: string;
 
-  @ApiProperty({ example: 'https://example.com/cancel' })
-  cancelUrl: string;
+  @ApiProperty({ example: 1 })
+  planDuration: number
 }
