@@ -29,7 +29,10 @@ export class ExchangeRequestController {
   @Post()
   @ApiOperation({ summary: 'Create a new exchange request' })
   @ApiBody({ type: CreateExchangeRequestDto })
-  @ApiResponse({ status: 201, description: 'Exchange request created successfully' })
+  @ApiResponse({
+    status: 201,
+    description: 'Exchange request created successfully',
+  })
   create(@Body() createExchangeRequestDto: CreateExchangeRequestDto) {
     return this.exchangeRequestService.create(createExchangeRequestDto);
   }
@@ -57,7 +60,10 @@ export class ExchangeRequestController {
   @ApiOperation({ summary: 'Update an exchange request by ID' })
   @ApiParam({ name: 'id', description: 'Exchange request UUID' })
   @ApiBody({ type: UpdateExchangeRequestDto })
-  @ApiResponse({ status: 200, description: 'Exchange request updated successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Exchange request updated successfully',
+  })
   update(
     @Param('id') id: string,
     @Body() updateExchangeRequestDto: UpdateExchangeRequestDto,
@@ -69,7 +75,10 @@ export class ExchangeRequestController {
   @Delete(':id')
   @ApiOperation({ summary: 'Delete an exchange request by ID' })
   @ApiParam({ name: 'id', description: 'Exchange request UUID' })
-  @ApiResponse({ status: 200, description: 'Exchange request deleted successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Exchange request deleted successfully',
+  })
   @ApiResponse({ status: 404, description: 'Exchange request not found' })
   remove(@Param('id') id: string) {
     return this.exchangeRequestService.remove(id);

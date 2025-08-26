@@ -9,18 +9,27 @@ export class ExchangeRequestService {
 
   /** CREATE */
   async create(createDto: CreateExchangeRequestDto) {
-    console.log(createDto)
+    console.log(createDto);
     // Validate related users
-    const fromUser = await this.prisma.pendingUser.findUnique({ where: { id: createDto.fromUserId } });
-    console.log(fromUser)
-    const toUser = await this.prisma.pendingUser.findUnique({ where: { id: createDto.toUserId } });
+    const fromUser = await this.prisma.pendingUser.findUnique({
+      where: { id: createDto.fromUserId },
+    });
+    console.log(fromUser);
+    const toUser = await this.prisma.pendingUser.findUnique({
+      where: { id: createDto.toUserId },
+    });
     if (!toUser) throw new NotFoundException('toUserId does not exist');
 
     // Validate related properties
-    const fromProperty = await this.prisma.property.findUnique({ where: { id: createDto.fromPropertyId } });
-    if (!fromProperty) throw new NotFoundException('fromPropertyId does not exist');
+    const fromProperty = await this.prisma.property.findUnique({
+      where: { id: createDto.fromPropertyId },
+    });
+    if (!fromProperty)
+      throw new NotFoundException('fromPropertyId does not exist');
 
-    const toProperty = await this.prisma.property.findUnique({ where: { id: createDto.toPropertyId } });
+    const toProperty = await this.prisma.property.findUnique({
+      where: { id: createDto.toPropertyId },
+    });
     if (!toProperty) throw new NotFoundException('toPropertyId does not exist');
 
     // Create ExchangeRequest with proper relations
@@ -68,21 +77,29 @@ export class ExchangeRequestService {
         chatMessages: true,
       },
     });
-    if (!exchangeRequest) throw new NotFoundException(`ExchangeRequest with ID ${id} not found`);
+    if (!exchangeRequest)
+      throw new NotFoundException(`ExchangeRequest with ID ${id} not found`);
     return exchangeRequest;
   }
 
   /** UPDATE */
   async update(id: string, updateDto: UpdateExchangeRequestDto) {
-    const existing = await this.prisma.exchangeRequest.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException(`ExchangeRequest with ID ${id} not found`);
+    const existing = await this.prisma.exchangeRequest.findUnique({
+      where: { id },
+    });
+    if (!existing)
+      throw new NotFoundException(`ExchangeRequest with ID ${id} not found`);
 
     // Handle foreign keys if included in update
     const data: any = { ...updateDto };
-    if (updateDto.fromUserId) data.fromUser = { connect: { id: updateDto.fromUserId } };
-    if (updateDto.toUserId) data.toUser = { connect: { id: updateDto.toUserId } };
-    if (updateDto.fromPropertyId) data.fromProperty = { connect: { id: updateDto.fromPropertyId } };
-    if (updateDto.toPropertyId) data.toProperty = { connect: { id: updateDto.toPropertyId } };
+    if (updateDto.fromUserId)
+      data.fromUser = { connect: { id: updateDto.fromUserId } };
+    if (updateDto.toUserId)
+      data.toUser = { connect: { id: updateDto.toUserId } };
+    if (updateDto.fromPropertyId)
+      data.fromProperty = { connect: { id: updateDto.fromPropertyId } };
+    if (updateDto.toPropertyId)
+      data.toProperty = { connect: { id: updateDto.toPropertyId } };
 
     return this.prisma.exchangeRequest.update({
       where: { id },
@@ -99,8 +116,11 @@ export class ExchangeRequestService {
 
   /** DELETE */
   async remove(id: string) {
-    const existing = await this.prisma.exchangeRequest.findUnique({ where: { id } });
-    if (!existing) throw new NotFoundException(`ExchangeRequest with ID ${id} not found`);
+    const existing = await this.prisma.exchangeRequest.findUnique({
+      where: { id },
+    });
+    if (!existing)
+      throw new NotFoundException(`ExchangeRequest with ID ${id} not found`);
 
     await this.prisma.exchangeRequest.delete({ where: { id } });
     return { message: `ExchangeRequest with ID ${id} deleted successfully` };

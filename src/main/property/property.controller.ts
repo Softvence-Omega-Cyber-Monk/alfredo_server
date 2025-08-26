@@ -13,7 +13,14 @@ import {
 } from '@nestjs/common';
 import { PropertyService } from './property.service';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiOperation, ApiBody, ApiConsumes, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBody,
+  ApiConsumes,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { diskStorage } from 'multer';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
@@ -23,24 +30,29 @@ export class PropertyController {
   constructor(private readonly ProperService: PropertyService) {}
 
   /** CREATE PROPERTY WITH FILES */
-    @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Post()
-  @UseInterceptors( FilesInterceptor('files', 5, {
-        storage: diskStorage({
-          destination: './uploads',
-          filename: (req, file, cb) => {
-            cb(null, `${Date.now()}-${file.originalname}`);
-          },
-        }),
-      }),)
+  @UseInterceptors(
+    FilesInterceptor('files', 5, {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          cb(null, `${Date.now()}-${file.originalname}`);
+        },
+      }),
+    }),
+  )
   @ApiOperation({ summary: 'Create a new property with multiple images' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
       type: 'object',
       properties: {
-        data: { type: 'string', description: 'JSON string of property details' },
+        data: {
+          type: 'string',
+          description: 'JSON string of property details',
+        },
         files: {
           type: 'array',
           items: { type: 'string', format: 'binary' },
@@ -65,7 +77,7 @@ export class PropertyController {
   }
 
   /** GET ALL PROPERTIES */
-    @ApiBearerAuth()
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get()
   @ApiOperation({ summary: 'Get all properties' })
@@ -74,7 +86,7 @@ export class PropertyController {
   }
 
   /** GET PROPERTY BY ID */
-    @ApiBearerAuth()
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Get property by ID' })
@@ -84,7 +96,7 @@ export class PropertyController {
   }
 
   /** UPDATE PROPERTY */
-    @ApiBearerAuth()
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   @UseInterceptors(FilesInterceptor('files'))
@@ -95,7 +107,10 @@ export class PropertyController {
     schema: {
       type: 'object',
       properties: {
-        data: { type: 'string', description: 'JSON string of updated property fields' },
+        data: {
+          type: 'string',
+          description: 'JSON string of updated property fields',
+        },
         files: {
           type: 'array',
           items: { type: 'string', format: 'binary' },
@@ -120,7 +135,7 @@ export class PropertyController {
   }
 
   /** DELETE PROPERTY */
-    @ApiBearerAuth()
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a property by ID' })

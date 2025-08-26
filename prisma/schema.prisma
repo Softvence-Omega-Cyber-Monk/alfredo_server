@@ -14,7 +14,7 @@ model PendingUser {
   phoneNumber String?  @unique
   password    String
   createdAt   DateTime @default(now())
-  referralCode  String?   @unique 
+  referralCode  String? 
   otps OtpVerification[] @relation("PendingUserOtp")
 }
 

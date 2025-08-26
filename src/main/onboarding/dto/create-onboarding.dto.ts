@@ -45,13 +45,20 @@ export class CreateOnboardingDto {
   @IsEnum(EmploymentStatus)
   employmentStatus?: EmploymentStatus;
 
-  @ApiPropertyOptional({ type: [String], description: 'Travel types (will be stored as CSV)' })
+  @ApiPropertyOptional({
+    type: [String],
+    description: 'Travel types (will be stored as CSV)',
+  })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
   travelType?: string[];
 
-  @ApiPropertyOptional({ type: [String], enum: DestinationType, description: 'Favorite destinations' })
+  @ApiPropertyOptional({
+    type: [String],
+    enum: DestinationType,
+    description: 'Favorite destinations',
+  })
   @IsOptional()
   @IsArray()
   @IsEnum(DestinationType, { each: true })
@@ -88,21 +95,33 @@ export class CreateOnboardingDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  @Transform(({ value }) => (typeof value === 'string' ? value.split(',').map(v => v.trim()) : value))
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.split(',').map((v) => v.trim()) : value,
+  )
   onboardedAmenities?: string[];
 
-  @ApiPropertyOptional({ type: [String], description: 'Transport option codes' })
+  @ApiPropertyOptional({
+    type: [String],
+    description: 'Transport option codes',
+  })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  @Transform(({ value }) => (typeof value === 'string' ? value.split(',').map(v => v.trim()) : value))
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.split(',').map((v) => v.trim()) : value,
+  )
   onboardedTransports?: string[];
 
-  @ApiPropertyOptional({ type: [String], description: 'Surrounding type codes' })
+  @ApiPropertyOptional({
+    type: [String],
+    description: 'Surrounding type codes',
+  })
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  @Transform(({ value }) => (typeof value === 'string' ? value.split(',').map(v => v.trim()) : value))
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.split(',').map((v) => v.trim()) : value,
+  )
   onboardedSurroundings?: string[];
 
   // Step 5: About Home

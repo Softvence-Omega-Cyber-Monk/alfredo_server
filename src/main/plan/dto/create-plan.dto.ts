@@ -1,4 +1,10 @@
-import { IsEnum, IsNumber, IsOptional, IsString, IsArray } from 'class-validator';
+import {
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsArray,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PlanType, PlanStatus } from '@prisma/client';
 
@@ -26,7 +32,11 @@ export class CreatePlanDto {
   price: number;
 
   @ApiProperty({
-    example: ['Unlimited content access', 'Priority support', 'Community access'],
+    example: [
+      'Unlimited content access',
+      'Priority support',
+      'Community access',
+    ],
     description: 'List of features included in the plan',
     type: [String],
   })

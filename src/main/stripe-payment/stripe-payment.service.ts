@@ -1,4 +1,10 @@
-import { BadRequestException, HttpException, Injectable, RawBodyRequest, Search } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpException,
+  Injectable,
+  RawBodyRequest,
+  Search,
+} from '@nestjs/common';
 
 import { UpdateStripePaymentDto } from './dto/update-stripe-payment.dto';
 import Stripe from 'stripe';
@@ -10,11 +16,14 @@ export class StripePaymentService {
   private stripe: Stripe;
 
   constructor(private prisma: PrismaService) {
-    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-
-    });
+    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {});
   }
-  async createCheckoutSession(priceId: string, user: any, planId: string, planDuration: any) {
+  async createCheckoutSession(
+    priceId: string,
+    user: any,
+    planId: string,
+    planDuration: any,
+  ) {
     const price = await this.stripe.prices.retrieve(priceId);
 
     const session = await this.stripe.checkout.sessions.create({
@@ -25,10 +34,10 @@ export class StripePaymentService {
       metadata: {
         userId: user?.id || user, // store userId
         planId: planId,
-        planDuration: planDuration        // store plan or product id
+        planDuration: planDuration, // store plan or product id
       },
     });
-    console.log(session)
+    console.log(session);
     return { url: session.url };
   }
 
@@ -36,7 +45,7 @@ export class StripePaymentService {
   async handleWebhook(req: RawBodyRequest<Request>) {
     let event: Stripe.Event;
     const rawBody = req.rawBody;
-    console.log(rawBody)
+    console.log(rawBody);
     const signature = req.headers['stripe-signature'] as string;
     if (!rawBody) {
       throw new BadRequestException('No webhook payload was provided.');
@@ -46,7 +55,7 @@ export class StripePaymentService {
       event = this.stripe.webhooks.constructEvent(
         rawBody,
         signature,
-        'whsec_a968f12ed41a71610da91cb2837041cd465858bdac3e80686104922aba1ed644',
+        'whsec_xCqIv09l79FgqbcoMRXjJwdDBNngRfON',
       );
     } catch {
       throw new BadRequestException('Invalid Stripe signature');
@@ -57,13 +66,22 @@ export class StripePaymentService {
       case 'checkout.session.completed':
         const session = event.data.object as Stripe.Checkout.Session;
         if (session.payment_status === 'paid') {
-          console.log('💰 Payment success:')
-          console.log('💰 Payment success:', session.id, session.customer_email);
+          console.log('💰 Payment success:');
+          console.log(
+            '💰 Payment success:',
+            session.id,
+            session.customer_email,
+          );
           const userId = session.metadata?.userId;
           const planId = session.metadata?.planId;
-          const planDuration = parseInt(session.metadata?.planDuration || '1', 10);
+          const planDuration = parseInt(
+            session.metadata?.planDuration || '1',
+            10,
+          );
           if (!userId || !planId) {
-            console.warn('⚠️ Missing metadata: cannot create subscription record');
+            console.warn(
+              '⚠️ Missing metadata: cannot create subscription record',
+            );
             return;
           }
           const startDate = new Date();
@@ -74,26 +92,25 @@ export class StripePaymentService {
             data: {
               userId: userId,
               planId: planId,
-              endDate: endDate
-            }
-          })
-          console.log(subscription)
+              endDate: endDate,
+            },
+          });
+          console.log(subscription);
           await this.prisma.user.update({
             where: { id: userId },
             data: {
-              isSubscribed: true
-            }
+              isSubscribed: true,
+            },
           });
 
           await this.prisma.payment.create({
             data: {
-              subscription:{
-                connect: { id: subscription.id }
+              subscription: {
+                connect: { id: subscription.id },
               },
-              amount: session.amount_total ? session.amount_total / 100 : 0, 
+              amount: session.amount_total ? session.amount_total / 100 : 0,
               currency: session.currency || 'USD',
               status: 'SUCCESS',
-              
             },
           });
         }
@@ -114,12 +131,22 @@ export class StripePaymentService {
     return { received: true };
   }
   async findAll() {
-   try{
-     const response = this.prisma.payment.findMany();
-    return response;
-   }catch(error){
-    throw new HttpException('Faild to fectch All Payments',500)
-   }
+    try {
+      const response =await this.prisma.payment.findMany();
+      const summary = await this.prisma.payment.aggregate({
+        _sum: { amount: true },
+        _count: true,
+        _avg: { amount: true },
+      });
+      return {
+        response,
+        totalAmount: summary._sum.amount || 0,
+        totalCount: summary._count || 0,
+        averageAmount: summary._avg.amount || 0,
+      };
+    } catch (error) {
+      throw new HttpException('Faild to fectch All Payments', 500);
+    }
   }
 
   findOne(id: number) {

@@ -10,7 +10,6 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { OtpService } from './services/otp.service';
 import { AuthController } from './auth.controller';
 
-
 @Module({
   imports: [
     ConfigModule.forRoot(), // Add this to load environment variables
@@ -22,16 +21,16 @@ import { AuthController } from './auth.controller';
       }),
       inject: [ConfigService],
     }),
-    TwilioModule
+    TwilioModule,
   ],
   providers: [
-    AuthService, 
-    PrismaService, 
-    JwtStrategy, 
-    MailService, 
-    JwtAuthGuard, 
+    AuthService,
+    PrismaService,
+    JwtStrategy,
+    MailService,
+    JwtAuthGuard,
     OtpService,
-    ConfigService // Add ConfigService to providers
+    ConfigService, // Add ConfigService to providers
   ],
   controllers: [AuthController],
 })

@@ -3,6 +3,7 @@ import {
   IsEmail,
   IsIn,
   IsNotEmpty,
+  IsOptional,
   IsString,
   IsUUID,
   Length,
@@ -26,6 +27,14 @@ export class RegisterDto {
   @IsNotEmpty()
   lastName: string;
 
+  @ApiProperty({
+    example: 'REF12345',
+    description: 'Referral code (optional)',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  referralCode?: string;
   @ApiProperty({
     example: 'rahmanaq777@gmail.com',
     description: 'User email address',

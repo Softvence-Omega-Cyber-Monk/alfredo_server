@@ -99,7 +99,6 @@ export class SubscriptionService {
               amount,
               currency: 'USD',
               status: PaymentStatus.SUCCESS, // ✅ Use enum value from Prisma
-             
             },
           },
         },
@@ -112,26 +111,25 @@ export class SubscriptionService {
   }
 
   async findAllPayments() {
-  return this.prisma.payment.findMany({
-    include: {
-      subscription: {
-        include: {
-          user: {
-            select: {
-              id: true,
-              fullName: true,
-              email: true,
-              phoneNumber: true,
+    return this.prisma.payment.findMany({
+      include: {
+        subscription: {
+          include: {
+            user: {
+              select: {
+                id: true,
+                fullName: true,
+                email: true,
+                phoneNumber: true,
+              },
             },
+            plan: true,
           },
-          plan: true,
         },
       },
-    },
-    orderBy: { createdAt: 'desc' },
-  });
-}
-
+      orderBy: { createdAt: 'desc' },
+    });
+  }
 
   async findSubscriptions(userId: string) {
     return this.prisma.subscription.findMany({

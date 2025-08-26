@@ -11,7 +11,9 @@ export class CreateExchangeRequestDto {
   @ApiProperty({ description: 'ID of the property offered by the sender' })
   fromPropertyId: string;
 
-  @ApiProperty({ description: 'ID of the property requested from the receiver' })
+  @ApiProperty({
+    description: 'ID of the property requested from the receiver',
+  })
   toPropertyId: string;
 
   @ApiProperty({ description: 'Optional message' })

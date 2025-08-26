@@ -11,7 +11,10 @@ import { CreateSurroundingDto } from './dto/create-sorrouding.dto';
 export class OnboardingService {
   constructor(private readonly prisma: PrismaService) {}
 
-  private async uploadFile(file: Express.Multer.File, folder: string): Promise<string> {
+  private async uploadFile(
+    file: Express.Multer.File,
+    folder: string,
+  ): Promise<string> {
     try {
       const result = await cloudinary.uploader.upload(file.path, {
         folder,
@@ -26,103 +29,109 @@ export class OnboardingService {
   }
 
   // -------------------- Onboarding --------------------
-async createOnboarding(
-  userId: string,
-  dto: any,
-  files?: Express.Multer.File[],
-) {
-  // 1️⃣ Upload images if any
-  const uploadedImages: string[] = [];
-  if (files?.length) {
-    for (const file of files) {
-      const url = await this.uploadFile(file, 'onboarding_images'); // your upload function
-      uploadedImages.push(url);
+  async createOnboarding(
+    userId: string,
+    dto: any,
+    files?: Express.Multer.File[],
+  ) {
+    // 1️⃣ Upload images if any
+    const uploadedImages: string[] = [];
+    if (files?.length) {
+      for (const file of files) {
+        const url = await this.uploadFile(file, 'onboarding_images'); // your upload function
+        uploadedImages.push(url);
+      }
     }
+
+    // 2️⃣ Map amenities, transports, surroundings to Prisma connect format
+    const amenitiesArray = Array.isArray(dto.amenities)
+      ? dto.amenities.map((id) => ({ id }))
+      : [];
+
+    const transportsArray = Array.isArray(dto.transports)
+      ? dto.transports.map((id) => ({ id }))
+      : [];
+
+    const surroundingsArray = Array.isArray(dto.surroundings)
+      ? dto.surroundings.map((id) => ({ id }))
+      : [];
+
+    // 3️⃣ Set default booleans
+    const isMainResidence = dto.isMainResidence ?? false;
+    const isTravelWithPets = dto.isTravelWithPets ?? false;
+    const isAvailableForExchange = true; // always true by default
+
+    // 4️⃣ Check if onboarding already exists
+    const existing = await this.prisma.onboarding.findUnique({
+      where: { userId },
+    });
+    if (existing) {
+      throw new Error('User already has an onboarding record');
+    }
+
+    // 5️⃣ Create onboarding
+    const onboarding = await this.prisma.onboarding.create({
+      data: {
+        userId,
+        homeAddress: dto.homeAddress,
+        destination: dto.destination,
+        ageRange: dto.ageRange,
+        gender: dto.gender,
+        employmentStatus: dto.employmentStatus,
+        travelType: dto.travelType,
+        favoriteDestinations: Array.isArray(dto.favoriteDestinations)
+          ? dto.favoriteDestinations
+          : [],
+        travelMostlyWith: dto.travelMostlyWith,
+        isTravelWithPets,
+        notes: dto.notes,
+        propertyType: dto.propertyType,
+        isMainResidence,
+        homeName: dto.homeName,
+        homeDescription: dto.homeDescription,
+        aboutNeighborhood: dto.aboutNeighborhood,
+        homeImages: uploadedImages,
+        isAvailableForExchange,
+        availabilityStartDate: dto.availabilityStartDate,
+        availabilityEndDate: dto.availabilityEndDate,
+
+        // Connect relations
+        amenities: { connect: amenitiesArray },
+        transports: { connect: transportsArray },
+        surroundings: { connect: surroundingsArray },
+      },
+      include: {
+        amenities: true,
+        transports: true,
+        surroundings: true,
+      },
+    });
+
+    return onboarding;
   }
-
-  // 2️⃣ Map amenities, transports, surroundings to Prisma connect format
-  const amenitiesArray = Array.isArray(dto.amenities)
-    ? dto.amenities.map(id => ({ id }))
-    : [];
-
-  const transportsArray = Array.isArray(dto.transports)
-    ? dto.transports.map(id => ({ id }))
-    : [];
-
-  const surroundingsArray = Array.isArray(dto.surroundings)
-    ? dto.surroundings.map(id => ({ id }))
-    : [];
-
-  // 3️⃣ Set default booleans
-  const isMainResidence = dto.isMainResidence ?? false;
-  const isTravelWithPets = dto.isTravelWithPets ?? false;
-  const isAvailableForExchange = true; // always true by default
-
-  // 4️⃣ Check if onboarding already exists
-  const existing = await this.prisma.onboarding.findUnique({ where: { userId } });
-  if (existing) {
-    throw new Error('User already has an onboarding record');
-  }
-
-  // 5️⃣ Create onboarding
-  const onboarding = await this.prisma.onboarding.create({
-    data: {
-      userId,
-      homeAddress: dto.homeAddress,
-      destination: dto.destination,
-      ageRange: dto.ageRange,
-      gender: dto.gender,
-      employmentStatus: dto.employmentStatus,
-      travelType: dto.travelType,
-      favoriteDestinations: Array.isArray(dto.favoriteDestinations) ? dto.favoriteDestinations : [],
-      travelMostlyWith: dto.travelMostlyWith,
-      isTravelWithPets,
-      notes: dto.notes,
-      propertyType: dto.propertyType,
-      isMainResidence,
-      homeName: dto.homeName,
-      homeDescription: dto.homeDescription,
-      aboutNeighborhood: dto.aboutNeighborhood,
-      homeImages: uploadedImages,
-      isAvailableForExchange,
-      availabilityStartDate: dto.availabilityStartDate,
-      availabilityEndDate: dto.availabilityEndDate,
-
-      // Connect relations
-      amenities: { connect: amenitiesArray },
-      transports: { connect: transportsArray },
-      surroundings: { connect: surroundingsArray },
-    },
-    include: {
-      amenities: true,
-      transports: true,
-      surroundings: true,
-    },
-  });
-
-  return onboarding;
-}
   async getAllOnboard() {
     return this.prisma.onboarding.findMany({
       include: { amenities: true, transports: true, surroundings: true },
     });
   }
 
-
   async getUserOnboarding(userId: string) {
     const onboarding = await this.prisma.onboarding.findUnique({
       where: { userId },
       include: { amenities: true, transports: true, surroundings: true },
     });
-    if (!onboarding) throw new BadRequestException('User has not completed onboarding');
+    if (!onboarding)
+      throw new BadRequestException('User has not completed onboarding');
     return onboarding;
   }
 
   async deleteOnboard(id: string) {
-    console.log(id)
-    const res = await this.prisma.onboarding.delete({ where: {
-      id:id
-    } });
+    console.log(id);
+    const res = await this.prisma.onboarding.delete({
+      where: {
+        id: id,
+      },
+    });
     return res;
   }
 
@@ -161,21 +170,36 @@ async createOnboarding(
 
   // -------------------- Amenity CRUD --------------------
   async createAmenity(dto: CreateAmenityDto, files?: Express.Multer.File[]) {
-    const existing = await this.prisma.amenity.findFirst({ where: { name: dto.name } });
+    const existing = await this.prisma.amenity.findFirst({
+      where: { name: dto.name },
+    });
     if (existing) throw new BadRequestException('Amenity exists');
 
-    const iconUrl = files?.[0] ? await this.uploadFile(files[0], 'amenity_icons') : null;
+    const iconUrl = files?.[0]
+      ? await this.uploadFile(files[0], 'amenity_icons')
+      : null;
 
-    return this.prisma.amenity.create({ data: { name: dto.name, icon: iconUrl } });
+    return this.prisma.amenity.create({
+      data: { name: dto.name, icon: iconUrl },
+    });
   }
 
-  async updateAmenity(id: string, dto: Partial<CreateAmenityDto>, files?: Express.Multer.File[]) {
+  async updateAmenity(
+    id: string,
+    dto: Partial<CreateAmenityDto>,
+    files?: Express.Multer.File[],
+  ) {
     const amenity = await this.prisma.amenity.findUnique({ where: { id } });
     if (!amenity) throw new BadRequestException('Amenity not found');
 
-    const iconUrl = files?.[0] ? await this.uploadFile(files[0], 'amenity_icons') : amenity.icon;
+    const iconUrl = files?.[0]
+      ? await this.uploadFile(files[0], 'amenity_icons')
+      : amenity.icon;
 
-    return this.prisma.amenity.update({ where: { id }, data: { ...dto, icon: iconUrl } });
+    return this.prisma.amenity.update({
+      where: { id },
+      data: { ...dto, icon: iconUrl },
+    });
   }
 
   async deleteAmenity(id: string) {
@@ -195,24 +219,46 @@ async createOnboarding(
   }
 
   // -------------------- Transport CRUD --------------------
-  async createTransport(dto: CreateTransportDto, files?: Express.Multer.File[]) {
-    const existing = await this.prisma.transportOption.findFirst({ where: { name: dto.name } });
+  async createTransport(
+    dto: CreateTransportDto,
+    files?: Express.Multer.File[],
+  ) {
+    const existing = await this.prisma.transportOption.findFirst({
+      where: { name: dto.name },
+    });
     if (existing) throw new BadRequestException('Transport exists');
 
-    const iconUrl = files?.[0] ? await this.uploadFile(files[0], 'transport_icons') : null;
-    return this.prisma.transportOption.create({ data: { name: dto.name, icon: iconUrl } });
+    const iconUrl = files?.[0]
+      ? await this.uploadFile(files[0], 'transport_icons')
+      : null;
+    return this.prisma.transportOption.create({
+      data: { name: dto.name, icon: iconUrl },
+    });
   }
 
-  async updateTransport(id: string, dto: Partial<CreateTransportDto>, files?: Express.Multer.File[]) {
-    const transport = await this.prisma.transportOption.findUnique({ where: { id } });
+  async updateTransport(
+    id: string,
+    dto: Partial<CreateTransportDto>,
+    files?: Express.Multer.File[],
+  ) {
+    const transport = await this.prisma.transportOption.findUnique({
+      where: { id },
+    });
     if (!transport) throw new BadRequestException('Transport not found');
 
-    const iconUrl = files?.[0] ? await this.uploadFile(files[0], 'transport_icons') : transport.icon;
-    return this.prisma.transportOption.update({ where: { id }, data: { ...dto, icon: iconUrl } });
+    const iconUrl = files?.[0]
+      ? await this.uploadFile(files[0], 'transport_icons')
+      : transport.icon;
+    return this.prisma.transportOption.update({
+      where: { id },
+      data: { ...dto, icon: iconUrl },
+    });
   }
 
   async deleteTransport(id: string) {
-    const transport = await this.prisma.transportOption.findUnique({ where: { id } });
+    const transport = await this.prisma.transportOption.findUnique({
+      where: { id },
+    });
     if (!transport) throw new BadRequestException('Transport not found');
     return this.prisma.transportOption.delete({ where: { id } });
   }
@@ -222,30 +268,54 @@ async createOnboarding(
   }
 
   async getTransportById(id: string) {
-    const transport = await this.prisma.transportOption.findUnique({ where: { id } });
+    const transport = await this.prisma.transportOption.findUnique({
+      where: { id },
+    });
     if (!transport) throw new BadRequestException('Transport not found');
     return transport;
   }
 
   // -------------------- Surrounding CRUD --------------------
-  async createSurrounding(dto: CreateSurroundingDto, files?: Express.Multer.File[]) {
-    const existing = await this.prisma.surroundingType.findFirst({ where: { name: dto.name } });
+  async createSurrounding(
+    dto: CreateSurroundingDto,
+    files?: Express.Multer.File[],
+  ) {
+    const existing = await this.prisma.surroundingType.findFirst({
+      where: { name: dto.name },
+    });
     if (existing) throw new BadRequestException('Surrounding exists');
 
-    const iconUrl = files?.[0] ? await this.uploadFile(files[0], 'surrounding_icons') : null;
-    return this.prisma.surroundingType.create({ data: { name: dto.name, icon: iconUrl } });
+    const iconUrl = files?.[0]
+      ? await this.uploadFile(files[0], 'surrounding_icons')
+      : null;
+    return this.prisma.surroundingType.create({
+      data: { name: dto.name, icon: iconUrl },
+    });
   }
 
-  async updateSurrounding(id: string, dto: Partial<CreateSurroundingDto>, files?: Express.Multer.File[]) {
-    const surrounding = await this.prisma.surroundingType.findUnique({ where: { id } });
+  async updateSurrounding(
+    id: string,
+    dto: Partial<CreateSurroundingDto>,
+    files?: Express.Multer.File[],
+  ) {
+    const surrounding = await this.prisma.surroundingType.findUnique({
+      where: { id },
+    });
     if (!surrounding) throw new BadRequestException('Surrounding not found');
 
-    const iconUrl = files?.[0] ? await this.uploadFile(files[0], 'surrounding_icons') : surrounding.icon;
-    return this.prisma.surroundingType.update({ where: { id }, data: { ...dto, icon: iconUrl } });
+    const iconUrl = files?.[0]
+      ? await this.uploadFile(files[0], 'surrounding_icons')
+      : surrounding.icon;
+    return this.prisma.surroundingType.update({
+      where: { id },
+      data: { ...dto, icon: iconUrl },
+    });
   }
 
   async deleteSurrounding(id: string) {
-    const surrounding = await this.prisma.surroundingType.findUnique({ where: { id } });
+    const surrounding = await this.prisma.surroundingType.findUnique({
+      where: { id },
+    });
     if (!surrounding) throw new BadRequestException('Surrounding not found');
     return this.prisma.surroundingType.delete({ where: { id } });
   }
@@ -255,7 +325,9 @@ async createOnboarding(
   }
 
   async getSurroundingById(id: string) {
-    const surrounding = await this.prisma.surroundingType.findUnique({ where: { id } });
+    const surrounding = await this.prisma.surroundingType.findUnique({
+      where: { id },
+    });
     if (!surrounding) throw new BadRequestException('Surrounding not found');
     return surrounding;
   }

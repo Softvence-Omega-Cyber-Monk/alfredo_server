@@ -27,7 +27,7 @@ import { StripePaymentModule } from './main/stripe-payment/stripe-payment.module
       isGlobal: true, // Makes .env available app-wide
     }),
     PrismaModule,
-    AuthModule, 
+    AuthModule,
     ContactModule,
     FAQModule,
     TermsModule,

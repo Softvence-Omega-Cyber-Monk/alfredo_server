@@ -13,7 +13,13 @@ import {
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { User } from 'src/common/decorators/user.decorator';
 import { OnboardingService } from './onboarding.service';
@@ -43,11 +49,14 @@ export class OnboardingController {
     }),
   )
   @ApiConsumes('multipart/form-data')
-   @ApiBody({
+  @ApiBody({
     schema: {
       type: 'object',
       properties: {
-        data: { type: 'string', description: 'JSON string of property details' },
+        data: {
+          type: 'string',
+          description: 'JSON string of property details',
+        },
         homeImages: {
           type: 'array',
           items: { type: 'string', format: 'binary' },
@@ -55,23 +64,24 @@ export class OnboardingController {
       },
     },
   })
-    @ApiConsumes('multipart/form-data')
+  @ApiConsumes('multipart/form-data')
   async createOnboarding(
     @User() user: any,
-    @Body('data') data:string,
+    @Body('data') data: string,
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-     let parsedDto;
+    let parsedDto;
     try {
       parsedDto = JSON.parse(data);
     } catch (error) {
       throw new Error('Invalid JSON in data field');
     }
-    console.log(parsedDto)
-    console.log(files)
+    console.log(parsedDto);
+    console.log(files);
     return this.onboardingService.createOnboarding(user.id, parsedDto, files);
   }
-
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Get()
   async getAllOnboard() {
     const res = await this.onboardingService.getAllOnboard();
@@ -83,34 +93,32 @@ export class OnboardingController {
     };
   }
 
-  
-@Get('user')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-async getOnboardByUser(@User() user:any) {
-  const id=user.id
-  const res = await this.onboardingService.getUserOnboarding(id);
-  return {
-    status: HttpStatus.OK,
-    success: true,
-    message: 'Onboarding Deleted',
-    data: res,
-  };
-}
-
-@Delete('onboard/:id')
-async deleteOnboard(@Param('id') id: string) {
-  console.log(id)
-  const res = await this.onboardingService.deleteOnboard(id);
-  return {
-    status: HttpStatus.OK,
-    success: true,
-    message: 'Onboarding Deleted',
-    data: res,
-  };
-}
-
-
+  @Get('user')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  async getOnboardByUser(@User() user: any) {
+    const id = user.id;
+    const res = await this.onboardingService.getUserOnboarding(id);
+    return {
+      status: HttpStatus.OK,
+      success: true,
+      message: 'Onboarding Deleted',
+      data: res,
+    };
+  }
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Delete('onboard/:id')
+  async deleteOnboard(@Param('id') id: string) {
+    console.log(id);
+    const res = await this.onboardingService.deleteOnboard(id);
+    return {
+      status: HttpStatus.OK,
+      success: true,
+      message: 'Onboarding Deleted',
+      data: res,
+    };
+  }
 
   // ------------------ Amenities ------------------
   @Post('amenities')
@@ -120,7 +128,8 @@ async deleteOnboard(@Param('id') id: string) {
     FilesInterceptor('icon', 1, {
       storage: diskStorage({
         destination: './uploads',
-        filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
+        filename: (req, file, cb) =>
+          cb(null, `${Date.now()}-${file.originalname}`),
       }),
     }),
   )
@@ -133,7 +142,8 @@ async deleteOnboard(@Param('id') id: string) {
   ) {
     return this.onboardingService.createAmenity(dto, files);
   }
-
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Get('amenities')
   async getAllAmenities() {
     const res = await this.onboardingService.getAllAmenities();
@@ -144,12 +154,10 @@ async deleteOnboard(@Param('id') id: string) {
       data: res,
     };
   }
-
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Patch('amenities/:id')
-  async updateAmenity(
-    @Param('id') id: string,
-    @Body() dto: CreateAmenityDto,
-  ) {
+  async updateAmenity(@Param('id') id: string, @Body() dto: CreateAmenityDto) {
     const res = await this.onboardingService.updateAmenity(id, dto);
     return {
       status: HttpStatus.OK,
@@ -158,7 +166,8 @@ async deleteOnboard(@Param('id') id: string) {
       data: res,
     };
   }
-
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Delete('amenities/:id')
   async deleteAmenity(@Param('id') id: string) {
     const res = await this.onboardingService.deleteAmenity(id);
@@ -178,7 +187,8 @@ async deleteOnboard(@Param('id') id: string) {
     FilesInterceptor('icon', 1, {
       storage: diskStorage({
         destination: './uploads',
-        filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
+        filename: (req, file, cb) =>
+          cb(null, `${Date.now()}-${file.originalname}`),
       }),
     }),
   )
@@ -191,7 +201,8 @@ async deleteOnboard(@Param('id') id: string) {
   ) {
     return this.onboardingService.createTransport(dto, files);
   }
-
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Get('transports')
   async getAllTransports() {
     const res = await this.onboardingService.getAllTransports();
@@ -202,9 +213,13 @@ async deleteOnboard(@Param('id') id: string) {
       data: res,
     };
   }
-
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Patch('transports/:id')
-  async updateTransport(@Param('id') id: string, @Body() dto: CreateTransportDto) {
+  async updateTransport(
+    @Param('id') id: string,
+    @Body() dto: CreateTransportDto,
+  ) {
     const res = await this.onboardingService.updateTransport(id, dto);
     return {
       status: HttpStatus.OK,
@@ -213,7 +228,8 @@ async deleteOnboard(@Param('id') id: string) {
       data: res,
     };
   }
-
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Delete('transports/:id')
   async deleteTransport(@Param('id') id: string) {
     const res = await this.onboardingService.deleteTransport(id);
@@ -226,6 +242,8 @@ async deleteOnboard(@Param('id') id: string) {
   }
 
   // ------------------ Surroundings ------------------
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Post('surroundings')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
@@ -233,7 +251,8 @@ async deleteOnboard(@Param('id') id: string) {
     FilesInterceptor('icon', 1, {
       storage: diskStorage({
         destination: './uploads',
-        filename: (req, file, cb) => cb(null, `${Date.now()}-${file.originalname}`),
+        filename: (req, file, cb) =>
+          cb(null, `${Date.now()}-${file.originalname}`),
       }),
     }),
   )
@@ -246,7 +265,8 @@ async deleteOnboard(@Param('id') id: string) {
   ) {
     return this.onboardingService.createSurrounding(dto, files);
   }
-
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Get('surroundings')
   async getAllSurroundings() {
     const res = await this.onboardingService.getAllSurroundings();
@@ -257,9 +277,13 @@ async deleteOnboard(@Param('id') id: string) {
       data: res,
     };
   }
-
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Patch('surroundings/:id')
-  async updateSurrounding(@Param('id') id: string, @Body() dto: CreateSurroundingDto) {
+  async updateSurrounding(
+    @Param('id') id: string,
+    @Body() dto: CreateSurroundingDto,
+  ) {
     const res = await this.onboardingService.updateSurrounding(id, dto);
     return {
       status: HttpStatus.OK,
@@ -268,7 +292,8 @@ async deleteOnboard(@Param('id') id: string) {
       data: res,
     };
   }
-
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Delete('surroundings/:id')
   async deleteSurrounding(@Param('id') id: string) {
     const res = await this.onboardingService.deleteSurrounding(id);

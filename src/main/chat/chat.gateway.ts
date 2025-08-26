@@ -12,7 +12,9 @@ import { Server, Socket } from 'socket.io';
 import { ChatService } from './chat.service';
 
 @WebSocketGateway({ cors: { origin: '*' } }) // Allow frontend origin in production
-export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
+export class ChatGateway
+  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer() server: Server;
 
   constructor(private chatService: ChatService) {}
@@ -45,7 +47,8 @@ export class ChatGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
   // Listen for "send_message" events from clients
   @SubscribeMessage('send_message')
   async handleMessage(
-    @MessageBody() data: { content: string; toUserId: string; exchangeRequestId?: string },
+    @MessageBody()
+    data: { content: string; toUserId: string; exchangeRequestId?: string },
     @ConnectedSocket() client: Socket,
   ) {
     const fromUserId = client.handshake.query.userId as string;
