@@ -49,6 +49,7 @@ model User {
   notifications Notification[]
   // Onboarding relation
   onboarding Onboarding?
+  
 }
 
 model OtpVerification {
