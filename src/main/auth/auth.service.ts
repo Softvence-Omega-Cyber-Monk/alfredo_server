@@ -225,13 +225,14 @@ async verifyOtp(pendingUserId: string, otp: string) {
   //   throw new BadRequestException('Phone number is missing for the user');
   // }
 
+
   // 5. Create actual user
   const user = await this.prisma.user.create({
     data: {
       fullName: pending.fullName,
       email: pending.email,
       password: pending.password,
-      referralCode: pending.referralCode,
+      referredBy: pending.referralCode,
     },
   });
 

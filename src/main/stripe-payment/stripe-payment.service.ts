@@ -113,8 +113,13 @@ export class StripePaymentService {
 
     return { received: true };
   }
-  findAll() {
-    return `This action returns all stripePayment`;
+  async findAll() {
+   try{
+     const response = this.prisma.payment.findMany();
+    return response;
+   }catch(error){
+    throw new HttpException('Faild to fectch All Payments',500)
+   }
   }
 
   findOne(id: number) {
