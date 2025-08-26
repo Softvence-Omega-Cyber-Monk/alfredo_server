@@ -231,6 +231,7 @@ async verifyOtp(pendingUserId: string, otp: string) {
       fullName: pending.fullName,
       email: pending.email,
       password: pending.password,
+      referralCode: pending.referralCode,
     },
   });
 

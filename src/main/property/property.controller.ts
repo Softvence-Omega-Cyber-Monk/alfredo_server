@@ -9,11 +9,13 @@ import {
   Delete,
   UseInterceptors,
   UploadedFiles,
+  UseGuards,
 } from '@nestjs/common';
 import { PropertyService } from './property.service';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { ApiTags, ApiOperation, ApiBody, ApiConsumes, ApiParam } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBody, ApiConsumes, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
 import { diskStorage } from 'multer';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
 @ApiTags('Property')
 @Controller('property')
@@ -21,6 +23,8 @@ export class PropertyController {
   constructor(private readonly ProperService: PropertyService) {}
 
   /** CREATE PROPERTY WITH FILES */
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
   @Post()
   @UseInterceptors( FilesInterceptor('files', 5, {
         storage: diskStorage({
@@ -61,6 +65,8 @@ export class PropertyController {
   }
 
   /** GET ALL PROPERTIES */
+    @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Get()
   @ApiOperation({ summary: 'Get all properties' })
   async getAllProperty() {
@@ -68,6 +74,8 @@ export class PropertyController {
   }
 
   /** GET PROPERTY BY ID */
+    @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Get property by ID' })
   @ApiParam({ name: 'id', description: 'Property ID' })
@@ -76,6 +84,8 @@ export class PropertyController {
   }
 
   /** UPDATE PROPERTY */
+    @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   @UseInterceptors(FilesInterceptor('files'))
   @ApiOperation({ summary: 'Update a property by ID' })
@@ -110,6 +120,8 @@ export class PropertyController {
   }
 
   /** DELETE PROPERTY */
+    @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a property by ID' })
   @ApiParam({ name: 'id', description: 'Property ID' })

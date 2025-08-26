@@ -6,6 +6,7 @@ import {
   UseGuards,
   UploadedFile,
   UseInterceptors,
+  Delete,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -57,5 +58,18 @@ export class UserController {
     @Body() dto: UpdateUserDto,
   ) {
     return this.userService.updateMe(userId, dto, file);
+  }
+
+  @Delete('delete/:id')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        id: { type: 'string', example: '634f8b8b8b8b8b8b8b8b8b8b' },
+      },
+    },
+  })
+  deleteUser(@CurrentUser('id') userId: string) {
+    return this.userService.deleteUser(userId);
   }
 }

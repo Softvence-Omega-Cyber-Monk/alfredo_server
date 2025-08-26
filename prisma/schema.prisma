@@ -14,7 +14,7 @@ model PendingUser {
   phoneNumber String?  @unique
   password    String
   createdAt   DateTime @default(now())
-
+  referralCode  String?   @unique 
   otps OtpVerification[] @relation("PendingUserOtp")
 }
 
@@ -35,11 +35,14 @@ model User {
   subscriptions      Subscription[]
   isSubscribed       Boolean?            @default(false)
   achievementBadges  String[]
-  paymentCardNumber  String[]
+  paymentCardNumber  String[] 
   role               Role                @default(USER)
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
-
+ referralCode  String?   @unique @default(uuid())
+  referredBy    String?  
+  balance     Float    @default(0.0)
+  totalReferrals Int      @default(0)
   properties               Property[]        @relation("UserProperties")
   sentMessages             ChatMessage[]     @relation("Sender")
   receivedMessages         ChatMessage[]     @relation("Receiver")
@@ -65,7 +68,7 @@ model OtpVerification {
 
 model Onboarding {
   id     String @id @default(cuid())
-  user   User   @relation(fields: [userId], references: [id])
+  user   User   @relation(fields: [userId], references: [id] , onDelete: Cascade)
   userId String @unique
 
   // Step 1: Home Listing
@@ -135,7 +138,6 @@ model Property {
   title       String
   description String
   location    String
-  city        String
   country     String
   price       Float?
   size        Float?
@@ -146,7 +148,7 @@ model Property {
   isAvailable Boolean @default(true)
 
   ownerId String
-  owner   User   @relation("UserProperties", fields: [ownerId], references: [id])
+  owner   User   @relation("UserProperties", fields: [ownerId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -177,8 +179,8 @@ model ChatMessage {
   content    String
   createdAt  DateTime @default(now())
 
-  sender   User @relation("Sender", fields: [senderId], references: [id])
-  receiver User @relation("Receiver", fields: [receiverId], references: [id])
+  sender   User @relation("Sender", fields: [senderId], references: [id] ,onDelete: Cascade)
+  receiver User @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
 
   exchangeRequestId String? 
   exchangeRequest   ExchangeRequest? @relation(fields: [exchangeRequestId], references: [id])
@@ -195,10 +197,10 @@ model ExchangeRequest {
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
 
-  fromUser     User     @relation("FromUser", fields: [fromUserId], references: [id])
-  toUser       User     @relation("ToUser", fields: [toUserId], references: [id])
-  fromProperty Property @relation("FromProperty", fields: [fromPropertyId], references: [id])
-  toProperty   Property @relation("ToProperty", fields: [toPropertyId], references: [id])
+  fromUser     User     @relation("FromUser", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser       User     @relation("ToUser", fields: [toUserId], references: [id], onDelete: Cascade)
+  fromProperty Property @relation("FromProperty", fields: [fromPropertyId], references: [id], onDelete: Cascade)
+  toProperty   Property @relation("ToProperty", fields: [toPropertyId], references: [id],onDelete: Cascade)
 
   chatMessages ChatMessage[]
 }
@@ -233,7 +235,7 @@ model Subscription {
   startDate DateTime @default(now())
   endDate   DateTime
 
-  user     User      @relation(fields: [userId], references: [id])
+  user     User      @relation(fields: [userId], references: [id],onDelete: Cascade)
   plan     Plan      @relation(fields: [planId], references: [id])
   payments Payment[]
 
@@ -248,7 +250,7 @@ model Payment {
   status         PaymentStatus
   subscriptionId String
 
-  subscription Subscription @relation(fields: [subscriptionId], references: [id])
+  subscription Subscription @relation(fields: [subscriptionId], references: [id],onDelete: Cascade)
   createdAt    DateTime     @default(now())
 }
 
