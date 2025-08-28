@@ -85,6 +85,7 @@ model Onboarding {
   isTravelWithPets     Boolean
   notes                String?
   hasOnBoarded          Boolean @default(false)
+  maxPeople           Int?
   // Step 3: Property Type Info
   propertyType    PropertyType?
   isMainResidence Boolean?

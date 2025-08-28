@@ -10,6 +10,7 @@ import {
   UseInterceptors,
   UseGuards,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -18,6 +19,7 @@ import {
   ApiBody,
   ApiConsumes,
   ApiOperation,
+  ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -76,15 +78,27 @@ export class OnboardingController {
     } catch (error) {
       throw new Error('Invalid JSON in data field');
     }
+    console.log(user)
     console.log(parsedDto);
     console.log(files);
     return this.onboardingService.createOnboarding(user.id, parsedDto, files);
   }
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Get()
-  async getAllOnboard() {
-    const res = await this.onboardingService.getAllOnboard();
+
+   @Get()
+  @ApiOperation({ summary: 'Get all onboardings with optional filters' })
+  @ApiQuery({ name: 'destination', required: false, type: String })
+  @ApiQuery({ name: 'propertyType', required: false, type: String })
+  @ApiQuery({ name: 'availabilityStartDate', required: false, type: String, description: 'ISO date string' })
+  @ApiQuery({ name: 'maxPeople', required: false, type: Number })
+  async getAllOnboard(
+    @Query('destination') destination?: string,
+    @Query('propertyType') propertyType?: string,
+    @Query('availabilityStartDate') availabilityStartDate?: string,
+    @Query('maxPeople') maxPeople?: number,
+  ) {
+    const filters = { destination, propertyType, availabilityStartDate, maxPeople };
+    const res = await this.onboardingService.getAllOnboard(filters);
+
     return {
       status: HttpStatus.OK,
       success: true,
