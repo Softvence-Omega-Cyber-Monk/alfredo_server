@@ -34,7 +34,7 @@ async createOnboarding(
   dto: any,
   files?: Express.Multer.File[],
 ) {
-  // 1️⃣ Upload images if any
+  // 1️ Upload images if any
   const uploadedImages: string[] = [];
   if (files?.length) {
     for (const file of files) {
@@ -43,11 +43,11 @@ async createOnboarding(
     }
   }
 
-  // 2️⃣ Ensure user exists
+  // 2️ Ensure user exists
   const user = await this.prisma.user.findUnique({ where: { id: userId } });
   if (!user) throw new BadRequestException('User not found');
 
-  // 3️⃣ Validate relation IDs exist
+  // 3️ Validate relation IDs exist
   const validAmenities = dto.amenities?.length
     ? await this.prisma.amenity.findMany({
         where: { id: { in: dto.amenities } },
@@ -64,12 +64,12 @@ async createOnboarding(
       })
     : [];
 
-  // 4️⃣ Set default booleans
+  // 4 Set default booleans
   const isMainResidence = dto.isMainResidence ?? false;
   const isTravelWithPets = dto.isTravelWithPets ?? false;
   const isAvailableForExchange = true;
 
-  // 5️⃣ Check if onboarding already exists
+  //  Check if onboarding already exists
   const existing = await this.prisma.onboarding.findUnique({
     where: { userId },
   });
@@ -77,13 +77,14 @@ async createOnboarding(
     throw new BadRequestException('User already has an onboarding record');
   }
 
-  // 6️⃣ Create onboarding safely
+  // 6️ Create onboarding safely
   const onboarding = await this.prisma.onboarding.create({
     data: {
       userId: user.id,
       homeAddress: dto.homeAddress,
       destination: dto.destination,
       ageRange: dto.ageRange,
+      maxPeople: dto.maxPeople,
       gender: dto.gender,
       employmentStatus: dto.employmentStatus,
       travelType: dto.travelType,
@@ -118,27 +119,42 @@ async createOnboarding(
   return onboarding;
 }
 
- async getAllOnboard(filters?: {
+async getAllOnboard(filters?: {
   destination?: string;
   propertyType?: string;
   availabilityStartDate?: string; // ISO string
   maxPeople?: number;
 }) {
   const { destination, propertyType, availabilityStartDate, maxPeople } = filters || {};
+  console.log('Filters:', filters);
+
+  const andFilters: any[] = [];
+
+  if (destination !== undefined) {
+    andFilters.push({ destination: { equals: destination, mode: 'insensitive' } });
+  }
+
+  if (propertyType !== undefined) {
+    andFilters.push({ propertyType });
+  }
+
+  if (availabilityStartDate !== undefined) {
+    // Match by exact date (ignore time if needed)
+    andFilters.push({
+      availabilityStartDate: { equals: new Date(availabilityStartDate) },
+    });
+  }
+
+  if (maxPeople !== undefined) {
+    // Exact match; rows with null will NOT match
+    andFilters.push({ maxPeople: maxPeople });
+  }
+
+  // If no filters provided, return all rows
+  const where = andFilters.length > 0 ? { AND: andFilters } : {};
 
   return this.prisma.onboarding.findMany({
-    where: {
-      AND: [
-        destination
-          ? { destination: { contains: destination, mode: 'insensitive' } }
-          : {},
-        propertyType ? { propertyType: propertyType as any } : {},
-        availabilityStartDate
-          ? { availabilityStartDate: { gte: new Date(availabilityStartDate) } }
-          : {},
-        maxPeople ? { maxPeople: { gte: maxPeople } } : {}, // optional if you have a maxPeople field
-      ],
-    },
+    where,
     include: {
       amenities: true,
       transports: true,
@@ -146,6 +162,7 @@ async createOnboarding(
     },
   });
 }
+
 
 
   async getUserOnboarding(userId: string) {
@@ -168,38 +185,95 @@ async createOnboarding(
     return res;
   }
 
-  // async updateOnboarding(userId: string, dto: CreateOnboardingDto, files?: Express.Multer.File[]) {
-  //   const existing = await this.prisma.onboarding.findUnique({ where: { userId } });
-  //   if (!existing) throw new BadRequestException('Onboarding not found');
+  async updateOnboarding(
+  userId: string,
+  dto: CreateOnboardingDto,
+  files?: Express.Multer.File[],
+) {
+  // 1️⃣ Find existing onboarding
+  const existing = await this.prisma.onboarding.findUnique({
+    where: { userId },
+    include: { amenities: true, transports: true, surroundings: true },
+  });
 
-  //   const uploadedImages: string[] = existing.homeImages || [];
-  //   if (files?.length) {
-  //     for (const file of files) {
-  //       const url = await this.uploadFile(file, 'onboarding_images');
-  //       uploadedImages.push(url);
-  //     }
-  //   }
+  if (!existing) throw new BadRequestException('Onboarding not found');
 
-  //   const amenitiesArray = Array.isArray(dto.onboardedAmenities) ? dto.onboardedAmenities : [];
-  //   const transportsArray = Array.isArray(dto.onboardedTransports) ? dto.onboardedTransports : [];
-  //   const surroundingsArray = Array.isArray(dto.onboardedSurroundings) ? dto.onboardedSurroundings : [];
-  //   const travelTypeArray = Array.isArray(dto.travelType) ? dto.travelType : [];
+  // 2️⃣ Handle image uploads
+  const uploadedImages: string[] = existing.homeImages || [];
+  if (files?.length) {
+    for (const file of files) {
+      const url = await this.uploadFile(file, 'onboarding_images');
+      uploadedImages.push(url);
+    }
+  }
 
-  //   return this.prisma.onboarding.update({
-  //     where: { userId },
-  //     data: {
-  //       ...dto,
-  //       travelType:dto.travelType,
-  //       homeImages: uploadedImages,
-  //       amenities: { set: amenitiesArray.map(id => ({ id })) },
-  //       transports: { set: transportsArray.map(id => ({ id })) },
-  //       surroundings: { set: surroundingsArray.map(id => ({ id })) },
-  //       availabilityStartDate: dto.availabilityStartDate ? new Date(dto.availabilityStartDate) : undefined,
-  //       availabilityEndDate: dto.availabilityEndDate ? new Date(dto.availabilityEndDate) : undefined,
-  //     },
-  //     include: { amenities: true, transports: true, surroundings: true },
-  //   });
-  // }
+  // 3️⃣ Validate relations
+  const validAmenities = dto.onboardedAmenities?.length
+    ? await this.prisma.amenity.findMany({
+        where: { id: { in: dto.onboardedAmenities } },
+      })
+    : [];
+  const validTransports = dto.onboardedTransports?.length
+    ? await this.prisma.transportOption.findMany({
+        where: { id: { in: dto.onboardedTransports } },
+      })
+    : [];
+  const validSurroundings = dto.onboardedSurroundings?.length
+    ? await this.prisma.surroundingType.findMany({
+        where: { id: { in: dto.onboardedSurroundings } },
+      })
+    : [];
+
+  // 4️⃣ Set default booleans
+  const isMainResidence = dto.isMainResidence ?? existing.isMainResidence;
+  const isTravelWithPets = dto.isTravelWithPets ?? existing.isTravelWithPets;
+  const isAvailableForExchange =
+    dto.isAvailableForExchange ?? existing.isAvailableForExchange;
+
+  // 5️⃣ Update record
+  const updated = await this.prisma.onboarding.update({
+    where: { userId },
+    data: {
+      homeAddress: dto.homeAddress ?? existing.homeAddress,
+      destination: dto.destination ?? existing.destination,
+      ageRange: dto.ageRange ?? existing.ageRange,
+      maxPeople: dto.maxPeople ?? existing.maxPeople,
+      gender: dto.gender ?? existing.gender,
+      employmentStatus: dto.employmentStatus ?? existing.employmentStatus,
+      travelType: dto.travelType ?? existing.travelType as any,
+      favoriteDestinations: Array.isArray(dto.favoriteDestinations)
+        ? dto.favoriteDestinations
+        : existing.favoriteDestinations,
+      travelMostlyWith: dto.travelMostlyWith ?? existing.travelMostlyWith,
+      isTravelWithPets,
+      notes: dto.notes ?? existing.notes,
+      propertyType: dto.propertyType ?? existing.propertyType,
+      isMainResidence,
+      homeName: dto.homeName ?? existing.homeName,
+      homeDescription: dto.homeDescription ?? existing.homeDescription,
+      aboutNeighborhood: dto.aboutNeighborhood ?? existing.aboutNeighborhood,
+      homeImages: uploadedImages,
+      isAvailableForExchange,
+      availabilityStartDate:
+        dto.availabilityStartDate ?? existing.availabilityStartDate,
+      availabilityEndDate:
+        dto.availabilityEndDate ?? existing.availabilityEndDate,
+
+      // Relations
+      amenities: { set: validAmenities.map((a) => ({ id: a.id })) },
+      transports: { set: validTransports.map((t) => ({ id: t.id })) },
+      surroundings: { set: validSurroundings.map((s) => ({ id: s.id })) },
+    },
+    include: {
+      amenities: true,
+      transports: true,
+      surroundings: true,
+    },
+  });
+
+  return updated;
+}
+
 
   // -------------------- Amenity CRUD --------------------
   async createAmenity(dto: CreateAmenityDto, files?: Express.Multer.File[]) {

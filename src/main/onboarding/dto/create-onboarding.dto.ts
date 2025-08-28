@@ -24,6 +24,7 @@ export class CreateOnboardingDto {
   @IsString()
   homeAddress?: string;
 
+  maxPeople?: number;
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()

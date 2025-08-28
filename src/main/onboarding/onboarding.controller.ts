@@ -11,8 +11,10 @@ import {
   UseGuards,
   HttpStatus,
   Query,
+  Put,
+  BadRequestException,
 } from '@nestjs/common';
-import { FilesInterceptor } from '@nestjs/platform-express';
+import { FileFieldsInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import {
   ApiBearerAuth,
@@ -85,27 +87,37 @@ export class OnboardingController {
   }
 
    @Get()
-  @ApiOperation({ summary: 'Get all onboardings with optional filters' })
-  @ApiQuery({ name: 'destination', required: false, type: String })
-  @ApiQuery({ name: 'propertyType', required: false, type: String })
-  @ApiQuery({ name: 'availabilityStartDate', required: false, type: String, description: 'ISO date string' })
-  @ApiQuery({ name: 'maxPeople', required: false, type: Number })
-  async getAllOnboard(
-    @Query('destination') destination?: string,
-    @Query('propertyType') propertyType?: string,
-    @Query('availabilityStartDate') availabilityStartDate?: string,
-    @Query('maxPeople') maxPeople?: number,
-  ) {
-    const filters = { destination, propertyType, availabilityStartDate, maxPeople };
-    const res = await this.onboardingService.getAllOnboard(filters);
+@ApiOperation({ summary: 'Get all onboardings with optional filters' })
+@ApiQuery({ name: 'destination', required: false, type: String })
+@ApiQuery({ name: 'propertyType', required: false, type: String })
+@ApiQuery({ name: 'availabilityStartDate', required: false, type: String, description: 'ISO date string' })
+@ApiQuery({ name: 'maxPeople', required: false, type: Number })
+async getAllOnboard(
+  @Query('destination') destination?: string,
+  @Query('propertyType') propertyType?: string,
+  @Query('availabilityStartDate') availabilityStartDate?: string,
+  @Query('maxPeople') maxPeople?: string, 
+) {
+  const parsedMaxPeople = maxPeople ? parseInt(maxPeople, 10) : undefined;
 
-    return {
-      status: HttpStatus.OK,
-      success: true,
-      message: 'All Onboards',
-      data: res,
-    };
-  }
+  const filters = {
+    destination,
+    propertyType,
+    availabilityStartDate,
+    maxPeople: parsedMaxPeople, 
+  };
+
+
+  const res = await this.onboardingService.getAllOnboard(filters);
+
+  return {
+    status: HttpStatus.OK,
+    success: true,
+    message: 'All Onboards',
+    data: res,
+  };
+}
+
 
   @Get('user')
   @ApiBearerAuth()
@@ -131,6 +143,39 @@ export class OnboardingController {
       success: true,
       message: 'Onboarding Deleted',
       data: res,
+    };
+  }
+
+  @Put(':userId')
+  @ApiOperation({ summary: 'Update onboarding for a user' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    description: 'Onboarding data with optional images',
+    type: CreateOnboardingDto,
+  })
+  @UseInterceptors(
+    FileFieldsInterceptor([
+      { name: 'homeImages', maxCount: 10 },
+    ]),
+  )
+  async updateOnboarding(
+    @Param('userId') userId: string,
+    @Body() dto: CreateOnboardingDto,
+    @UploadedFiles() files?: { homeImages?: Express.Multer.File[] },
+  ) {
+    if (!userId) throw new BadRequestException('UserId is required');
+
+    const updated = await this.onboardingService.updateOnboarding(
+      userId,
+      dto,
+      files?.homeImages,
+    );
+
+    return {
+      status: HttpStatus.OK,
+      success: true,
+      message: 'Onboarding updated successfully',
+      data: updated,
     };
   }
 
