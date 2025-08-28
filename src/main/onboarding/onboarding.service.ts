@@ -185,7 +185,7 @@ async getAllOnboard(filters?: {
     return res;
   }
 
-  async updateOnboarding(
+async updateOnboarding(
   userId: string,
   dto: CreateOnboardingDto,
   files?: Express.Multer.File[],
@@ -207,30 +207,51 @@ async getAllOnboard(filters?: {
     }
   }
 
-  // 3️⃣ Validate relations
-  const validAmenities = dto.onboardedAmenities?.length
+  // 3️⃣ Normalize DTO values to arrays
+  const onboardedAmenitiesArray = Array.isArray(dto.onboardedAmenities)
+    ? dto.onboardedAmenities
+    : typeof dto.onboardedAmenities === 'string'
+    ? (dto.onboardedAmenities as string).split(',').map((id) => id.trim())
+    : [];
+
+  const onboardedTransportsArray = Array.isArray(dto.onboardedTransports)
+    ? dto.onboardedTransports
+    : typeof dto.onboardedTransports === 'string'
+    ? (dto.onboardedTransports as string).split(',').map((id) => id.trim())
+    : [];
+
+  const onboardedSurroundingsArray = Array.isArray(dto.onboardedSurroundings)
+    ? dto.onboardedSurroundings
+    : typeof dto.onboardedSurroundings === 'string'
+    ? (dto.onboardedSurroundings as string).split(',').map((id) => id.trim())
+    : [];
+
+  // 4️⃣ Validate relations with Prisma
+  const validAmenities = onboardedAmenitiesArray.length
     ? await this.prisma.amenity.findMany({
-        where: { id: { in: dto.onboardedAmenities } },
-      })
-    : [];
-  const validTransports = dto.onboardedTransports?.length
-    ? await this.prisma.transportOption.findMany({
-        where: { id: { in: dto.onboardedTransports } },
-      })
-    : [];
-  const validSurroundings = dto.onboardedSurroundings?.length
-    ? await this.prisma.surroundingType.findMany({
-        where: { id: { in: dto.onboardedSurroundings } },
+        where: { id: { in: onboardedAmenitiesArray } },
       })
     : [];
 
-  // 4️⃣ Set default booleans
+  const validTransports = onboardedTransportsArray.length
+    ? await this.prisma.transportOption.findMany({
+        where: { id: { in: onboardedTransportsArray } },
+      })
+    : [];
+
+  const validSurroundings = onboardedSurroundingsArray.length
+    ? await this.prisma.surroundingType.findMany({
+        where: { id: { in: onboardedSurroundingsArray } },
+      })
+    : [];
+
+  // 5️⃣ Set default booleans
   const isMainResidence = dto.isMainResidence ?? existing.isMainResidence;
   const isTravelWithPets = dto.isTravelWithPets ?? existing.isTravelWithPets;
   const isAvailableForExchange =
     dto.isAvailableForExchange ?? existing.isAvailableForExchange;
 
-  // 5️⃣ Update record
+  // 6️⃣ Update record
   const updated = await this.prisma.onboarding.update({
     where: { userId },
     data: {
@@ -240,7 +261,7 @@ async getAllOnboard(filters?: {
       maxPeople: dto.maxPeople ?? existing.maxPeople,
       gender: dto.gender ?? existing.gender,
       employmentStatus: dto.employmentStatus ?? existing.employmentStatus,
-      travelType: dto.travelType ?? existing.travelType as any,
+      travelType: (dto.travelType as any) ?? existing.travelType,
       favoriteDestinations: Array.isArray(dto.favoriteDestinations)
         ? dto.favoriteDestinations
         : existing.favoriteDestinations,
@@ -259,7 +280,7 @@ async getAllOnboard(filters?: {
       availabilityEndDate:
         dto.availabilityEndDate ?? existing.availabilityEndDate,
 
-      // Relations
+      // ✅ Relations
       amenities: { set: validAmenities.map((a) => ({ id: a.id })) },
       transports: { set: validTransports.map((t) => ({ id: t.id })) },
       surroundings: { set: validSurroundings.map((s) => ({ id: s.id })) },
@@ -273,6 +294,7 @@ async getAllOnboard(filters?: {
 
   return updated;
 }
+
 
 
   // -------------------- Amenity CRUD --------------------

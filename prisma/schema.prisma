@@ -67,8 +67,8 @@ model OtpVerification {
 }
 
 model Onboarding {
-  id     String @id @default(cuid())
-  user   User   @relation(fields: [userId], references: [id] , onDelete: Cascade)
+  id     String @id @default(uuid()) // use uuid() instead of cuid()
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId String @unique
 
   // Step 1: Home Listing
@@ -79,13 +79,14 @@ model Onboarding {
   ageRange             String
   gender               Gender?
   employmentStatus     EmploymentStatus?
-  travelType           String
+  travelType           String[]
   favoriteDestinations String[]
   travelMostlyWith     TravelGroup?
   isTravelWithPets     Boolean
   notes                String?
-  hasOnBoarded          Boolean @default(false)
-  maxPeople           Int?
+  hasOnBoarded         Boolean @default(false)
+  maxPeople            Int?
+
   // Step 3: Property Type Info
   propertyType    PropertyType?
   isMainResidence Boolean?
@@ -109,6 +110,7 @@ model Onboarding {
   availabilityEndDate    DateTime?
 }
 
+
 model Amenity {
   id          String       @id @default(cuid())
   name        String
@@ -130,7 +132,7 @@ model SurroundingType {
   name        String
   icon        String?
 
-  onboardings Onboarding[] @relation("OnboardingSurroundings")
+  onboardings Onboarding[] @relation("OnboardingSurroundings" )
 }
 
 

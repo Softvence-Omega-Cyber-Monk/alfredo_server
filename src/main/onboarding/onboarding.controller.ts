@@ -163,7 +163,7 @@ async getAllOnboard(
     @Body() dto: CreateOnboardingDto,
     @UploadedFiles() files?: { homeImages?: Express.Multer.File[] },
   ) {
-    if (!userId) throw new BadRequestException('UserId is required');
+    if (!userId) throw new BadRequestException ('UserId is required');
 
     const updated = await this.onboardingService.updateOnboarding(
       userId,
