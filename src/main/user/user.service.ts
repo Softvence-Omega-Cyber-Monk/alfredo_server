@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Express } from 'express';
@@ -87,6 +87,23 @@ export class UserService {
   async deleteUser(userId: string) {
     return this.prisma.user.delete({
       where: { id: userId },
+    });
+  }
+
+async updateUserRole(userId: string, role: string) {
+    if (!role) {
+      throw new BadRequestException('Role is required');
+    }
+
+    // Optionally: validate role values
+    const validRoles = ['ADMIN', 'USER', 'MODERATOR']; // adjust as needed
+    if (!validRoles.includes(role)) {
+      throw new BadRequestException(`Role must be one of: ${validRoles.join(', ')}`);
+    }
+
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { role: role as any },
     });
   }
 }

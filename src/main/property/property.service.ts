@@ -16,6 +16,13 @@ export class PropertyService {
     return res;
   }
 
+  async getPropertiesByUserId(userId: string) {
+    const properties = await this.prisma.property.findMany({
+      where: { ownerId: userId },
+      include: { owner: true },
+    });
+    return properties;
+  }
   /** READ ALL */
   async getAllProperty() {
     const res = await this.prisma.property.findMany({
@@ -64,4 +71,35 @@ export class PropertyService {
     await this.prisma.property.delete({ where: { id } });
     return { message: `Property with ID ${id} deleted successfully` };
   }
+
+
+  // Favorite a property
+  async favoriteProperty(userId: string, propertyId: string) {
+    const favorite = await this.prisma.favorite.create({
+      data: {
+        userId,
+        propertyId
+      },
+    });
+    return favorite;
+  }
+
+async deleteFavorite(userId: string, propertyId: string) {
+  const favorite = await this.prisma.favorite.deleteMany({
+    where: {
+      userId,
+      propertyId,
+    },
+  });
+  return favorite;
+}
+
+async getUserFavorites(userId: string) {
+  const favorites = await this.prisma.favorite.findMany({
+    where: { userId },
+    include: { property: true },
+  });
+  return favorites.map(fav => fav.property);
+}
+
 }

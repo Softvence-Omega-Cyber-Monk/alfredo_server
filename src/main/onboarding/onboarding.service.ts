@@ -207,49 +207,54 @@ async updateOnboarding(
     }
   }
 
-  // 3️⃣ Normalize DTO values to arrays
+  // 3️⃣ Normalize array fields
+  const travelTypeArray = Array.isArray(dto.travelType)
+    ? dto.travelType
+    : typeof dto.travelType === 'string'
+    ? (dto.travelType as string).split(',').map((v) => v.trim())
+    : existing.travelType;
+
+  const favoriteDestinationsArray = Array.isArray(dto.favoriteDestinations)
+    ? dto.favoriteDestinations
+    : typeof dto.favoriteDestinations === 'string'
+    ? (dto.favoriteDestinations as string).split(',').map((v) => v.trim())
+    : existing.favoriteDestinations;
+
   const onboardedAmenitiesArray = Array.isArray(dto.onboardedAmenities)
     ? dto.onboardedAmenities
     : typeof dto.onboardedAmenities === 'string'
-    ? (dto.onboardedAmenities as string).split(',').map((id) => id.trim())
+    ? (dto.onboardedAmenities as string).split(',').map((v) => v.trim())
     : [];
 
   const onboardedTransportsArray = Array.isArray(dto.onboardedTransports)
     ? dto.onboardedTransports
     : typeof dto.onboardedTransports === 'string'
-    ? (dto.onboardedTransports as string).split(',').map((id) => id.trim())
+    ? (dto.onboardedTransports as string).split(',').map((v) => v.trim())
     : [];
 
   const onboardedSurroundingsArray = Array.isArray(dto.onboardedSurroundings)
     ? dto.onboardedSurroundings
     : typeof dto.onboardedSurroundings === 'string'
-    ? (dto.onboardedSurroundings as string).split(',').map((id) => id.trim())
+    ? (dto.onboardedSurroundings as string).split(',').map((v) => v.trim())
     : [];
 
   // 4️⃣ Validate relations with Prisma
   const validAmenities = onboardedAmenitiesArray.length
-    ? await this.prisma.amenity.findMany({
-        where: { id: { in: onboardedAmenitiesArray } },
-      })
+    ? await this.prisma.amenity.findMany({ where: { id: { in: onboardedAmenitiesArray } } })
     : [];
 
   const validTransports = onboardedTransportsArray.length
-    ? await this.prisma.transportOption.findMany({
-        where: { id: { in: onboardedTransportsArray } },
-      })
+    ? await this.prisma.transportOption.findMany({ where: { id: { in: onboardedTransportsArray } } })
     : [];
 
   const validSurroundings = onboardedSurroundingsArray.length
-    ? await this.prisma.surroundingType.findMany({
-        where: { id: { in: onboardedSurroundingsArray } },
-      })
+    ? await this.prisma.surroundingType.findMany({ where: { id: { in: onboardedSurroundingsArray } } })
     : [];
 
-  // 5️⃣ Set default booleans
-  const isMainResidence = dto.isMainResidence ?? existing.isMainResidence;
-  const isTravelWithPets = dto.isTravelWithPets ?? existing.isTravelWithPets;
-  const isAvailableForExchange =
-    dto.isAvailableForExchange ?? existing.isAvailableForExchange;
+  // 5️⃣ Normalize booleans
+  const isMainResidence = dto.isMainResidence !== undefined ? Boolean(dto.isMainResidence) : existing.isMainResidence;
+  const isTravelWithPets = dto.isTravelWithPets !== undefined ? Boolean(dto.isTravelWithPets) : existing.isTravelWithPets;
+  const isAvailableForExchange = dto.isAvailableForExchange !== undefined ? Boolean(dto.isAvailableForExchange) : existing.isAvailableForExchange;
 
   // 6️⃣ Update record
   const updated = await this.prisma.onboarding.update({
@@ -261,10 +266,8 @@ async updateOnboarding(
       maxPeople: dto.maxPeople ?? existing.maxPeople,
       gender: dto.gender ?? existing.gender,
       employmentStatus: dto.employmentStatus ?? existing.employmentStatus,
-      travelType: (dto.travelType as any) ?? existing.travelType,
-      favoriteDestinations: Array.isArray(dto.favoriteDestinations)
-        ? dto.favoriteDestinations
-        : existing.favoriteDestinations,
+      travelType: travelTypeArray,
+      favoriteDestinations: favoriteDestinationsArray,
       travelMostlyWith: dto.travelMostlyWith ?? existing.travelMostlyWith,
       isTravelWithPets,
       notes: dto.notes ?? existing.notes,
@@ -275,12 +278,8 @@ async updateOnboarding(
       aboutNeighborhood: dto.aboutNeighborhood ?? existing.aboutNeighborhood,
       homeImages: uploadedImages,
       isAvailableForExchange,
-      availabilityStartDate:
-        dto.availabilityStartDate ?? existing.availabilityStartDate,
-      availabilityEndDate:
-        dto.availabilityEndDate ?? existing.availabilityEndDate,
-
-      // ✅ Relations
+      availabilityStartDate: dto.availabilityStartDate ?? existing.availabilityStartDate,
+      availabilityEndDate: dto.availabilityEndDate ?? existing.availabilityEndDate,
       amenities: { set: validAmenities.map((a) => ({ id: a.id })) },
       transports: { set: validTransports.map((t) => ({ id: t.id })) },
       surroundings: { set: validSurroundings.map((s) => ({ id: s.id })) },
@@ -294,6 +293,7 @@ async updateOnboarding(
 
   return updated;
 }
+
 
 
 

@@ -48,10 +48,11 @@ model User {
   receivedMessages         ChatMessage[]     @relation("Receiver")
   exchangeRequestsSent     ExchangeRequest[] @relation("FromUser")
   exchangeRequestsReceived ExchangeRequest[] @relation("ToUser")
-
+  favorites                Favorite[]
   notifications Notification[]
   // Onboarding relation
   onboarding Onboarding?
+  hasOnboarded Boolean @default(false)
   
 }
 
@@ -84,7 +85,7 @@ model Onboarding {
   travelMostlyWith     TravelGroup?
   isTravelWithPets     Boolean
   notes                String?
-  hasOnBoarded         Boolean @default(false)
+
   maxPeople            Int?
 
   // Step 3: Property Type Info
@@ -110,7 +111,14 @@ model Onboarding {
   availabilityEndDate    DateTime?
 }
 
+model Favorite{
+  id        String   @id @default(uuid())
+  userId    String
+  propertyId String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  property  Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
+}
 model Amenity {
   id          String       @id @default(cuid())
   name        String
@@ -155,7 +163,7 @@ model Property {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
+  favoritedBy Favorite[]
   exchangeRequestsSent     ExchangeRequest[] @relation("FromProperty")
   exchangeRequestsReceived ExchangeRequest[] @relation("ToProperty")
 }

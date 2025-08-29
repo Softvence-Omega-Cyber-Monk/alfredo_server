@@ -7,14 +7,16 @@ import {
   UploadedFile,
   UseInterceptors,
   Delete,
+  Param,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiBearerAuth, ApiTags, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags, ApiConsumes, ApiBody, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
+import { UpdateUserRoleDto } from './dto/updateAdmin.dto';
 
 @ApiTags('User')
 @ApiBearerAuth()
@@ -72,4 +74,22 @@ export class UserController {
   deleteUser(@CurrentUser('id') userId: string) {
     return this.userService.deleteUser(userId);
   }
+
+@Patch('update/:id')
+@ApiBearerAuth()
+@ApiOperation({ summary: 'Update a user role by ID' })
+@ApiParam({ name: 'id', description: 'User ID to update', type: 'string', example: '634f8b8b8b8b8b8b8b8b8b8b' })
+@ApiBody({
+  type: UpdateUserRoleDto,
+  description: 'Only the role can be updated',
+})
+updateUserRole(
+  @CurrentUser('id') currentUserId: string, // authenticated user
+  @Param('id') id: string, // target user id to update
+  @Body() dto: UpdateUserRoleDto,
+) {
+  console.log(dto);
+  return this.userService.updateUserRole(id, dto.role);
+}
+
 }

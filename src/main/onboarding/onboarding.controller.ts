@@ -146,7 +146,9 @@ async getAllOnboard(
     };
   }
 
-  @Put(':userId')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Put()
   @ApiOperation({ summary: 'Update onboarding for a user' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
@@ -159,10 +161,11 @@ async getAllOnboard(
     ]),
   )
   async updateOnboarding(
-    @Param('userId') userId: string,
+    @User() user: any,
     @Body() dto: CreateOnboardingDto,
     @UploadedFiles() files?: { homeImages?: Express.Multer.File[] },
   ) {
+    const userId = user.id;
     if (!userId) throw new BadRequestException ('UserId is required');
 
     const updated = await this.onboardingService.updateOnboarding(
