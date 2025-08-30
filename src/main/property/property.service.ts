@@ -13,7 +13,7 @@ export class PropertyService {
         folder,
         resource_type: 'auto',
       });
-      if (fs.existsSync(file.path)) fs.unlinkSync(file.path); // cleanup
+      if (fs.existsSync(file.path)) fs.unlinkSync(file.path); 
       return result.secure_url;
     } catch (error) {
       console.error(`Error uploading file ${file.path}:`, error);
