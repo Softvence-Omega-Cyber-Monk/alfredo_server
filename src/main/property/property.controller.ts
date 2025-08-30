@@ -1,4 +1,3 @@
-// property.controller.ts
 import {
   Controller,
   Get,
@@ -74,11 +73,10 @@ export class PropertyController {
     } catch (error) {
       throw new Error('Invalid JSON in data field');
     }
-    const userId = user.id;
-    parsedDto.ownerId = userId;
-    // TODO: Handle file URLs if needed, e.g., upload to cloud storage
-    const res = await this.ProperService.createProperty(parsedDto);
-    return res;
+    parsedDto.ownerId = user.id;
+    parsedDto.files = files; // ✅ Pass files to service
+
+    return this.ProperService.createProperty(parsedDto);
   }
 
   /** GET ALL PROPERTIES */
@@ -89,14 +87,15 @@ export class PropertyController {
   async getAllProperty() {
     return this.ProperService.getAllProperty();
   }
-@ApiBearerAuth()
+
+  /** GET USER PROPERTIES */
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('my-properties')
   @ApiOperation({ summary: 'Get all properties by user ID (from JWT)' })
-  async getAllPropertyByUser(@User() userId: string): Promise<any> {
-    return this.ProperService.getPropertiesByUserId(userId);
+  async getAllPropertyByUser(@User() user: any): Promise<any> {
+    return this.ProperService.getPropertiesByUserId(user.id);
   }
-
 
   /** GET PROPERTY BY ID */
   @ApiBearerAuth()
@@ -112,7 +111,16 @@ export class PropertyController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  @UseInterceptors(FilesInterceptor('files'))
+  @UseInterceptors(
+    FilesInterceptor('files', 5, {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          cb(null, `${Date.now()}-${file.originalname}`);
+        },
+      }),
+    }),
+  )
   @ApiOperation({ summary: 'Update a property by ID' })
   @ApiConsumes('multipart/form-data')
   @ApiParam({ name: 'id', description: 'Property ID' })
@@ -143,7 +151,8 @@ export class PropertyController {
       throw new Error('Invalid JSON in data field');
     }
 
-    // TODO: Handle file URLs if needed
+    parsedDto.files = files; // ✅ Pass files to service
+
     return this.ProperService.updateProperty(id, parsedDto);
   }
 
@@ -157,7 +166,8 @@ export class PropertyController {
     return this.ProperService.deleteProperty(id);
   }
 
-   @Post('favorite')
+  /** FAVORITES */
+  @Post('favorite')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Add a property to favorites' })
@@ -208,14 +218,12 @@ export class PropertyController {
   }
 
   /** Get all favorites of the logged-in user */
-  
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('/user/favorite')
   @ApiOperation({ summary: 'Get all favorite properties of the logged-in user' })
   async getUserFavorites(@User() user: any) {
     const userId = user.id;
-    console.log(userId);
     try {
       const res = await this.ProperService.getUserFavorites(userId);
       return {
