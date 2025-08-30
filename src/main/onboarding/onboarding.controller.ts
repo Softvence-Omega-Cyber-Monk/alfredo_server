@@ -32,6 +32,9 @@ import { CreateAmenityDto } from './dto/create-animity.dto';
 import { CreateTransportDto } from './dto/create-transport.dto';
 import { CreateSurroundingDto } from './dto/create-sorrouding.dto';
 import { get } from 'http';
+import { RolesGuard } from '../auth/authorization/roles.guard';
+import { Roles } from '../auth/authorization/roles.decorator';
+import { Role } from '../auth/authorization/roleEnum';
 
 @ApiTags('Onboarding')
 @Controller('onboarding')
@@ -184,8 +187,9 @@ async getAllOnboard(
 
   // ------------------ Amenities ------------------
   @Post('amenities')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard,RolesGuard)
+@ApiBearerAuth()
+@Roles(Role.Admin)
   @UseInterceptors(
     FilesInterceptor('icon', 1, {
       storage: diskStorage({
@@ -216,8 +220,9 @@ async getAllOnboard(
       data: res,
     };
   }
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+ @UseGuards(JwtAuthGuard,RolesGuard)
+@ApiBearerAuth()
+@Roles(Role.Admin)
   @Patch('amenities/:id')
   async updateAmenity(@Param('id') id: string, @Body() dto: CreateAmenityDto) {
     const res = await this.onboardingService.updateAmenity(id, dto);
@@ -228,8 +233,9 @@ async getAllOnboard(
       data: res,
     };
   }
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard,RolesGuard)
+@ApiBearerAuth()
+@Roles(Role.Admin)
   @Delete('amenities/:id')
   async deleteAmenity(@Param('id') id: string) {
     const res = await this.onboardingService.deleteAmenity(id);
@@ -243,7 +249,9 @@ async getAllOnboard(
 
   // ------------------ Transports ------------------
   @Post('transports')
-  @ApiBearerAuth()
+ @UseGuards(JwtAuthGuard,RolesGuard)
+@ApiBearerAuth()
+@Roles(Role.Admin)
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FilesInterceptor('icon', 1, {
@@ -263,8 +271,7 @@ async getAllOnboard(
   ) {
     return this.onboardingService.createTransport(dto, files);
   }
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+
   @Get('transports')
   async getAllTransports() {
     const res = await this.onboardingService.getAllTransports();
@@ -275,8 +282,9 @@ async getAllOnboard(
       data: res,
     };
   }
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+ @UseGuards(JwtAuthGuard,RolesGuard)
+@ApiBearerAuth()
+@Roles(Role.Admin)
   @Patch('transports/:id')
   async updateTransport(
     @Param('id') id: string,
@@ -290,8 +298,9 @@ async getAllOnboard(
       data: res,
     };
   }
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard,RolesGuard)
+@ApiBearerAuth()
+@Roles(Role.Admin)
   @Delete('transports/:id')
   async deleteTransport(@Param('id') id: string) {
     const res = await this.onboardingService.deleteTransport(id);
@@ -304,8 +313,9 @@ async getAllOnboard(
   }
 
   // ------------------ Surroundings ------------------
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+ @UseGuards(JwtAuthGuard,RolesGuard)
+@ApiBearerAuth()
+@Roles(Role.Admin)
   @Post('surroundings')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
@@ -339,8 +349,9 @@ async getAllOnboard(
       data: res,
     };
   }
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard,RolesGuard)
+@ApiBearerAuth()
+@Roles(Role.Admin)
   @Patch('surroundings/:id')
   async updateSurrounding(
     @Param('id') id: string,

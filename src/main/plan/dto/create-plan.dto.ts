@@ -30,6 +30,12 @@ export class CreatePlanDto {
   })
   @IsNumber()
   price: number;
+  @ApiProperty({
+    example: 19.99,
+    description: 'The priceId of the plan in Stripe',
+  })
+  @IsNumber()
+  priceId: string
 
   @ApiProperty({
     example: [

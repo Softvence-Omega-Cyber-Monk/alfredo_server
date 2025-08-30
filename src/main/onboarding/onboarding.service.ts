@@ -115,7 +115,10 @@ async createOnboarding(
       surroundings: true,
     },
   });
-
+   await this.prisma.user.update({
+    where: { id: userId },
+    data: { hasOnboarded: true },
+  });
   return onboarding;
 }
 

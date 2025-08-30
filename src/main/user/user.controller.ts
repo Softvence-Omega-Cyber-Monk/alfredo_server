@@ -17,10 +17,11 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
 import { UpdateUserRoleDto } from './dto/updateAdmin.dto';
+import { RolesGuard } from '../auth/authorization/roles.guard';
+import { Roles } from '../auth/authorization/roles.decorator';
+import { Role } from '../auth/authorization/roleEnum';
 
 @ApiTags('User')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -30,6 +31,9 @@ export class UserController {
     return this.userService.getMe(userId);
   }
 
+  @UseGuards(JwtAuthGuard,RolesGuard)
+@ApiBearerAuth()
+@Roles(Role.Admin)
   @Get()
   @ApiBearerAuth()
   getAllUsers() {
@@ -62,6 +66,9 @@ export class UserController {
     return this.userService.updateMe(userId, dto, file);
   }
 
+  @UseGuards(JwtAuthGuard,RolesGuard)
+@ApiBearerAuth()
+@Roles(Role.Admin)
   @Delete('delete/:id')
   @ApiBody({
     schema: {
@@ -76,7 +83,9 @@ export class UserController {
   }
 
 @Patch('update/:id')
+@UseGuards(JwtAuthGuard,RolesGuard)
 @ApiBearerAuth()
+@Roles(Role.Admin)
 @ApiOperation({ summary: 'Update a user role by ID' })
 @ApiParam({ name: 'id', description: 'User ID to update', type: 'string', example: '634f8b8b8b8b8b8b8b8b8b8b' })
 @ApiBody({
