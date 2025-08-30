@@ -23,25 +23,24 @@ export class PlanController {
   constructor(private readonly planService: PlanService) {}
 
 
-  @UseGuards(JwtAuthGuard,RolesGuard)
+  @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
-@Roles(Role.Admin)
   @Post()
   create(@Body() createPlanDto: CreatePlanDto) {
     return this.planService.create(createPlanDto);
   }
 
-  @UseGuards(JwtAuthGuard,RolesGuard)
+  @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
-@Roles(Role.Admin)
+
   @Get()
   findAll() {
     return this.planService.findAll();
   }
 
-  @UseGuards(JwtAuthGuard,RolesGuard)
+  @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
-@Roles(Role.Admin)
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.planService.findOne(id);
@@ -55,9 +54,9 @@ export class PlanController {
     return this.planService.update(id, updatePlanDto);
   }
 
-  @UseGuards(JwtAuthGuard,RolesGuard)
+  @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
-@Roles(Role.Admin)
+
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.planService.remove(id);

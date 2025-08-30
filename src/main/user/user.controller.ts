@@ -31,9 +31,9 @@ export class UserController {
     return this.userService.getMe(userId);
   }
 
-  @UseGuards(JwtAuthGuard,RolesGuard)
+  @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
-@Roles(Role.Admin)
+
   @Get()
   @ApiBearerAuth()
   getAllUsers() {
@@ -66,9 +66,9 @@ export class UserController {
     return this.userService.updateMe(userId, dto, file);
   }
 
-  @UseGuards(JwtAuthGuard,RolesGuard)
+  @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
-@Roles(Role.Admin)
+
   @Delete('delete/:id')
   @ApiBody({
     schema: {
@@ -83,9 +83,8 @@ export class UserController {
   }
 
 @Patch('update/:id')
-@UseGuards(JwtAuthGuard,RolesGuard)
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
-@Roles(Role.Admin)
 @ApiOperation({ summary: 'Update a user role by ID' })
 @ApiParam({ name: 'id', description: 'User ID to update', type: 'string', example: '634f8b8b8b8b8b8b8b8b8b8b' })
 @ApiBody({

@@ -187,9 +187,9 @@ async getAllOnboard(
 
   // ------------------ Amenities ------------------
   @Post('amenities')
-@UseGuards(JwtAuthGuard,RolesGuard)
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
-@Roles(Role.Admin)
+
   @UseInterceptors(
     FilesInterceptor('icon', 1, {
       storage: diskStorage({
@@ -220,9 +220,9 @@ async getAllOnboard(
       data: res,
     };
   }
- @UseGuards(JwtAuthGuard,RolesGuard)
+ @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
-@Roles(Role.Admin)
+
   @Patch('amenities/:id')
   async updateAmenity(@Param('id') id: string, @Body() dto: CreateAmenityDto) {
     const res = await this.onboardingService.updateAmenity(id, dto);
@@ -233,9 +233,9 @@ async getAllOnboard(
       data: res,
     };
   }
-  @UseGuards(JwtAuthGuard,RolesGuard)
+  @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
-@Roles(Role.Admin)
+
   @Delete('amenities/:id')
   async deleteAmenity(@Param('id') id: string) {
     const res = await this.onboardingService.deleteAmenity(id);
@@ -249,9 +249,9 @@ async getAllOnboard(
 
   // ------------------ Transports ------------------
   @Post('transports')
- @UseGuards(JwtAuthGuard,RolesGuard)
+ @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
-@Roles(Role.Admin)
+
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FilesInterceptor('icon', 1, {
@@ -282,9 +282,9 @@ async getAllOnboard(
       data: res,
     };
   }
- @UseGuards(JwtAuthGuard,RolesGuard)
+ @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
-@Roles(Role.Admin)
+
   @Patch('transports/:id')
   async updateTransport(
     @Param('id') id: string,
@@ -298,9 +298,9 @@ async getAllOnboard(
       data: res,
     };
   }
-@UseGuards(JwtAuthGuard,RolesGuard)
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
-@Roles(Role.Admin)
+
   @Delete('transports/:id')
   async deleteTransport(@Param('id') id: string) {
     const res = await this.onboardingService.deleteTransport(id);
@@ -313,9 +313,9 @@ async getAllOnboard(
   }
 
   // ------------------ Surroundings ------------------
- @UseGuards(JwtAuthGuard,RolesGuard)
+ @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
-@Roles(Role.Admin)
+
   @Post('surroundings')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
@@ -349,9 +349,9 @@ async getAllOnboard(
       data: res,
     };
   }
-@UseGuards(JwtAuthGuard,RolesGuard)
+@UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
-@Roles(Role.Admin)
+
   @Patch('surroundings/:id')
   async updateSurrounding(
     @Param('id') id: string,
