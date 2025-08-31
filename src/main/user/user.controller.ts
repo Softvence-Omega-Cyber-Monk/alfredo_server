@@ -11,93 +11,71 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserRoleDto } from './dto/updateAdmin.dto';
 import { ApiBearerAuth, ApiTags, ApiConsumes, ApiBody, ApiOperation, ApiParam } from '@nestjs/swagger';
-import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
-import { UpdateUserRoleDto } from './dto/updateAdmin.dto';
-import { RolesGuard } from '../auth/authorization/roles.guard';
-import { Roles } from '../auth/authorization/roles.decorator';
-import { Role } from '../auth/authorization/roleEnum';
+import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 @ApiTags('User')
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Get('me')
+  // Get logged-in user's profile
+  @Get('my-profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   getMe(@CurrentUser('id') userId: string) {
-    return this.userService.getMe(userId);
+    return this.userService.getUser(userId);
   }
 
-  @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
-
+  // Get all users
   @Get()
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   getAllUsers() {
     return this.userService.getAllUsers();
   }
 
+  // Update logged-in user's profile
   @Patch('me')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @UseInterceptors(FileInterceptor('photo'))
   @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        fullName: { type: 'string', example: 'John Doe' },
-        email: { type: 'string', format: 'email', example: 'john@example.com' },
-        phoneNumber: { type: 'string', example: '1234567890' },
-        file: {
-          type: 'string',
-          format: 'binary',
-          description: 'Profile photo (optional)',
-        },
-      },
-    },
+  @ApiBody({type:UpdateUserDto
   })
   updateMe(
     @CurrentUser('id') userId: string,
-    @UploadedFile() file: Express.Multer.File,
     @Body() dto: UpdateUserDto,
+    @UploadedFile() file?: Express.Multer.File,
   ) {
+    console.log(dto)
     return this.userService.updateMe(userId, dto, file);
   }
 
+  // Delete logged-in user
+  @Delete('delete')
   @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
-
-  @Delete('delete/:id')
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        id: { type: 'string', example: '634f8b8b8b8b8b8b8b8b8b8b' },
-      },
-    },
-  })
+  @ApiBearerAuth()
   deleteUser(@CurrentUser('id') userId: string) {
     return this.userService.deleteUser(userId);
   }
 
-@Patch('update/:id')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
-@ApiOperation({ summary: 'Update a user role by ID' })
-@ApiParam({ name: 'id', description: 'User ID to update', type: 'string', example: '634f8b8b8b8b8b8b8b8b8b8b' })
-@ApiBody({
-  type: UpdateUserRoleDto,
-  description: 'Only the role can be updated',
-})
-updateUserRole(
-  @CurrentUser('id') currentUserId: string, // authenticated user
-  @Param('id') id: string, // target user id to update
-  @Body() dto: UpdateUserRoleDto,
-) {
-  console.log(dto);
-  return this.userService.updateUserRole(id, dto.role);
-}
-
+  // Update user role (admin only)
+  @Patch('update/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update a user role by ID' })
+  @ApiParam({ name: 'id', description: 'User ID to update', type: 'string', example: '634f8b8b8b8b8b8b8b8b8b8b' })
+  @ApiBody({ type: UpdateUserRoleDto, description: 'Only the role can be updated' })
+  updateUserRole(
+    @CurrentUser('id') currentUserId: string, // authenticated user
+    @Param('id') id: string, // target user id to update
+    @Body() dto: UpdateUserRoleDto,
+  ) {
+    return this.userService.updateUserRole(id, dto.role);
+  }
 }

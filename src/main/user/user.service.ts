@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Express } from 'express';
@@ -10,9 +10,7 @@ import '../../config/cloudinary.config';
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  private async uploadPhotoToCloudinary(
-    file: Express.Multer.File,
-  ): Promise<string> {
+  private async uploadPhotoToCloudinary(file: Express.Multer.File): Promise<string> {
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
@@ -25,11 +23,11 @@ export class UserService {
           else reject(new Error('No secure URL returned from Cloudinary'));
         },
       );
-
       streamifier.createReadStream(file.buffer).pipe(uploadStream);
     });
   }
 
+  // Get all users (without sensitive info)
   async getAllUsers() {
     return this.prisma.user.findMany({
       select: {
@@ -37,6 +35,7 @@ export class UserService {
         fullName: true,
         email: true,
         phoneNumber: true,
+        photo: true,
         role: true,
         isSubscribed: true,
         createdAt: true,
@@ -45,9 +44,51 @@ export class UserService {
     });
   }
 
-  async getMe(userId: string) {
-    return this.prisma.user.findUnique({
+  // Get a single user by ID
+  async getUser(userId: string) {
+    const user = await this.prisma.user.findUnique({
       where: { id: userId },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        phoneNumber: true,
+        photo: true,
+        role: true,
+        isSubscribed: true,
+        subscriptions: true,
+        notifications: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
+  }
+
+  // Update the logged-in user
+  async updateMe(userId: string, dto: UpdateUserDto, file?: Express.Multer.File) {
+    const userExists = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!userExists) {
+      throw new NotFoundException('User not found');
+    }
+
+    let photoUrl: string | undefined;
+    if (file) {
+      photoUrl = await this.uploadPhotoToCloudinary(file);
+    }
+
+    const { photo, ...updateData } = dto;
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...updateData,
+        ...(photoUrl ? { photo: photoUrl } : {}),
+      },
       select: {
         id: true,
         fullName: true,
@@ -64,38 +105,12 @@ export class UserService {
     });
   }
 
-  async updateMe(
-    userId: string,
-    dto: UpdateUserDto,
-    file?: Express.Multer.File,
-  ) {
-    let photoUrl: string | undefined;
-
-    if (file) {
-      photoUrl = await this.uploadPhotoToCloudinary(file);
-    }
-
-    return this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        ...dto,
-        ...(photoUrl ? { photo: photoUrl } : {}),
-      },
-    });
-  }
-
-  async deleteUser(userId: string) {
-    return this.prisma.user.delete({
-      where: { id: userId },
-    });
-  }
-
-async updateUserRole(userId: string, role: string) {
+  // Update user role (admin-only)
+  async updateUserRole(userId: string, role: string) {
     if (!role) {
       throw new BadRequestException('Role is required');
     }
 
-    // Optionally: validate role values
     const validRoles = ['ADMIN', 'USER', 'MODERATOR']; // adjust as needed
     if (!validRoles.includes(role)) {
       throw new BadRequestException(`Role must be one of: ${validRoles.join(', ')}`);
@@ -104,6 +119,25 @@ async updateUserRole(userId: string, role: string) {
     return this.prisma.user.update({
       where: { id: userId },
       data: { role: role as any },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        role: true,
+        updatedAt: true,
+      },
+    });
+  }
+
+  // Delete a user
+  async deleteUser(userId: string) {
+    return this.prisma.user.delete({
+      where: { id: userId },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+      },
     });
   }
 }
