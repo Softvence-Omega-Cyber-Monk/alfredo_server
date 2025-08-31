@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    image: imranwebstudio/alfredo_backend:latest
+    platform: linux/amd64
+    container_name: alfredo_backend
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    depends_on:
+      - db
+    volumes:
+      - ./uploads:/app/uploads
+
+  db:
+    image: postgres
+    container_name: alfredo_db
+    restart: always
+    ports:
+      - "5400:5432"
+    environment:
+      POSTGRES_USER: alfredo_user
+      POSTGRES_PASSWORD: alfredo_pass
+      POSTGRES_DB: alfredo_mydatabase
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
