@@ -100,9 +100,7 @@ export class ChatController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('partners/:userId')
-  @ApiOperation({ summary: 'Get all chat partners for a user' })
-  @ApiParam({ name: 'userId', description: 'User ID' })
-  async getChatPartners(@Param('userId') userId: string) {
-    return this.chatService.getChatPartnersWithUser(userId);
+  async getChatPartners(@User()  user:any) {
+    return this.chatService.getChatPartnersWithUser(user.id);
   }
 }
