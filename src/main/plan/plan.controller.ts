@@ -46,9 +46,9 @@ export class PlanController {
     return this.planService.findOne(id);
   }
 
-  @UseGuards(JwtAuthGuard,RolesGuard)
+  @UseGuards(JwtAuthGuard)
 @ApiBearerAuth()
-@Roles(Role.Admin)
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updatePlanDto: UpdatePlanDto) {
     return this.planService.update(id, updatePlanDto);

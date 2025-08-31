@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { cloudinary } from 'src/config/cloudinary.config';
 import * as fs from 'fs';
@@ -98,11 +98,26 @@ export class PropertyService {
   }
 
   /** FAVORITES */
-  async favoriteProperty(userId: string, propertyId: string) {
-    return this.prisma.favorite.create({
-      data: { userId, propertyId },
-    });
+ async favoriteProperty(userId: string, propertyId: string) {
+  // Check if this user has already favorited this property
+  const existing = await this.prisma.favorite.findFirst({
+    where: {
+      userId,
+      propertyId
+    },
+  });
+
+  // If it exists, return it or null (do nothing)
+  if (existing) {
+     throw new HttpException("Property already favorited",HttpStatus.BAD_REQUEST)
   }
+
+  // Otherwise, create a new favorite
+  return this.prisma.favorite.create({
+    data: { userId, propertyId },
+  });
+}
+
 
   async deleteFavorite(userId: string, propertyId: string) {
     return this.prisma.favorite.deleteMany({
