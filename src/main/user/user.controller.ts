@@ -40,21 +40,21 @@ export class UserController {
   }
 
   // Update logged-in user's profile
-  @Patch('me')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @UseInterceptors(FileInterceptor('photo'))
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({type:UpdateUserDto
-  })
-  updateMe(
-    @CurrentUser('id') userId: string,
-    @Body() dto: UpdateUserDto,
-    @UploadedFile() file?: Express.Multer.File,
-  ) {
-    console.log(dto)
-    return this.userService.updateMe(userId, dto, file);
-  }
+  // @Patch('me')
+  // @UseGuards(JwtAuthGuard)
+  // @ApiBearerAuth()
+  // @UseInterceptors(FileInterceptor('photo'))
+  // @ApiConsumes('multipart/form-data')
+  // @ApiBody({type:UpdateUserDto
+  // })
+  // updateMe(
+  //   @CurrentUser('id') userId: string,
+  //   @Body() dto: UpdateUserDto,
+  //   @UploadedFile() file?: Express.Multer.File,
+  // ) {
+  //   console.log(dto)
+  //   return this.userService.updateMe(userId, dto, file);
+  // }
 
   // Delete logged-in user
   @Delete('delete')

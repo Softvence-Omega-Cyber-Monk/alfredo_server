@@ -28,7 +28,7 @@ model User {
   dateOfBirth        String?
   identification     IdentificationType?
   languagePreference Language?
-  city               String[]
+  city               String? @default("")
   password           String
   resetToken         String?
   resetTokenExpiry   DateTime?

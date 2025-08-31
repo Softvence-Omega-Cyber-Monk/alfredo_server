@@ -11,6 +11,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { User } from 'src/common/decorators/user.decorator';
 
 @ApiTags('Chat')
 @Controller('chat')
@@ -25,9 +26,9 @@ export class ChatController {
   @Get('history/user/:userId')
   @ApiOperation({ summary: 'Get all messages for a user' })
   async getUserChatHistory(
-    @Param('userId') userId: string,
+    @User() user:any
   ): Promise<ChatMessage[]> {
-    return this.chatService.getMessagesByUser(userId);
+    return this.chatService.getMessagesByUser(user.id);
   }
 
   // Get messages for a specific exchange request
@@ -42,8 +43,8 @@ export class ChatController {
   }
 
   // Send a chat message
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  // @ApiBearerAuth()
+  // @UseGuards(JwtAuthGuard)
   @Post('send')
   @ApiOperation({ summary: 'Send a chat message' })
   @ApiBody({
