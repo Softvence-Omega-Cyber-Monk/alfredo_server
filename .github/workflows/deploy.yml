@@ -51,3 +51,8 @@ jobs:
 
           # Start the container with the latest image
           docker compose up -d
+            #Clean up unused Docker images to free up space
+          docker image prune -f
+
+          #remove unused Docker volumes to free up space
+            docker volume prune -f
