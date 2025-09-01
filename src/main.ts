@@ -12,9 +12,12 @@ async function bootstrap() {
       '*',
       'http://localhost:5173',
       'https://luxury-longma-7b4d22.netlify.app',
+      'https://vacanzagreece.gr/',
     ],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   });
+  // Global prefix
+  app.setGlobalPrefix('api');
 
   // Swagger setup
   const config = new DocumentBuilder()
