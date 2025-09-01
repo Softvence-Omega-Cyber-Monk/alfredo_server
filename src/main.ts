@@ -8,7 +8,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, { rawBody: true });
 
   app.enableCors({
-    origin: ["*","http://localhost:5173", "https://luxury-longma-7b4d22.netlify.app"],
+    origin: [
+      '*',
+      'http://localhost:5173',
+      'https://luxury-longma-7b4d22.netlify.app',
+    ],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   });
 
