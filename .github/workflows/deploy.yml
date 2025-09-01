@@ -44,12 +44,10 @@ jobs:
         password: ${{ secrets.VPS_PASSWORD }}
         script: |
           # Stop the currently running container
-          docker compose -f /root/compose.yml down
-
-          #docker pull ${{ secrets.DOCKER_USERNAME }}/alfredo_backend:latest
+          docker compose down
 
           # Pull the latest image from Docker Hub
-          docker compose -f /root/compose.yml pull alfredo_backend
+          docker compose -f compose.yaml pull
 
           # Start the container with the latest image
-          docker compose -f /root/compose.yml up -d
+          docker compose up -d
