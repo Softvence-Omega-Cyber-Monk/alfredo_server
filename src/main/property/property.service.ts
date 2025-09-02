@@ -78,17 +78,100 @@ async createProperty(propertyData: any) {
     });
   }
 
-async getAllProperty() {
-  return this.prisma.property.findMany({
-    where:{isDeleted:false},
-    include: {
-      owner: true,
-      amenities: true,
-      transports: true,
-      surroundings: true,
+async getAllProperty(filters: {
+  search?: string;
+  location?: string;
+  country?: string;
+  maxPeople?: number;
+  propertyType?: string;
+  createdAt?: Date;
+  amenities?: string[];
+  transports?: string[];
+  page?: number;
+  limit?: number;
+}) {
+  const where: any = {
+    isDeleted: false,
+  };
+
+  // ✅ Search by title, location, country
+  if (filters.search) {
+    where.OR = [
+      { title: { contains: filters.search, mode: 'insensitive' } },
+      { location: { contains: filters.search, mode: 'insensitive' } },
+      { country: { contains: filters.search, mode: 'insensitive' } },
+    ];
+  }
+
+  // ✅ Specific location filter
+  if (filters.location) {
+    where.location = { contains: filters.location, mode: 'insensitive' };
+  }
+
+  // ✅ Country filter
+  if (filters.country) {
+    where.country = { contains: filters.country, mode: 'insensitive' };
+  }
+
+  // ✅ Max people filter
+  if (filters.maxPeople) {
+    where.maxPeople = { gte: filters.maxPeople };
+  }
+
+  // ✅ Property type filter
+  if (filters.propertyType) {
+    where.propertyType = filters.propertyType as any;
+  }
+
+  // ✅ CreatedAt filter
+  if (filters.createdAt) {
+    where.createdAt = { gte: filters.createdAt };
+  }
+
+  // ✅ Amenities filter
+  if (filters.amenities?.length) {
+    where.amenities = { some: { id: { in: filters.amenities } } };
+  }
+
+  // ✅ Transports filter
+  if (filters.transports?.length) {
+    where.transports = { some: { id: { in: filters.transports } } };
+  }
+
+  // ✅ Pagination
+  const page = filters.page && filters.page > 0 ? filters.page : 1;
+  const limit = filters.limit && filters.limit > 0 ? filters.limit : 12;
+  const skip = (page - 1) * limit;
+
+  const [data, total] = await this.prisma.$transaction([
+    this.prisma.property.findMany({
+      where,
+      include: {
+        owner: true,
+        amenities: true,
+        transports: true,
+        surroundings: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip,
+      take: limit,
+    }),
+    this.prisma.property.count({ where }),
+  ]);
+
+  return {
+    data,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
     },
-  });
+  };
 }
+
 
 async getPropertyById(id: string) {
   const property = await this.prisma.property.findUnique({
