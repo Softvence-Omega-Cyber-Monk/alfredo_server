@@ -32,36 +32,55 @@ export class PropertyController {
   constructor(private readonly ProperService: PropertyService) {}
 
   /** CREATE PROPERTY WITH FILES */
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Post()
-  @UseInterceptors(
-    FilesInterceptor('files', 5, {
-      storage: diskStorage({
-        destination: './uploads',
-        filename: (req, file, cb) => {
-          cb(null, `${Date.now()}-${file.originalname}`);
-        },
-      }),
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Post()
+@UseInterceptors(
+  FilesInterceptor('files', 5, {
+    storage: diskStorage({
+      destination: './uploads',
+      filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`);
+      },
     }),
-  )
-  @ApiOperation({ summary: 'Create a new property with multiple images' })
-  @ApiConsumes('multipart/form-data')
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        data: {
-          type: 'string',
-          description: 'JSON string of property details',
-        },
-        files: {
-          type: 'array',
-          items: { type: 'string', format: 'binary' },
-        },
+  }),
+)
+@ApiOperation({ summary: 'Create a new property with multiple images' })
+@ApiConsumes('multipart/form-data')
+@ApiBody({
+  schema: {
+    type: 'object',
+    properties: {
+      data: {
+        type: 'string',
+        description: `JSON string of property details. Example:
+\`\`\`json
+{
+  "title": "Cozy Apartment in Athens",
+  "description": "2-bedroom apartment near the Acropolis",
+  "location": "Athens, Greece",
+  "country": "Greece",
+  "price": 1200,
+  "size": 75,
+  "bedrooms": 2,
+  "bathrooms": 1,
+  "propertyType": "HOME",
+  "maxPeople": 5,
+  "isTravelWithPets": false,
+  "amenities": ["amenityId1", "amenityId2"],
+  "transports": ["transportId1"],
+  "surroundings": ["surroundingId1", "surroundingId2"]
+}
+\`\`\``,
+      },
+      files: {
+        type: 'array',
+        description: 'Up to 5 property images',
+        items: { type: 'string', format: 'binary' },
       },
     },
-  })
+  },
+})
   async createProperty(
     @Body('data') data: string,
     @User() user: any,
@@ -109,36 +128,51 @@ export class PropertyController {
 
   /** UPDATE PROPERTY */
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Patch(':id')
-  @UseInterceptors(
-    FilesInterceptor('files', 5, {
-      storage: diskStorage({
-        destination: './uploads',
-        filename: (req, file, cb) => {
-          cb(null, `${Date.now()}-${file.originalname}`);
-        },
-      }),
+@UseGuards(JwtAuthGuard)
+@Patch(':id')
+@UseInterceptors(
+  FilesInterceptor('files', 5, {
+    storage: diskStorage({
+      destination: './uploads',
+      filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`);
+      },
     }),
-  )
-  @ApiOperation({ summary: 'Update a property by ID' })
-  @ApiConsumes('multipart/form-data')
-  @ApiParam({ name: 'id', description: 'Property ID' })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        data: {
-          type: 'string',
-          description: 'JSON string of updated property fields',
-        },
-        files: {
-          type: 'array',
-          items: { type: 'string', format: 'binary' },
-        },
+  }),
+)
+@ApiOperation({ summary: 'Update a property by ID' })
+@ApiConsumes('multipart/form-data')
+@ApiParam({ name: 'id', description: 'Property ID' })
+@ApiBody({
+  schema: {
+    type: 'object',
+    properties: {
+      data: {
+        type: 'string',
+        description: `JSON string of updated property fields. Example:
+\`\`\`json
+{
+  "title": "Updated Apartment Title",
+  "price": 1300,
+  "amenities": ["amenityId1"],
+  "transports": ["transportId2"],
+   "propertyType": "APARTMENT",
+  "maxPeople": 4,
+  "isTravelWithPets": true,
+  "surroundings": ["surroundingId3"],
+  "removeImages": ["cloudinaryPublicId1", "cloudinaryPublicId2"]
+}
+\`\`\`
+- \`removeImages\`: array of Cloudinary public IDs that should be deleted.`,
+      },
+      files: {
+        type: 'array',
+        description: 'Optional new images to add',
+        items: { type: 'string', format: 'binary' },
       },
     },
-  })
+  },
+})
   async updateProperty(
     @Param('id') id: string,
     @Body('data') data: string,
