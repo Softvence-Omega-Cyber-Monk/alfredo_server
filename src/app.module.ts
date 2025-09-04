@@ -15,12 +15,13 @@ import { ConfigModule } from '@nestjs/config';
 import { TwilioService } from './main/twilio/twilio.service';
 import { TwilioModule } from './main/twilio/twilio.module';
 import { ChatModule } from './main/chat/chat.module';
-import { ArticleModule } from './main/article/article.module';
+
 import { OnboardingModule } from './main/onboarding/onboarding.module';
 import { PropertyModule } from './main/property/property.module';
 import { ExchangeRequestModule } from './main/exchange-request/exchange-request.module';
 import { StripePaymentModule } from './main/stripe-payment/stripe-payment.module';
 import { ReviewModule } from './main/review/review.module';
+import { ArticleModule } from './main/article/article.module';
 
 @Module({
   imports: [
