@@ -54,6 +54,8 @@ model User {
   onboarding Onboarding?
   hasOnboarded Boolean @default(false)
   
+
+  Review Review[]
 }
 
 model OtpVerification {
@@ -125,6 +127,7 @@ model Amenity {
   icon        String?
 
   onboardings Onboarding[] @relation("OnboardingAmenities")
+  properties  Property[]   @relation("PropertyAmenities")
 }
 
 model TransportOption {
@@ -133,6 +136,7 @@ model TransportOption {
   icon        String?
 
   onboardings Onboarding[] @relation("OnboardingTransports")
+   properties  Property[]   @relation("PropertyTransports")
 }
 
 model SurroundingType {
@@ -141,6 +145,7 @@ model SurroundingType {
   icon        String?
 
   onboardings Onboarding[] @relation("OnboardingSurroundings" )
+  properties  Property[]   @relation("PropertySurroundings")
 }
 
 
@@ -154,19 +159,44 @@ model Property {
   size        Float?
   bedrooms    Int?
   bathrooms   Int?
-  images      String[]
-
+  images      Json      // store array of objects [{ url: "...", publicId: "..." }]
+  propertyType    PropertyType?
+  maxPeople            Int?
   isAvailable Boolean @default(true)
-
+  isTravelWithPets     Boolean
   ownerId String
   owner   User   @relation("UserProperties", fields: [ownerId], references: [id], onDelete: Cascade)
 
+  isDeleted   Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   favoritedBy Favorite[]
   exchangeRequestsSent     ExchangeRequest[] @relation("FromProperty")
   exchangeRequestsReceived ExchangeRequest[] @relation("ToProperty")
+ 
+
+  amenities    Amenity[]         @relation("PropertyAmenities")
+  transports   TransportOption[] @relation("PropertyTransports")
+  surroundings SurroundingType[] @relation("PropertySurroundings")
+
+  Review Review[]
 }
+
+model Review {
+  id          String   @id @default(uuid())
+  rating      Int      // 1 to 5 stars
+  comment     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+
+  propertyId  String
+  property    Property  @relation(fields: [propertyId], references: [id])
+}
+
 
 model Article {
   id          String   @id @default(uuid())
