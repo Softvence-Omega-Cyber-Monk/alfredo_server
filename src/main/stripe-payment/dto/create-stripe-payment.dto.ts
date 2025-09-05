@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateStripePaymentDto {
-  @ApiProperty({ example: 'price_1RuIsDCiM0crZsfwlscvEMHT' })
+  @ApiProperty({ example: 'price_1RuIseCiM0crZsfwqv3vZZGj' })
   priceId: string;
 
   @ApiProperty({ example: '1503ad99-f64b-4181-8bdb-767def84a517' })

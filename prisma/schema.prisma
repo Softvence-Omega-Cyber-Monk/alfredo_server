@@ -15,6 +15,7 @@ model PendingUser {
   password    String
   createdAt   DateTime @default(now())
   referralCode  String? 
+  role Role @default(USER)
   otps OtpVerification[] @relation("PendingUserOtp")
 }
 
@@ -448,4 +449,5 @@ enum PaymentStatus {
 enum Role {
   ADMIN
   USER
+  SUPER_ADMIN
 }

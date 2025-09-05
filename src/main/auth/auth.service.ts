@@ -2,6 +2,8 @@ import {
   Injectable,
   BadRequestException,
   UnauthorizedException,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -235,12 +237,22 @@ export class AuthService {
       });
     }
     // 5. Create actual user
+
+    const isExistUser=await this.prisma.user.findUnique({
+      where: {
+        email: pending.email,
+      },
+    })
+    if(isExistUser){
+      throw new BadRequestException('User already exist');
+    }
     const user = await this.prisma.user.create({
       data: {
         fullName: pending.fullName,
         email: pending.email,
         password: pending.password,
         referredBy: pending.referralCode,
+        role:pending.role
       },
     });
 
@@ -289,4 +301,30 @@ export class AuthService {
 
     return this.sendOtp(userId, method);
   }
+
+
+
+async createSuperAdmin(){
+  try{
+    const hassPassword = await bcrypt.hash(process.env.SUPER_ADMIN_PASSWORD as string, 10);
+  const existingSuperAdmin = await this.prisma.pendingUser.findUnique({
+    where: { email: process.env.SUPER_ADMIN_EMAIL as string },
+  });
+
+  if (existingSuperAdmin) {
+    throw new HttpException('Super admin already exists',HttpStatus.BAD_REQUEST)
+  }
+  const superAdmin = await this.prisma.pendingUser.create({
+    data: {
+      fullName: 'Super Admin',
+      email:process.env.SUPER_ADMIN_EMAIL as string,
+      password: hassPassword,
+      role: 'SUPER_ADMIN',
+    }
+  });
+  return superAdmin;
+  }catch(err){
+    throw new HttpException(err.message,HttpStatus.BAD_REQUEST)
+  }
+}
 }

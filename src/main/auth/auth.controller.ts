@@ -1,4 +1,4 @@
-import { Body, Controller, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, HttpException, HttpStatus, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto, SendOtpDto, VerifyOtpDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -58,5 +58,21 @@ export class AuthController {
   @ApiOperation({ summary: 'Resend OTP (after 60s)' })
   resendOtp(@Body() body: SendOtpDto) {
     return this.authService.resendOtp(body.userId, body.method);
+  }
+
+
+  @Post('super-admin')
+  @ApiOperation({ summary: 'Create super admin' })
+  async createSuperAdmin() {
+   try{
+ const res=await this.authService.createSuperAdmin();
+    return{
+      statusCode:HttpStatus.CREATED,
+      message:'Super admin created successfully',
+      data:res
+    }
+   }catch(error){
+      throw new HttpException(error.message,HttpStatus.INTERNAL_SERVER_ERROR)
+    }
   }
 }
