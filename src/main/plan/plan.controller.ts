@@ -71,7 +71,7 @@ export class PlanController {
   // for update the plan by admin
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(Role.Admin)
+  @Roles(Role.Admin, Role.SuperAdmin)
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updatePlanDto: UpdatePlanDto) {
     try{
