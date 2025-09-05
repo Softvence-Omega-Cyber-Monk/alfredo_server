@@ -14,7 +14,10 @@ import {
   Put,
   BadRequestException,
 } from '@nestjs/common';
-import { FileFieldsInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import {
+  FileFieldsInterceptor,
+  FilesInterceptor,
+} from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import {
   ApiBearerAuth,
@@ -83,44 +86,47 @@ export class OnboardingController {
     } catch (error) {
       throw new Error('Invalid JSON in data field');
     }
-    console.log(user)
+    console.log(user);
     console.log(parsedDto);
     console.log(files);
     return this.onboardingService.createOnboarding(user.id, parsedDto, files);
   }
 
-   @Get()
-@ApiOperation({ summary: 'Get all onboardings with optional filters' })
-@ApiQuery({ name: 'destination', required: false, type: String })
-@ApiQuery({ name: 'propertyType', required: false, type: String })
-@ApiQuery({ name: 'availabilityStartDate', required: false, type: String, description: 'ISO date string' })
-@ApiQuery({ name: 'maxPeople', required: false, type: Number })
-async getAllOnboard(
-  @Query('destination') destination?: string,
-  @Query('propertyType') propertyType?: string,
-  @Query('availabilityStartDate') availabilityStartDate?: string,
-  @Query('maxPeople') maxPeople?: string, 
-) {
-  const parsedMaxPeople = maxPeople ? parseInt(maxPeople, 10) : undefined;
+  @Get()
+  @ApiOperation({ summary: 'Get all onboardings with optional filters' })
+  @ApiQuery({ name: 'destination', required: false, type: String })
+  @ApiQuery({ name: 'propertyType', required: false, type: String })
+  @ApiQuery({
+    name: 'availabilityStartDate',
+    required: false,
+    type: String,
+    description: 'ISO date string',
+  })
+  @ApiQuery({ name: 'maxPeople', required: false, type: Number })
+  async getAllOnboard(
+    @Query('destination') destination?: string,
+    @Query('propertyType') propertyType?: string,
+    @Query('availabilityStartDate') availabilityStartDate?: string,
+    @Query('maxPeople') maxPeople?: string,
+  ) {
+    const parsedMaxPeople = maxPeople ? parseInt(maxPeople, 10) : undefined;
 
-  const filters = {
-    destination,
-    propertyType,
-    availabilityStartDate,
-    maxPeople: parsedMaxPeople, 
-  };
+    const filters = {
+      destination,
+      propertyType,
+      availabilityStartDate,
+      maxPeople: parsedMaxPeople,
+    };
 
+    const res = await this.onboardingService.getAllOnboard(filters);
 
-  const res = await this.onboardingService.getAllOnboard(filters);
-
-  return {
-    status: HttpStatus.OK,
-    success: true,
-    message: 'All Onboards',
-    data: res,
-  };
-}
-
+    return {
+      status: HttpStatus.OK,
+      success: true,
+      message: 'All Onboards',
+      data: res,
+    };
+  }
 
   @Get('user')
   @ApiBearerAuth()
@@ -159,9 +165,7 @@ async getAllOnboard(
     type: CreateOnboardingDto,
   })
   @UseInterceptors(
-    FileFieldsInterceptor([
-      { name: 'homeImages', maxCount: 10 },
-    ]),
+    FileFieldsInterceptor([{ name: 'homeImages', maxCount: 10 }]),
   )
   async updateOnboarding(
     @User() user: any,
@@ -169,7 +173,7 @@ async getAllOnboard(
     @UploadedFiles() files?: { homeImages?: Express.Multer.File[] },
   ) {
     const userId = user.id;
-    if (!userId) throw new BadRequestException ('UserId is required');
+    if (!userId) throw new BadRequestException('UserId is required');
 
     const updated = await this.onboardingService.updateOnboarding(
       userId,
@@ -187,9 +191,8 @@ async getAllOnboard(
 
   // ------------------ Amenities ------------------
   @Post('amenities')
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
-
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @UseInterceptors(
     FilesInterceptor('icon', 1, {
       storage: diskStorage({
@@ -220,9 +223,8 @@ async getAllOnboard(
       data: res,
     };
   }
- @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
-
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Patch('amenities/:id')
   async updateAmenity(@Param('id') id: string, @Body() dto: CreateAmenityDto) {
     const res = await this.onboardingService.updateAmenity(id, dto);
@@ -234,8 +236,7 @@ async getAllOnboard(
     };
   }
   @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
-
+  @ApiBearerAuth()
   @Delete('amenities/:id')
   async deleteAmenity(@Param('id') id: string) {
     const res = await this.onboardingService.deleteAmenity(id);
@@ -249,9 +250,8 @@ async getAllOnboard(
 
   // ------------------ Transports ------------------
   @Post('transports')
- @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
-
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FilesInterceptor('icon', 1, {
@@ -282,9 +282,8 @@ async getAllOnboard(
       data: res,
     };
   }
- @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
-
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Patch('transports/:id')
   async updateTransport(
     @Param('id') id: string,
@@ -298,9 +297,8 @@ async getAllOnboard(
       data: res,
     };
   }
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
-
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Delete('transports/:id')
   async deleteTransport(@Param('id') id: string) {
     const res = await this.onboardingService.deleteTransport(id);
@@ -313,9 +311,8 @@ async getAllOnboard(
   }
 
   // ------------------ Surroundings ------------------
- @UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
-
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Post('surroundings')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
@@ -349,9 +346,8 @@ async getAllOnboard(
       data: res,
     };
   }
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
-
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @Patch('surroundings/:id')
   async updateSurrounding(
     @Param('id') id: string,

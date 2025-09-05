@@ -7,7 +7,9 @@ import { join } from 'path';
 import { NestExpressApplication } from '@nestjs/platform-express';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, { rawBody: true });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    rawBody: true,
+  });
 
   // Enable CORS
   app.enableCors({
@@ -35,7 +37,10 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
 
   // Stripe webhook: raw body middleware
-  app.use('stripe-payment/webhook', bodyParser.raw({ type: 'application/json' }));
+  app.use(
+    'stripe-payment/webhook',
+    bodyParser.raw({ type: 'application/json' }),
+  );
 
   // ⚡ Serve uploaded files publicly
   // Access via: http://localhost:8000/uploads/filename.jpg

@@ -34,28 +34,28 @@ export class PropertyController {
   constructor(private readonly ProperService: PropertyService) {}
 
   /** CREATE PROPERTY WITH FILES */
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@Post()
-@UseInterceptors(
-  FilesInterceptor('files', 5, {
-    storage: diskStorage({
-      destination: './uploads',
-      filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`);
-      },
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post()
+  @UseInterceptors(
+    FilesInterceptor('files', 5, {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          cb(null, `${Date.now()}-${file.originalname}`);
+        },
+      }),
     }),
-  }),
-)
-@ApiOperation({ summary: 'Create a new property with multiple images' })
-@ApiConsumes('multipart/form-data')
-@ApiBody({
-  schema: {
-    type: 'object',
-    properties: {
-      data: {
-        type: 'string',
-        description: `JSON string of property details. Example:
+  )
+  @ApiOperation({ summary: 'Create a new property with multiple images' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'string',
+          description: `JSON string of property details. Example:
 \`\`\`json
 {
   "title": "Cozy Apartment in Athens",
@@ -74,15 +74,15 @@ export class PropertyController {
   "surroundings": ["surroundingId1", "surroundingId2"]
 }
 \`\`\``,
-      },
-      files: {
-        type: 'array',
-        description: 'Up to 5 property images',
-        items: { type: 'string', format: 'binary' },
+        },
+        files: {
+          type: 'array',
+          description: 'Up to 5 property images',
+          items: { type: 'string', format: 'binary' },
+        },
       },
     },
-  },
-})
+  })
   async createProperty(
     @Body('data') data: string,
     @User() user: any,
@@ -101,46 +101,88 @@ export class PropertyController {
   }
 
   /** GET ALL PROPERTIES */
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@Get()
-@ApiOperation({ summary: 'Get all properties with filters, search & pagination' })
-@ApiQuery({ name: 'search', required: false, description: 'Search by title, location, or country' })
-@ApiQuery({ name: 'location', required: false, description: 'Filter by location' })
-@ApiQuery({ name: 'country', required: false, description: 'Filter by country' })
-@ApiQuery({ name: 'maxPeople', required: false, description: 'Filter by minimum number of people' })
-@ApiQuery({ name: 'propertyType', required: false, enum: ['HOME', 'APARTMENT'], description: 'Filter by property type' })
-@ApiQuery({ name: 'createdAt', required: false, description: 'Filter properties created after this date (YYYY-MM-DD)' })
-@ApiQuery({ name: 'amenities', required: false, description: 'Comma-separated list of amenity IDs' })
-@ApiQuery({ name: 'transports', required: false, description: 'Comma-separated list of transport IDs' })
-@ApiQuery({ name: 'page', required: false, description: 'Page number for pagination (default: 1)' })
-@ApiQuery({ name: 'limit', required: false, description: 'Items per page for pagination (default: 10)' })
-async getAllProperty(
-  @Query('search') search?: string,
-  @Query('location') location?: string,
-  @Query('country') country?: string,
-  @Query('maxPeople') maxPeople?: number,
-  @Query('propertyType') propertyType?: string,
-  @Query('createdAt') createdAt?: string,
-  @Query('amenities') amenities?: string,
-  @Query('transports') transports?: string,
-  @Query('page') page?: number,
-  @Query('limit') limit?: number,
-) {
-  return this.ProperService.getAllProperty({
-    search,
-    location,
-    country,
-    maxPeople: maxPeople ? Number(maxPeople) : undefined,
-    propertyType,
-    createdAt: createdAt ? new Date(createdAt) : undefined,
-    amenities: amenities ? amenities.split(',') : undefined,
-    transports: transports ? transports.split(',') : undefined,
-    page: page ? Number(page) : undefined,
-    limit: limit ? Number(limit) : undefined,
-  });
-}
-
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get()
+  @ApiOperation({
+    summary: 'Get all properties with filters, search & pagination',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    description: 'Search by title, location, or country',
+  })
+  @ApiQuery({
+    name: 'location',
+    required: false,
+    description: 'Filter by location',
+  })
+  @ApiQuery({
+    name: 'country',
+    required: false,
+    description: 'Filter by country',
+  })
+  @ApiQuery({
+    name: 'maxPeople',
+    required: false,
+    description: 'Filter by minimum number of people',
+  })
+  @ApiQuery({
+    name: 'propertyType',
+    required: false,
+    enum: ['HOME', 'APARTMENT'],
+    description: 'Filter by property type',
+  })
+  @ApiQuery({
+    name: 'createdAt',
+    required: false,
+    description: 'Filter properties created after this date (YYYY-MM-DD)',
+  })
+  @ApiQuery({
+    name: 'amenities',
+    required: false,
+    description: 'Comma-separated list of amenity IDs',
+  })
+  @ApiQuery({
+    name: 'transports',
+    required: false,
+    description: 'Comma-separated list of transport IDs',
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Page number for pagination (default: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Items per page for pagination (default: 10)',
+  })
+  async getAllProperty(
+    @Query('search') search?: string,
+    @Query('location') location?: string,
+    @Query('country') country?: string,
+    @Query('maxPeople') maxPeople?: number,
+    @Query('propertyType') propertyType?: string,
+    @Query('createdAt') createdAt?: string,
+    @Query('amenities') amenities?: string,
+    @Query('transports') transports?: string,
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    return this.ProperService.getAllProperty({
+      search,
+      location,
+      country,
+      maxPeople: maxPeople ? Number(maxPeople) : undefined,
+      propertyType,
+      createdAt: createdAt ? new Date(createdAt) : undefined,
+      amenities: amenities ? amenities.split(',') : undefined,
+      transports: transports ? transports.split(',') : undefined,
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+    });
+  }
 
   /** GET USER PROPERTIES */
   @ApiBearerAuth()
@@ -163,28 +205,28 @@ async getAllProperty(
 
   /** UPDATE PROPERTY */
   @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@Patch(':id')
-@UseInterceptors(
-  FilesInterceptor('files', 5, {
-    storage: diskStorage({
-      destination: './uploads',
-      filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`);
-      },
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id')
+  @UseInterceptors(
+    FilesInterceptor('files', 5, {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          cb(null, `${Date.now()}-${file.originalname}`);
+        },
+      }),
     }),
-  }),
-)
-@ApiOperation({ summary: 'Update a property by ID' })
-@ApiConsumes('multipart/form-data')
-@ApiParam({ name: 'id', description: 'Property ID' })
-@ApiBody({
-  schema: {
-    type: 'object',
-    properties: {
-      data: {
-        type: 'string',
-        description: `JSON string of updated property fields. Example:
+  )
+  @ApiOperation({ summary: 'Update a property by ID' })
+  @ApiConsumes('multipart/form-data')
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'string',
+          description: `JSON string of updated property fields. Example:
 \`\`\`json
 {
   "title": "Updated Apartment Title",
@@ -199,15 +241,15 @@ async getAllProperty(
 }
 \`\`\`
 - \`removeImages\`: array of Cloudinary public IDs that should be deleted.`,
-      },
-      files: {
-        type: 'array',
-        description: 'Optional new images to add',
-        items: { type: 'string', format: 'binary' },
+        },
+        files: {
+          type: 'array',
+          description: 'Optional new images to add',
+          items: { type: 'string', format: 'binary' },
+        },
       },
     },
-  },
-})
+  })
   async updateProperty(
     @Param('id') id: string,
     @Body('data') data: string,
@@ -244,7 +286,10 @@ async getAllProperty(
     schema: {
       type: 'object',
       properties: {
-        propertyId: { type: 'string', description: 'ID of the property to favorite' },
+        propertyId: {
+          type: 'string',
+          description: 'ID of the property to favorite',
+        },
       },
       required: ['propertyId'],
     },
@@ -270,8 +315,14 @@ async getAllProperty(
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Remove a property from favorites' })
-  @ApiParam({ name: 'propertyId', description: 'ID of the property to remove from favorites' })
-  async deleteFavorite(@User() user: any, @Param('propertyId') propertyId: string) {
+  @ApiParam({
+    name: 'propertyId',
+    description: 'ID of the property to remove from favorites',
+  })
+  async deleteFavorite(
+    @User() user: any,
+    @Param('propertyId') propertyId: string,
+  ) {
     const userId = user.id;
     try {
       const res = await this.ProperService.deleteFavorite(userId, propertyId);
@@ -290,7 +341,9 @@ async getAllProperty(
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('/user/favorite')
-  @ApiOperation({ summary: 'Get all favorite properties of the logged-in user' })
+  @ApiOperation({
+    summary: 'Get all favorite properties of the logged-in user',
+  })
   async getUserFavorites(@User() user: any) {
     const userId = user.id;
     try {

@@ -12,7 +12,14 @@ import {
 import { UserService } from './user.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserRoleDto } from './dto/updateAdmin.dto';
-import { ApiBearerAuth, ApiTags, ApiConsumes, ApiBody, ApiOperation, ApiParam } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiTags,
+  ApiConsumes,
+  ApiBody,
+  ApiOperation,
+  ApiParam,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
@@ -69,8 +76,16 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update a user role by ID' })
-  @ApiParam({ name: 'id', description: 'User ID to update', type: 'string', example: '634f8b8b8b8b8b8b8b8b8b8b' })
-  @ApiBody({ type: UpdateUserRoleDto, description: 'Only the role can be updated' })
+  @ApiParam({
+    name: 'id',
+    description: 'User ID to update',
+    type: 'string',
+    example: '634f8b8b8b8b8b8b8b8b8b8b',
+  })
+  @ApiBody({
+    type: UpdateUserRoleDto,
+    description: 'Only the role can be updated',
+  })
   updateUserRole(
     @CurrentUser('id') currentUserId: string, // authenticated user
     @Param('id') id: string, // target user id to update

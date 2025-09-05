@@ -132,7 +132,7 @@ export class StripePaymentService {
   }
   async findAll() {
     try {
-      const response =await this.prisma.payment.findMany();
+      const response = await this.prisma.payment.findMany();
       const summary = await this.prisma.payment.aggregate({
         _sum: { amount: true },
         _count: true,

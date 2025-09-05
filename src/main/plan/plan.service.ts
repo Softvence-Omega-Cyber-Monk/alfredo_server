@@ -7,8 +7,15 @@ import { UpdatePlanDto } from './dto/update-plan.dto';
 export class PlanService {
   constructor(private prisma: PrismaService) {}
 
-  create(data: CreatePlanDto) {
-    return this.prisma.plan.create({ data });
+  async create(data: CreatePlanDto) {
+    const isExistPlan = await this.prisma.plan.findUnique({
+      where: { name: data.name },
+    });
+    if (isExistPlan) {
+      throw new NotFoundException('Plan already exist');
+    }
+    const response = await this.prisma.plan.create({ data });
+    return response;
   }
 
   findAll() {

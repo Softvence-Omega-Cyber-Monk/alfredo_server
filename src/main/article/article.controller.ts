@@ -1,19 +1,27 @@
-import { 
-  Controller, 
-  Get, 
-  Post, 
-  Put, 
-  Delete, 
-  Body, 
-  Param, 
-  NotFoundException, 
+import {
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  Body,
+  Param,
+  NotFoundException,
   UseInterceptors,
   UploadedFile,
   UseGuards,
   HttpException,
-  HttpStatus
+  HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiConsumes, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBody,
+  ApiConsumes,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { ArticleService } from './article.service';
 import { CreateArticleDto } from './dto/create.article.dto';
 import { UpdateArticleDto } from './dto/updateArticle.dto';
@@ -29,47 +37,54 @@ import { extname } from 'path';
 export class ArticleController {
   constructor(private readonly articleService: ArticleService) {}
 
-@Post()
-@ApiOperation({ summary: 'Create a new article' })
-@ApiConsumes('multipart/form-data')
-@UseInterceptors(
-  FileInterceptor('image', {
-    storage: diskStorage({
-      destination: './uploads',
-      filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        cb(null, `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`);
-      },
+  @Post()
+  @ApiOperation({ summary: 'Create a new article' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(
+    FileInterceptor('image', {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          const uniqueSuffix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(
+            null,
+            `${file.fieldname}-${uniqueSuffix}${extname(file.originalname)}`,
+          );
+        },
+      }),
     }),
-  }),
-)
-@UseGuards(JwtAuthGuard)
-@ApiBearerAuth()
-@ApiBody({
-  description: 'Create article with image',
-  type: CreateArticleDto,
-})
-async create(
-  @User() user: any,
-  @UploadedFile() image: Express.Multer.File,
-  @Body() createArticleDto: CreateArticleDto,
-): Promise<Article> {
-  try {
-    const userId = user.id;
-    createArticleDto.userId = userId;
+  )
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiBody({
+    description: 'Create article with image',
+    type: CreateArticleDto,
+  })
+  async create(
+    @User() user: any,
+    @UploadedFile() image: Express.Multer.File,
+    @Body() createArticleDto: CreateArticleDto,
+  ): Promise<Article> {
+    try {
+      const userId = user.id;
+      createArticleDto.userId = userId;
 
-    // ✅ Build public file URL
-    const baseUrl = process.env.BASE_URL || 'http://localhost:8000';
-    const imagePath = image ? `${baseUrl}/uploads/${image.filename}` : '';
+      // ✅ Build public file URL
+      const baseUrl = process.env.BASE_URL || 'http://localhost:8000';
+      const imagePath = image ? `${baseUrl}/uploads/${image.filename}` : '';
 
-    return await this.articleService.create({ ...createArticleDto, image: imagePath });
-  } catch (error: any) {
-    throw new HttpException(
-      error.message || 'Failed to create article',
-      HttpStatus.INTERNAL_SERVER_ERROR,
-    );
+      return await this.articleService.create({
+        ...createArticleDto,
+        image: imagePath,
+      });
+    } catch (error: any) {
+      throw new HttpException(
+        error.message || 'Failed to create article',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
-}
 
   @Get()
   @ApiOperation({ summary: 'Get all articles' })
@@ -78,7 +93,10 @@ async create(
     try {
       return await this.articleService.findAll();
     } catch (error: any) {
-      throw new HttpException(error.message || 'Failed to fetch articles', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        error.message || 'Failed to fetch articles',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -97,7 +115,10 @@ async create(
       }
       return article;
     } catch (error: any) {
-      throw new HttpException(error.message || 'Failed to fetch article', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        error.message || 'Failed to fetch article',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -109,7 +130,7 @@ async create(
   @ApiResponse({ status: 404, description: 'Article not found' })
   async update(
     @Param('id') id: string,
-    @Body() updateArticleDto: UpdateArticleDto
+    @Body() updateArticleDto: UpdateArticleDto,
   ): Promise<Article> {
     try {
       const updated = await this.articleService.update(id, updateArticleDto);
@@ -118,7 +139,10 @@ async create(
       }
       return updated;
     } catch (error: any) {
-      throw new HttpException(error.message || 'Failed to update article', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        error.message || 'Failed to update article',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -135,7 +159,10 @@ async create(
       }
       return { message: 'Article successfully deleted' };
     } catch (error: any) {
-      throw new HttpException(error.message || 'Failed to delete article', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        error.message || 'Failed to delete article',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }

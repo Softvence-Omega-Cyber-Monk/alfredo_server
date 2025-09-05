@@ -3,13 +3,12 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateArticleDto } from './dto/create.article.dto';
 import { UpdateArticleDto } from './dto/updateArticle.dto';
 
-
 @Injectable()
 export class ArticleService {
   constructor(private prisma: PrismaService) {}
 
   /** Create a new article */
-  async create(createArticleDto:any) {
+  async create(createArticleDto: any) {
     return this.prisma.article.create({
       data: createArticleDto,
     });
@@ -18,9 +17,9 @@ export class ArticleService {
   /** Get all articles */
   async findAll() {
     return this.prisma.article.findMany({
-        orderBy: {
-            createdAt:"desc" 
-        },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
   }
 

@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Express } from 'express';
@@ -10,7 +14,9 @@ import '../../config/cloudinary.config';
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
-  private async uploadPhotoToCloudinary(file: Express.Multer.File): Promise<string> {
+  private async uploadPhotoToCloudinary(
+    file: Express.Multer.File,
+  ): Promise<string> {
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
@@ -113,7 +119,9 @@ export class UserService {
 
     const validRoles = ['ADMIN', 'USER', 'MODERATOR']; // adjust as needed
     if (!validRoles.includes(role)) {
-      throw new BadRequestException(`Role must be one of: ${validRoles.join(', ')}`);
+      throw new BadRequestException(
+        `Role must be one of: ${validRoles.join(', ')}`,
+      );
     }
 
     return this.prisma.user.update({
