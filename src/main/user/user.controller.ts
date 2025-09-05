@@ -4,29 +4,28 @@ import {
   Patch,
   Body,
   UseGuards,
-  UploadedFile,
-  UseInterceptors,
   Delete,
   Param,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserRoleDto } from './dto/updateAdmin.dto';
 import {
   ApiBearerAuth,
   ApiTags,
-  ApiConsumes,
   ApiBody,
   ApiOperation,
   ApiParam,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { Express } from 'express';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { RolesGuard } from '../auth/authorization/roles.guard';
 import { Roles } from '../auth/authorization/roles.decorator';
 import { Role } from '../auth/authorization/roleEnum';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('User')
 @Controller('user')
@@ -40,6 +39,7 @@ export class UserController {
   getMe(@CurrentUser('id') userId: string) {
     return this.userService.getUser(userId);
   }
+
 
   // Get all users
   @Get()
@@ -64,6 +64,12 @@ export class UserController {
     console.log(dto)
     return this.userService.updateMe(userId, dto, file);
   }
+
+  // Get single user
+@Get('/:id')
+getSingleUser(@Param('id') userId: string) {
+  return this.userService.getUser(userId);
+}
 
   // Delete logged-in user
   @Delete('delete')

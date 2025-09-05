@@ -59,6 +59,12 @@ export class PropertyService {
         bathrooms: propertyData.bathrooms,
         images: uploadedImages,
         ownerId: propertyData.ownerId,
+        availabilityStartDate: propertyData.availabilityStartDate
+        ? new Date(propertyData.availabilityStartDate)
+        : null,
+        availabilityEndDate: propertyData.availabilityEndDate
+        ? new Date(propertyData.availabilityEndDate)
+        : null,
 
         // Relations
         amenities: { connect: validAmenities.map((a) => ({ id: a.id })) },
@@ -92,9 +98,11 @@ export class PropertyService {
     country?: string;
     maxPeople?: number;
     propertyType?: string;
-    createdAt?: Date;
     amenities?: string[];
     transports?: string[];
+    availabilityStartDate?: Date; 
+    availabilityEndDate?: Date;  
+    isTravelWithPets?: boolean; 
     page?: number;
     limit?: number;
   }) {
@@ -131,11 +139,23 @@ export class PropertyService {
       where.propertyType = filters.propertyType as any;
     }
 
-    // ✅ CreatedAt filter
-    if (filters.createdAt) {
-      where.createdAt = { gte: filters.createdAt };
-    }
+    // ✅ Pets filter
+  if (typeof filters.isTravelWithPets === 'boolean') {
+    where.isTravelWithPets = filters.isTravelWithPets;
+  }
 
+  // ✅ Availability date range filter
+  if (filters.availabilityStartDate && filters.availabilityEndDate) {
+    // property must be available for the whole requested period
+    where.AND = [
+      {
+        availabilityStartDate: { lte: filters.availabilityStartDate },
+      },
+      {
+        availabilityEndDate: { gte: filters.availabilityEndDate },
+      },
+    ];
+  }
     // ✅ Amenities filter
     if (filters.amenities?.length) {
       where.amenities = { some: { id: { in: filters.amenities } } };
@@ -253,9 +273,13 @@ export class PropertyService {
 
         propertyType: updateData.propertyType ?? existing.propertyType,
         maxPeople: updateData.maxPeople ?? existing.maxPeople,
-        isTravelWithPets:
-          updateData.isTravelWithPets ?? existing.isTravelWithPets,
-
+        isTravelWithPets:updateData.isTravelWithPets ?? existing.isTravelWithPets,
+        availabilityStartDate: updateData.availabilityStartDate
+        ? new Date(updateData.availabilityStartDate)
+        : existing.availabilityStartDate,
+        availabilityEndDate: updateData.availabilityEndDate
+        ? new Date(updateData.availabilityEndDate)
+        : existing.availabilityEndDate,
         amenities: { set: validAmenities.map((a) => ({ id: a.id })) },
         transports: { set: validTransports.map((t) => ({ id: t.id })) },
         surroundings: { set: validSurroundings.map((s) => ({ id: s.id })) },
