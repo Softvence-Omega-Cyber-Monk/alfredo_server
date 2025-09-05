@@ -15,7 +15,6 @@ import { MailService } from '../mail/mail.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { randomUUID } from 'crypto';
 import { OtpService } from './services/otp.service';
-import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class AuthService {
@@ -61,6 +60,7 @@ export class AuthService {
   async login(dto: LoginDto) {
     const user = await this.prisma.user.findUnique({
       where: { email: dto.email },
+      include:{achievementBadges:true}
     });
     if (!user) throw new UnauthorizedException('Invalid credentials');
 
