@@ -43,6 +43,8 @@ model User {
   referredBy    String?  
   balance     Float    @default(0.0)
   totalReferrals Int      @default(0)
+  totalListed Int @default(0)
+  totalExchange Int @default(0)
   properties               Property[]        @relation("UserProperties")
   sentMessages             ChatMessage[]     @relation("Sender")
   receivedMessages         ChatMessage[]     @relation("Receiver")
