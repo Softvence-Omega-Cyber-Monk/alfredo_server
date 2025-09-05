@@ -19,7 +19,7 @@ export class ReviewService {
         throw new BadRequestException("You can not review your own property")
     }
 
-    return this.prisma.review.create({
+    const result=await  this.prisma.review.create({
       data: {
         rating: data.rating,
         comment: data.comment,
@@ -31,6 +31,10 @@ export class ReviewService {
         property: true,
       },
     });
+
+     await this.updatePropertyRating(propertyId)
+
+     return result
   }
 
   async getReviewsByProperty(propertyId: string) {
@@ -57,7 +61,32 @@ export class ReviewService {
       throw new ForbiddenException('You can only delete your own reviews');
     }
 
-    return this.prisma.review.delete({ where: { id: reviewId } });
+   const result=await this.prisma.review.delete({ where: { id: reviewId } });
+
+   await this.updatePropertyRating(review.propertyId)
+
+   return result
   }
+
+
+
+private async updatePropertyRating(propertyId: string) {
+  const result = await this.prisma.review.aggregate({
+    _avg: { rating: true },
+    _count: { rating: true },
+    where: { propertyId },
+  });
+
+  await this.prisma.property.update({
+    where: { id: propertyId },
+    data: {
+      averageRating: result._avg.rating ?? 0,
+      reviewCount: result._count.rating,
+    },
+  });
+}
+
+
+
 }
 
