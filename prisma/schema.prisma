@@ -172,6 +172,8 @@ model Property {
   isDeleted   Boolean  @default(false)
   averageRating Float   @default(0)
   reviewCount   Int     @default(0)
+  availabilityStartDate  DateTime?
+  availabilityEndDate    DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   favoritedBy Favorite[]

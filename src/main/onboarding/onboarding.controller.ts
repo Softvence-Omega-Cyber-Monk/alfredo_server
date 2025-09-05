@@ -190,9 +190,10 @@ export class OnboardingController {
   }
 
   // ------------------ Amenities ------------------
-  @Post('amenities')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
+  @Roles(Role.Admin,Role.SuperAdmin)
+  @Post('amenities')
   @UseInterceptors(
     FilesInterceptor('icon', 1, {
       storage: diskStorage({
@@ -223,7 +224,10 @@ export class OnboardingController {
       data: res,
     };
   }
-  @UseGuards(JwtAuthGuard)
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Admin,Role.SuperAdmin)
   @ApiBearerAuth()
   @Patch('amenities/:id')
   async updateAmenity(@Param('id') id: string, @Body() dto: CreateAmenityDto) {
@@ -235,8 +239,9 @@ export class OnboardingController {
       data: res,
     };
   }
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
+  @Roles(Role.Admin,Role.SuperAdmin)
   @Delete('amenities/:id')
   async deleteAmenity(@Param('id') id: string) {
     const res = await this.onboardingService.deleteAmenity(id);
@@ -249,10 +254,10 @@ export class OnboardingController {
   }
 
   // ------------------ Transports ------------------
-  @Post('transports')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @Roles(Role.Admin,Role.SuperAdmin)
+  @Post('transports')
   @UseInterceptors(
     FilesInterceptor('icon', 1, {
       storage: diskStorage({
@@ -282,8 +287,9 @@ export class OnboardingController {
       data: res,
     };
   }
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
+  @Roles(Role.Admin,Role.SuperAdmin)
   @Patch('transports/:id')
   async updateTransport(
     @Param('id') id: string,
@@ -297,8 +303,9 @@ export class OnboardingController {
       data: res,
     };
   }
-  @UseGuards(JwtAuthGuard)
+   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
+  @Roles(Role.Admin,Role.SuperAdmin)
   @Delete('transports/:id')
   async deleteTransport(@Param('id') id: string) {
     const res = await this.onboardingService.deleteTransport(id);
@@ -311,11 +318,10 @@ export class OnboardingController {
   }
 
   // ------------------ Surroundings ------------------
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
+  @Roles(Role.Admin,Role.SuperAdmin)
   @Post('surroundings')
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @UseInterceptors(
     FilesInterceptor('icon', 1, {
       storage: diskStorage({
@@ -334,8 +340,6 @@ export class OnboardingController {
   ) {
     return this.onboardingService.createSurrounding(dto, files);
   }
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Get('surroundings')
   async getAllSurroundings() {
     const res = await this.onboardingService.getAllSurroundings();
@@ -346,8 +350,9 @@ export class OnboardingController {
       data: res,
     };
   }
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
+  @Roles(Role.Admin,Role.SuperAdmin)
   @Patch('surroundings/:id')
   async updateSurrounding(
     @Param('id') id: string,
@@ -361,8 +366,9 @@ export class OnboardingController {
       data: res,
     };
   }
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @Roles(Role.Admin,Role.SuperAdmin)
   @Delete('surroundings/:id')
   async deleteSurrounding(@Param('id') id: string) {
     const res = await this.onboardingService.deleteSurrounding(id);
