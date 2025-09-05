@@ -25,9 +25,7 @@ export class ChatController {
   @UseGuards(JwtAuthGuard)
   @Get('history/user/:userId')
   @ApiOperation({ summary: 'Get all messages for a user' })
-  async getUserChatHistory(
-    @User() user:any
-  ): Promise<ChatMessage[]> {
+  async getUserChatHistory(@User() user: any): Promise<ChatMessage[]> {
     return this.chatService.getMessagesByUser(user.id);
   }
 
@@ -100,7 +98,7 @@ export class ChatController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('partners/:userId')
-  async getChatPartners(@User()  user:any) {
+  async getChatPartners(@User() user: any) {
     return this.chatService.getChatPartnersWithUser(user.id);
   }
 }

@@ -1,15 +1,27 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IdentificationType, Language } from '@prisma/client';
-import { IsArray, IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
+import {
+  IsArray,
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { Express } from 'express';
 
 export class UpdateUserDto {
-  @ApiPropertyOptional({ example: 'John Doe', description: 'Full name of the user' })
+  @ApiPropertyOptional({
+    example: 'John Doe',
+    description: 'Full name of the user',
+  })
   @IsOptional()
   @IsString()
   fullName?: string;
 
-  @ApiPropertyOptional({ example: 'john@example.com', description: 'Email address' })
+  @ApiPropertyOptional({
+    example: 'john@example.com',
+    description: 'Email address',
+  })
   @IsOptional()
   @IsEmail()
   email?: string;
@@ -20,7 +32,11 @@ export class UpdateUserDto {
   phoneNumber?: string;
 
   // File upload field
-  @ApiPropertyOptional({ type: 'string', format: 'binary', description: 'Profile photo file' })
+  @ApiPropertyOptional({
+    type: 'string',
+    format: 'binary',
+    description: 'Profile photo file',
+  })
   @IsOptional()
   photo?: Express.Multer.File;
 
@@ -34,7 +50,10 @@ export class UpdateUserDto {
   @IsString()
   dateOfBirth?: string;
 
-  @ApiPropertyOptional({ enum: IdentificationType, description: 'Type of identification' })
+  @ApiPropertyOptional({
+    enum: IdentificationType,
+    description: 'Type of identification',
+  })
   @IsOptional()
   @IsEnum(IdentificationType)
   identification?: IdentificationType;

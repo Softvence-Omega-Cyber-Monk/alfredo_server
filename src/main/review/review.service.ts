@@ -1,4 +1,9 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { BadgeService } from '../badge/badge.service';
 import { BadgeType } from '@prisma/client';
@@ -7,18 +12,25 @@ import { BadgeType } from '@prisma/client';
 export class ReviewService {
   constructor(private prisma: PrismaService,private badgeService: BadgeService) {}
 
-  async createReview(userId: string, propertyId: string, data: { rating: number; comment?: string }) {
+  async createReview(
+    userId: string,
+    propertyId: string,
+    data: { rating: number; comment?: string },
+  ) {
     // ✅ Ensure rating is between 1 and 5
     if (data.rating < 1 || data.rating > 5) {
       throw new BadRequestException('Rating must be between 1 and 5');
     }
 
     // ✅ Ensure property exists
-    const property = await this.prisma.property.findUnique({ where: { id: propertyId } });
-    if (!property) throw new NotFoundException(`Property with ID ${propertyId} not found`);
+    const property = await this.prisma.property.findUnique({
+      where: { id: propertyId },
+    });
+    if (!property)
+      throw new NotFoundException(`Property with ID ${propertyId} not found`);
 
-    if(userId===property.ownerId){
-        throw new BadRequestException("You can not review your own property")
+    if (userId === property.ownerId) {
+      throw new BadRequestException('You can not review your own property');
     }
 
     const result=await  this.prisma.review.create({
@@ -57,8 +69,11 @@ export class ReviewService {
   }
 
   async deleteReview(userId: string, reviewId: string) {
-    const review = await this.prisma.review.findUnique({ where: { id: reviewId } });
-    if (!review) throw new NotFoundException(`Review with ID ${reviewId} not found`);
+    const review = await this.prisma.review.findUnique({
+      where: { id: reviewId },
+    });
+    if (!review)
+      throw new NotFoundException(`Review with ID ${reviewId} not found`);
 
     if (review.userId !== userId) {
       throw new ForbiddenException('You can only delete your own reviews');
@@ -107,4 +122,3 @@ private async checkReviewBadge(userId: string) {
   }
 
 }
-

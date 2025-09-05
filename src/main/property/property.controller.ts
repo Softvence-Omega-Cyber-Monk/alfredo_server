@@ -34,28 +34,28 @@ export class PropertyController {
   constructor(private readonly ProperService: PropertyService) {}
 
   /** CREATE PROPERTY WITH FILES */
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@Post()
-@UseInterceptors(
-  FilesInterceptor('files', 5, {
-    storage: diskStorage({
-      destination: './uploads',
-      filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`);
-      },
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post()
+  @UseInterceptors(
+    FilesInterceptor('files', 5, {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          cb(null, `${Date.now()}-${file.originalname}`);
+        },
+      }),
     }),
-  }),
-)
-@ApiOperation({ summary: 'Create a new property with multiple images' })
-@ApiConsumes('multipart/form-data')
-@ApiBody({
-  schema: {
-    type: 'object',
-    properties: {
-      data: {
-        type: 'string',
-        description: `JSON string of property details. Example:
+  )
+  @ApiOperation({ summary: 'Create a new property with multiple images' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'string',
+          description: `JSON string of property details. Example:
 \`\`\`json
 {
   "title": "Cozy Apartment in Athens",
@@ -74,15 +74,15 @@ export class PropertyController {
   "surroundings": ["surroundingId1", "surroundingId2"]
 }
 \`\`\``,
-      },
-      files: {
-        type: 'array',
-        description: 'Up to 5 property images',
-        items: { type: 'string', format: 'binary' },
+        },
+        files: {
+          type: 'array',
+          description: 'Up to 5 property images',
+          items: { type: 'string', format: 'binary' },
+        },
       },
     },
-  },
-})
+  })
   async createProperty(
     @Body('data') data: string,
     @User() user: any,
@@ -160,28 +160,28 @@ async getAllProperty(
 
   /** UPDATE PROPERTY */
   @ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@Patch(':id')
-@UseInterceptors(
-  FilesInterceptor('files', 5, {
-    storage: diskStorage({
-      destination: './uploads',
-      filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`);
-      },
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id')
+  @UseInterceptors(
+    FilesInterceptor('files', 5, {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          cb(null, `${Date.now()}-${file.originalname}`);
+        },
+      }),
     }),
-  }),
-)
-@ApiOperation({ summary: 'Update a property by ID' })
-@ApiConsumes('multipart/form-data')
-@ApiParam({ name: 'id', description: 'Property ID' })
-@ApiBody({
-  schema: {
-    type: 'object',
-    properties: {
-      data: {
-        type: 'string',
-        description: `JSON string of updated property fields. Example:
+  )
+  @ApiOperation({ summary: 'Update a property by ID' })
+  @ApiConsumes('multipart/form-data')
+  @ApiParam({ name: 'id', description: 'Property ID' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        data: {
+          type: 'string',
+          description: `JSON string of updated property fields. Example:
 \`\`\`json
 {
   "title": "Updated Apartment Title",
@@ -196,15 +196,15 @@ async getAllProperty(
 }
 \`\`\`
 - \`removeImages\`: array of Cloudinary public IDs that should be deleted.`,
-      },
-      files: {
-        type: 'array',
-        description: 'Optional new images to add',
-        items: { type: 'string', format: 'binary' },
+        },
+        files: {
+          type: 'array',
+          description: 'Optional new images to add',
+          items: { type: 'string', format: 'binary' },
+        },
       },
     },
-  },
-})
+  })
   async updateProperty(
     @Param('id') id: string,
     @Body('data') data: string,
@@ -241,7 +241,10 @@ async getAllProperty(
     schema: {
       type: 'object',
       properties: {
-        propertyId: { type: 'string', description: 'ID of the property to favorite' },
+        propertyId: {
+          type: 'string',
+          description: 'ID of the property to favorite',
+        },
       },
       required: ['propertyId'],
     },
@@ -267,8 +270,14 @@ async getAllProperty(
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Remove a property from favorites' })
-  @ApiParam({ name: 'propertyId', description: 'ID of the property to remove from favorites' })
-  async deleteFavorite(@User() user: any, @Param('propertyId') propertyId: string) {
+  @ApiParam({
+    name: 'propertyId',
+    description: 'ID of the property to remove from favorites',
+  })
+  async deleteFavorite(
+    @User() user: any,
+    @Param('propertyId') propertyId: string,
+  ) {
     const userId = user.id;
     try {
       const res = await this.ProperService.deleteFavorite(userId, propertyId);
@@ -287,7 +296,9 @@ async getAllProperty(
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @Get('/user/favorite')
-  @ApiOperation({ summary: 'Get all favorite properties of the logged-in user' })
+  @ApiOperation({
+    summary: 'Get all favorite properties of the logged-in user',
+  })
   async getUserFavorites(@User() user: any) {
     const userId = user.id;
     try {

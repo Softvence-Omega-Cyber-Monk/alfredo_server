@@ -22,7 +22,6 @@ import { User } from 'src/common/decorators/user.decorator';
 import { ReviewService } from './review.service';
 import { Request } from 'express';
 
-
 @ApiTags('Review')
 @Controller('reviews')
 export class ReviewController {
@@ -78,7 +77,7 @@ export class ReviewController {
   @UseGuards(JwtAuthGuard)
   @Get('my-reviews')
   @ApiOperation({ summary: 'Get all reviews written by a user' })
-  async getReviewsByUser(@User() user: any,@Req() req:Request) {
+  async getReviewsByUser(@User() user: any, @Req() req: Request) {
     return this.reviewService.getReviewsByUser(user.id);
   }
 

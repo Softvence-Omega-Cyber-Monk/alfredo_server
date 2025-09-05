@@ -1,5 +1,11 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { writeFileSync, existsSync, mkdirSync, copyFileSync, unlinkSync } from 'fs';
+import {
+  writeFileSync,
+  existsSync,
+  mkdirSync,
+  copyFileSync,
+  unlinkSync,
+} from 'fs';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import * as mime from 'mime-types';
@@ -18,7 +24,9 @@ export class FileUploadService {
       const filename = `${fileId}${fileExt}`;
 
       const mimeType =
-        file.mimetype || mime.lookup(file.originalname) || 'application/octet-stream';
+        file.mimetype ||
+        mime.lookup(file.originalname) ||
+        'application/octet-stream';
       const fileType = mimeType.split('/')[0] || 'unknown';
 
       const uploadDir = join(process.cwd(), 'uploads');
