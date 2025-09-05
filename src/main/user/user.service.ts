@@ -76,40 +76,40 @@ export class UserService {
     return user;
   }
 
-  // Update the logged-in user
-  // async updateMe(userId: string, dto: UpdateUserDto, file?: Express.Multer.File) {
-  //   const userExists = await this.prisma.user.findUnique({ where: { id: userId } });
-  //   if (!userExists) {
-  //     throw new NotFoundException('User not found');
-  //   }
+ 
+  async updateMe(userId: string, dto: UpdateUserDto, file?: Express.Multer.File) {
+    const userExists = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!userExists) {
+      throw new NotFoundException('User not found');
+    }
 
-  //   let photoUrl: string | undefined;
-  //   if (file) {
-  //     photoUrl = await this.uploadPhotoToCloudinary(file);
-  //   }
+    let photoUrl: string | undefined;
+    if (file) {
+      photoUrl = await this.uploadPhotoToCloudinary(file);
+    }
 
-  //   const { photo, ...updateData } = dto;
-  //   return this.prisma.user.update({
-  //     where: { id: userId },
-  //     data: {
-  //       ...updateData,
-  //       ...(photoUrl ? { photo: photoUrl } : {}),
-  //     },
-  //     select: {
-  //       id: true,
-  //       fullName: true,
-  //       email: true,
-  //       phoneNumber: true,
-  //       photo: true,
-  //       role: true,
-  //       isSubscribed: true,
-  //       subscriptions: true,
-  //       notifications: true,
-  //       createdAt: true,
-  //       updatedAt: true,
-  //     },
-  //   });
-  // }
+    const { photo, city, achievementBadges, paymentCardNumber, ...updateData } = dto;
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        ...updateData,
+        ...(photoUrl ? { photo: photoUrl } : {}),
+      },
+      select: {
+        id: true,
+        fullName: true,
+        email: true,
+        phoneNumber: true,
+        photo: true,
+        role: true,
+        isSubscribed: true,
+        subscriptions: true,
+        notifications: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+  }
 
   // Update user role (admin-only)
   async updateUserRole(userId: string, role: string) {

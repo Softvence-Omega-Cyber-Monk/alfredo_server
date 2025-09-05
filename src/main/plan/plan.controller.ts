@@ -26,7 +26,7 @@ export class PlanController {
   // crete plan by admin
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(Role.Admin)
+  @Roles(Role.Admin,Role.SuperAdmin)
   @Post()
   async create(@Body() createPlanDto: CreatePlanDto) {
     try {
