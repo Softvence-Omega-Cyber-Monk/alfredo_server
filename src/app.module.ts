@@ -22,6 +22,7 @@ import { ExchangeRequestModule } from './main/exchange-request/exchange-request.
 import { StripePaymentModule } from './main/stripe-payment/stripe-payment.module';
 import { ReviewModule } from './main/review/review.module';
 import { ArticleModule } from './main/article/article.module';
+import { BadgeModule } from './main/badge/badge.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { ArticleModule } from './main/article/article.module';
     ExchangeRequestModule,
     StripePaymentModule,
     ReviewModule,
+    BadgeModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, MailService, TwilioService],

@@ -101,8 +101,7 @@ export class PropertyController {
   }
 
   /** GET ALL PROPERTIES */
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
+
 @Get()
 @ApiOperation({ summary: 'Get all properties with filters, search & pagination' })
 @ApiQuery({ name: 'search', required: false, description: 'Search by title, location, or country' })
@@ -152,8 +151,6 @@ async getAllProperty(
   }
 
   /** GET PROPERTY BY ID */
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Get property by ID' })
   @ApiParam({ name: 'id', description: 'Property ID' })

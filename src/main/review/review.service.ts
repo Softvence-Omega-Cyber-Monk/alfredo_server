@@ -1,9 +1,11 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { BadgeService } from '../badge/badge.service';
+import { BadgeType } from '@prisma/client';
 
 @Injectable()
 export class ReviewService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService,private badgeService: BadgeService) {}
 
   async createReview(userId: string, propertyId: string, data: { rating: number; comment?: string }) {
     // ✅ Ensure rating is between 1 and 5
@@ -32,7 +34,8 @@ export class ReviewService {
       },
     });
 
-     await this.updatePropertyRating(propertyId)
+     await this.updatePropertyRating(propertyId);
+     await this.checkReviewBadge(property.ownerId);
 
      return result
   }
@@ -86,7 +89,22 @@ private async updatePropertyRating(propertyId: string) {
   });
 }
 
+private async checkReviewBadge(userId: string) {
+    // Count total reviews on all properties of this user
+    const userProperties = await this.prisma.property.findMany({ where: { ownerId: userId } });
+    const propertyIds = userProperties.map(p => p.id);
 
+    if (propertyIds.length === 0) return;
+
+    const reviewCount = await this.prisma.review.count({
+      where: { propertyId: { in: propertyIds } },
+    });
+
+    // If review count >= 100, award badge
+    if (reviewCount >= 100) {
+      await this.badgeService.awardBadgeToUser(userId, BadgeType.REVIEW_BADGE);
+    }
+  }
 
 }
 

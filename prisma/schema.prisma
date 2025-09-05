@@ -34,7 +34,6 @@ model User {
   resetTokenExpiry   DateTime?
   subscriptions      Subscription[]
   isSubscribed       Boolean?            @default(false)
-  achievementBadges  String[]
   paymentCardNumber  String[] 
   role               Role                @default(USER)
   createdAt          DateTime            @default(now())
@@ -56,6 +55,8 @@ model User {
   
   article Article[]
   Review Review[]
+
+  achievementBadges Badge[] @relation("UserBadges")
 }
 
 model OtpVerification {
@@ -343,6 +344,30 @@ model KeyPoint {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+
+enum BadgeType {
+  REVIEW_BADGE
+  REGION_BADGE
+  SUSTAINABILITY_BADGE
+  SEASONAL_BADGE
+  EXCHANGE_BADGE
+  REFERRAL_BADGE
+  VERIFICATION_BADGE
+  LOYALTY_BADGE
+}
+
+model Badge {
+  id          String    @id @default(uuid())
+  type        BadgeType @unique
+  displayName String
+  description String?
+  icon        String?
+  iconPublicId  String?
+  createdAt   DateTime @default(now())
+  users       User[]   @relation("UserBadges")
+}
+
 
 enum AgeRange {
   AGE_18_30
