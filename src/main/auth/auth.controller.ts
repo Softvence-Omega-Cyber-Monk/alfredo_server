@@ -59,4 +59,11 @@ export class AuthController {
   resendOtp(@Body() body: SendOtpDto) {
     return this.authService.resendOtp(body.userId, body.method);
   }
+
+
+  @Post('super-admin')
+  @ApiOperation({ summary: 'Create super admin' })
+  createSuperAdmin() {
+    return this.authService.createSuperAdmin();
+  }
 }

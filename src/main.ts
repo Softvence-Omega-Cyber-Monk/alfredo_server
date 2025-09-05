@@ -18,6 +18,7 @@ async function bootstrap() {
       'http://localhost:5173',
       'https://luxury-longma-7b4d22.netlify.app',
       'https://vacanzagreece.gr/',
+      'http://localhost:3000',
     ],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   });

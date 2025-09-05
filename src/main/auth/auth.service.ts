@@ -241,6 +241,7 @@ export class AuthService {
         email: pending.email,
         password: pending.password,
         referredBy: pending.referralCode,
+        role:pending.role
       },
     });
 
@@ -289,4 +290,19 @@ export class AuthService {
 
     return this.sendOtp(userId, method);
   }
+
+
+
+async createSuperAdmin(){
+  const hassPassword = await bcrypt.hash('superadmin', 10);
+  const superAdmin = await this.prisma.pendingUser.create({
+    data: {
+      fullName: 'Super Admin',
+      email:process.env.SUPER_ADMIN_EMAIL as string,
+      password: hassPassword,
+      role: 'SUPER_ADMIN',
+    }
+  });
+  return superAdmin;
+}
 }
