@@ -192,7 +192,7 @@ export class OnboardingController {
   // ------------------ Amenities ------------------
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(Role.Admin)
+  @Roles(Role.Admin,Role.SuperAdmin)
   @Post('amenities')
   @UseInterceptors(
     FilesInterceptor('icon', 1, {
@@ -227,7 +227,7 @@ export class OnboardingController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(Role.Admin)
+  @Roles(Role.Admin,Role.SuperAdmin)
   @ApiBearerAuth()
   @Patch('amenities/:id')
   async updateAmenity(@Param('id') id: string, @Body() dto: CreateAmenityDto) {
@@ -241,7 +241,7 @@ export class OnboardingController {
   }
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(Role.Admin)
+  @Roles(Role.Admin,Role.SuperAdmin)
   @Delete('amenities/:id')
   async deleteAmenity(@Param('id') id: string) {
     const res = await this.onboardingService.deleteAmenity(id);
@@ -256,7 +256,7 @@ export class OnboardingController {
   // ------------------ Transports ------------------
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(Role.Admin)
+  @Roles(Role.Admin,Role.SuperAdmin)
   @Post('transports')
   @UseInterceptors(
     FilesInterceptor('icon', 1, {
@@ -289,7 +289,7 @@ export class OnboardingController {
   }
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(Role.Admin)
+  @Roles(Role.Admin,Role.SuperAdmin)
   @Patch('transports/:id')
   async updateTransport(
     @Param('id') id: string,
@@ -305,7 +305,7 @@ export class OnboardingController {
   }
    @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(Role.Admin)
+  @Roles(Role.Admin,Role.SuperAdmin)
   @Delete('transports/:id')
   async deleteTransport(@Param('id') id: string) {
     const res = await this.onboardingService.deleteTransport(id);
@@ -320,7 +320,7 @@ export class OnboardingController {
   // ------------------ Surroundings ------------------
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(Role.Admin)
+  @Roles(Role.Admin,Role.SuperAdmin)
   @Post('surroundings')
   @UseInterceptors(
     FilesInterceptor('icon', 1, {
@@ -352,7 +352,7 @@ export class OnboardingController {
   }
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(Role.Admin)
+  @Roles(Role.Admin,Role.SuperAdmin)
   @Patch('surroundings/:id')
   async updateSurrounding(
     @Param('id') id: string,
@@ -368,7 +368,7 @@ export class OnboardingController {
   }
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(Role.Admin)
+  @Roles(Role.Admin,Role.SuperAdmin)
   @Delete('surroundings/:id')
   async deleteSurrounding(@Param('id') id: string) {
     const res = await this.onboardingService.deleteSurrounding(id);

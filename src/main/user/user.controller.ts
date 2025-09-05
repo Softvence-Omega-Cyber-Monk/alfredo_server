@@ -6,6 +6,8 @@ import {
   UseGuards,
   Delete,
   Param,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserRoleDto } from './dto/updateAdmin.dto';
@@ -15,12 +17,15 @@ import {
   ApiBody,
   ApiOperation,
   ApiParam,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 import { RolesGuard } from '../auth/authorization/roles.guard';
 import { Roles } from '../auth/authorization/roles.decorator';
 import { Role } from '../auth/authorization/roleEnum';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('User')
 @Controller('user')

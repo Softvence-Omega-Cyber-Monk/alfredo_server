@@ -39,7 +39,7 @@ export class BadgeController {
   /** CREATE BADGE */
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(Role.Admin)
+  @Roles(Role.Admin, Role.SuperAdmin)
   @Post()
   @ApiOperation({ summary: 'Create a new badge (Admin only)' })
   @UseInterceptors(
@@ -82,7 +82,7 @@ export class BadgeController {
   /** UPDATE BADGE */
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(Role.Admin)
+  @Roles(Role.Admin,Role.SuperAdmin)
   @Patch(':id')
   @ApiOperation({ summary: 'Update an existing badge (Admin only)' })
  @UseInterceptors(
@@ -131,7 +131,7 @@ export class BadgeController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @Roles(Role.Admin)
+  @Roles(Role.Admin,Role.SuperAdmin)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a badge (Admin only)' })
   @ApiParam({ name: 'id', description: 'Badge ID to delete' })
