@@ -5,10 +5,12 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { BadgeService } from '../badge/badge.service';
+import { BadgeType } from '@prisma/client';
 
 @Injectable()
 export class ReviewService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService,private badgeService: BadgeService) {}
 
   async createReview(
     userId: string,
@@ -31,7 +33,7 @@ export class ReviewService {
       throw new BadRequestException('You can not review your own property');
     }
 
-    return this.prisma.review.create({
+    const result=await  this.prisma.review.create({
       data: {
         rating: data.rating,
         comment: data.comment,
@@ -43,6 +45,11 @@ export class ReviewService {
         property: true,
       },
     });
+
+     await this.updatePropertyRating(propertyId);
+     await this.checkReviewBadge(property.ownerId);
+
+     return result
   }
 
   async getReviewsByProperty(propertyId: string) {
@@ -72,6 +79,46 @@ export class ReviewService {
       throw new ForbiddenException('You can only delete your own reviews');
     }
 
-    return this.prisma.review.delete({ where: { id: reviewId } });
+   const result=await this.prisma.review.delete({ where: { id: reviewId } });
+
+   await this.updatePropertyRating(review.propertyId)
+
+   return result
   }
+
+
+
+private async updatePropertyRating(propertyId: string) {
+  const result = await this.prisma.review.aggregate({
+    _avg: { rating: true },
+    _count: { rating: true },
+    where: { propertyId },
+  });
+
+  await this.prisma.property.update({
+    where: { id: propertyId },
+    data: {
+      averageRating: result._avg.rating ?? 0,
+      reviewCount: result._count.rating,
+    },
+  });
+}
+
+private async checkReviewBadge(userId: string) {
+    // Count total reviews on all properties of this user
+    const userProperties = await this.prisma.property.findMany({ where: { ownerId: userId } });
+    const propertyIds = userProperties.map(p => p.id);
+
+    if (propertyIds.length === 0) return;
+
+    const reviewCount = await this.prisma.review.count({
+      where: { propertyId: { in: propertyIds } },
+    });
+
+    // If review count >= 100, award badge
+    if (reviewCount >= 100) {
+      await this.badgeService.awardBadgeToUser(userId, BadgeType.REVIEW_BADGE);
+    }
+  }
+
 }

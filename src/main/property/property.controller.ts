@@ -194,8 +194,6 @@ export class PropertyController {
   }
 
   /** GET PROPERTY BY ID */
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Get property by ID' })
   @ApiParam({ name: 'id', description: 'Property ID' })
