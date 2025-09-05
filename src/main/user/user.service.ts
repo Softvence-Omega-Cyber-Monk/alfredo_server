@@ -52,28 +52,20 @@ export class UserService {
 
   // Get a single user by ID
   async getUser(userId: string) {
+    console.log(userId)
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        id: true,
-        fullName: true,
-        email: true,
-        phoneNumber: true,
-        photo: true,
-        role: true,
-        isSubscribed: true,
-        subscriptions: true,
-        notifications: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      include:{
+        achievementBadges:true
+      }
     });
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
+    const {password,...userInfo}=user
 
-    return user;
+    return userInfo;
   }
 
   // Update the logged-in user

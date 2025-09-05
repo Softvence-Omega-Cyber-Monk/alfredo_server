@@ -4,25 +4,19 @@ import {
   Patch,
   Body,
   UseGuards,
-  UploadedFile,
-  UseInterceptors,
   Delete,
   Param,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { UpdateUserRoleDto } from './dto/updateAdmin.dto';
 import {
   ApiBearerAuth,
   ApiTags,
-  ApiConsumes,
   ApiBody,
   ApiOperation,
   ApiParam,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { Express } from 'express';
 import { CurrentUser } from 'src/common/decorators/current-user.decorator';
 
 @ApiTags('User')
@@ -37,6 +31,7 @@ export class UserController {
   getMe(@CurrentUser('id') userId: string) {
     return this.userService.getUser(userId);
   }
+
 
   // Get all users
   @Get()
@@ -62,6 +57,12 @@ export class UserController {
   //   console.log(dto)
   //   return this.userService.updateMe(userId, dto, file);
   // }
+
+  // Get single user
+@Get('/:id')
+getSingleUser(@Param('id') userId: string) {
+  return this.userService.getUser(userId);
+}
 
   // Delete logged-in user
   @Delete('delete')
