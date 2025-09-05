@@ -27,6 +27,9 @@ import { UpdateBadgeDto } from './dto/update-badge.dto';
 import { BadgeType } from '@prisma/client';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { Role } from '../auth/authorization/roleEnum';
+import { RolesGuard } from '../auth/authorization/roles.guard';
+import { Roles } from '../auth/authorization/roles.decorator';
 
 @ApiTags('Badges')
 @Controller('badges')
@@ -34,8 +37,9 @@ export class BadgeController {
   constructor(private readonly badgeService: BadgeService) {}
 
   /** CREATE BADGE */
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @Roles(Role.Admin)
   @Post()
   @ApiOperation({ summary: 'Create a new badge (Admin only)' })
   @UseInterceptors(
@@ -76,8 +80,9 @@ export class BadgeController {
   }
 
   /** UPDATE BADGE */
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @Roles(Role.Admin)
   @Patch(':id')
   @ApiOperation({ summary: 'Update an existing badge (Admin only)' })
  @UseInterceptors(
@@ -124,7 +129,9 @@ export class BadgeController {
 
   /** DELETE BADGE */
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @ApiBearerAuth()
+  @Roles(Role.Admin)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a badge (Admin only)' })
   @ApiParam({ name: 'id', description: 'Badge ID to delete' })

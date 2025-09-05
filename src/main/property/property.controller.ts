@@ -69,6 +69,8 @@ export class PropertyController {
   "propertyType": "HOME",
   "maxPeople": 5,
   "isTravelWithPets": false,
+  "availabilityStartDate": "2025-09-15",
+  "availabilityEndDate": "2025-12-31",
   "amenities": ["amenityId1", "amenityId2"],
   "transports": ["transportId1"],
   "surroundings": ["surroundingId1", "surroundingId2"]
@@ -109,18 +111,27 @@ export class PropertyController {
 @ApiQuery({ name: 'country', required: false, description: 'Filter by country' })
 @ApiQuery({ name: 'maxPeople', required: false, description: 'Filter by minimum number of people' })
 @ApiQuery({ name: 'propertyType', required: false, enum: ['HOME', 'APARTMENT'], description: 'Filter by property type' })
-@ApiQuery({ name: 'createdAt', required: false, description: 'Filter properties created after this date (YYYY-MM-DD)' })
 @ApiQuery({ name: 'amenities', required: false, description: 'Comma-separated list of amenity IDs' })
 @ApiQuery({ name: 'transports', required: false, description: 'Comma-separated list of transport IDs' })
 @ApiQuery({ name: 'page', required: false, description: 'Page number for pagination (default: 1)' })
 @ApiQuery({ name: 'limit', required: false, description: 'Items per page for pagination (default: 10)' })
+@ApiQuery({ name: 'availabilityStartDate', required: false, description: 'Filter by available start date (YYYY-MM-DD)' })
+@ApiQuery({ name: 'availabilityEndDate', required: false, description: 'Filter by available end date (YYYY-MM-DD)' })
+@ApiQuery({
+  name: 'isTravelWithPets',
+  required: false,
+  type: Boolean,
+  description: 'Filter properties that allow traveling with pets',
+})
 async getAllProperty(
   @Query('search') search?: string,
   @Query('location') location?: string,
   @Query('country') country?: string,
   @Query('maxPeople') maxPeople?: number,
   @Query('propertyType') propertyType?: string,
-  @Query('createdAt') createdAt?: string,
+  @Query('availabilityStartDate') availabilityStartDate?: string,
+  @Query('availabilityEndDate') availabilityEndDate?: string,
+  @Query('isTravelWithPets') isTravelWithPets?: string,
   @Query('amenities') amenities?: string,
   @Query('transports') transports?: string,
   @Query('page') page?: number,
@@ -132,7 +143,9 @@ async getAllProperty(
     country,
     maxPeople: maxPeople ? Number(maxPeople) : undefined,
     propertyType,
-    createdAt: createdAt ? new Date(createdAt) : undefined,
+  availabilityStartDate: availabilityStartDate ? new Date(availabilityStartDate) : undefined,
+    availabilityEndDate: availabilityEndDate ? new Date(availabilityEndDate) : undefined,
+    isTravelWithPets: isTravelWithPets !== undefined ? isTravelWithPets === 'true' : undefined,
     amenities: amenities ? amenities.split(',') : undefined,
     transports: transports ? transports.split(',') : undefined,
     page: page ? Number(page) : undefined,
@@ -191,6 +204,8 @@ async getAllProperty(
    "propertyType": "APARTMENT",
   "maxPeople": 4,
   "isTravelWithPets": true,
+  "availabilityStartDate": "2025-09-15",
+  "availabilityEndDate": "2025-12-31",
   "surroundings": ["surroundingId3"],
   "removeImages": ["cloudinaryPublicId1", "cloudinaryPublicId2"]
 }
