@@ -103,7 +103,7 @@ export class PropertyController {
   /** GET ALL PROPERTIES */
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
-  @Get()
+  @Get() 
   @ApiOperation({
     summary: 'Get all properties with filters, search & pagination',
   })
