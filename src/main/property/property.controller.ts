@@ -101,88 +101,45 @@ export class PropertyController {
   }
 
   /** GET ALL PROPERTIES */
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
-  @Get()
-  @ApiOperation({
-    summary: 'Get all properties with filters, search & pagination',
-  })
-  @ApiQuery({
-    name: 'search',
-    required: false,
-    description: 'Search by title, location, or country',
-  })
-  @ApiQuery({
-    name: 'location',
-    required: false,
-    description: 'Filter by location',
-  })
-  @ApiQuery({
-    name: 'country',
-    required: false,
-    description: 'Filter by country',
-  })
-  @ApiQuery({
-    name: 'maxPeople',
-    required: false,
-    description: 'Filter by minimum number of people',
-  })
-  @ApiQuery({
-    name: 'propertyType',
-    required: false,
-    enum: ['HOME', 'APARTMENT'],
-    description: 'Filter by property type',
-  })
-  @ApiQuery({
-    name: 'createdAt',
-    required: false,
-    description: 'Filter properties created after this date (YYYY-MM-DD)',
-  })
-  @ApiQuery({
-    name: 'amenities',
-    required: false,
-    description: 'Comma-separated list of amenity IDs',
-  })
-  @ApiQuery({
-    name: 'transports',
-    required: false,
-    description: 'Comma-separated list of transport IDs',
-  })
-  @ApiQuery({
-    name: 'page',
-    required: false,
-    description: 'Page number for pagination (default: 1)',
-  })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    description: 'Items per page for pagination (default: 10)',
-  })
-  async getAllProperty(
-    @Query('search') search?: string,
-    @Query('location') location?: string,
-    @Query('country') country?: string,
-    @Query('maxPeople') maxPeople?: number,
-    @Query('propertyType') propertyType?: string,
-    @Query('createdAt') createdAt?: string,
-    @Query('amenities') amenities?: string,
-    @Query('transports') transports?: string,
-    @Query('page') page?: number,
-    @Query('limit') limit?: number,
-  ) {
-    return this.ProperService.getAllProperty({
-      search,
-      location,
-      country,
-      maxPeople: maxPeople ? Number(maxPeople) : undefined,
-      propertyType,
-      createdAt: createdAt ? new Date(createdAt) : undefined,
-      amenities: amenities ? amenities.split(',') : undefined,
-      transports: transports ? transports.split(',') : undefined,
-      page: page ? Number(page) : undefined,
-      limit: limit ? Number(limit) : undefined,
-    });
-  }
+
+@Get()
+@ApiOperation({ summary: 'Get all properties with filters, search & pagination' })
+@ApiQuery({ name: 'search', required: false, description: 'Search by title, location, or country' })
+@ApiQuery({ name: 'location', required: false, description: 'Filter by location' })
+@ApiQuery({ name: 'country', required: false, description: 'Filter by country' })
+@ApiQuery({ name: 'maxPeople', required: false, description: 'Filter by minimum number of people' })
+@ApiQuery({ name: 'propertyType', required: false, enum: ['HOME', 'APARTMENT'], description: 'Filter by property type' })
+@ApiQuery({ name: 'createdAt', required: false, description: 'Filter properties created after this date (YYYY-MM-DD)' })
+@ApiQuery({ name: 'amenities', required: false, description: 'Comma-separated list of amenity IDs' })
+@ApiQuery({ name: 'transports', required: false, description: 'Comma-separated list of transport IDs' })
+@ApiQuery({ name: 'page', required: false, description: 'Page number for pagination (default: 1)' })
+@ApiQuery({ name: 'limit', required: false, description: 'Items per page for pagination (default: 10)' })
+async getAllProperty(
+  @Query('search') search?: string,
+  @Query('location') location?: string,
+  @Query('country') country?: string,
+  @Query('maxPeople') maxPeople?: number,
+  @Query('propertyType') propertyType?: string,
+  @Query('createdAt') createdAt?: string,
+  @Query('amenities') amenities?: string,
+  @Query('transports') transports?: string,
+  @Query('page') page?: number,
+  @Query('limit') limit?: number,
+) {
+  return this.ProperService.getAllProperty({
+    search,
+    location,
+    country,
+    maxPeople: maxPeople ? Number(maxPeople) : undefined,
+    propertyType,
+    createdAt: createdAt ? new Date(createdAt) : undefined,
+    amenities: amenities ? amenities.split(',') : undefined,
+    transports: transports ? transports.split(',') : undefined,
+    page: page ? Number(page) : undefined,
+    limit: limit ? Number(limit) : undefined,
+  });
+}
+
 
   /** GET USER PROPERTIES */
   @ApiBearerAuth()
@@ -194,8 +151,6 @@ export class PropertyController {
   }
 
   /** GET PROPERTY BY ID */
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Get(':id')
   @ApiOperation({ summary: 'Get property by ID' })
   @ApiParam({ name: 'id', description: 'Property ID' })
