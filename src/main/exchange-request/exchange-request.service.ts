@@ -105,7 +105,7 @@ export class ExchangeRequestService {
       where: { id },
       data,
       include: {
-        fromUser: true,
+        fromUser: true,  
         toUser: true,
         fromProperty: true,
         toProperty: true,
