@@ -15,7 +15,7 @@ export class ExchangeRequestService {
       where: { id: createDto.fromUserId },
     });
     console.log(fromUser);
-    const toUser = await this.prisma.pendingUser.findUnique({
+    const toUser = await this.prisma.user.findUnique({
       where: { id: createDto.toUserId },
     });
     if (!toUser) throw new NotFoundException('toUserId does not exist');
