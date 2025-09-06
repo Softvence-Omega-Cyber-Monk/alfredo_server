@@ -43,9 +43,9 @@ export class PlanController {
 
   // this is the public route to fetch all plans
   @Get()
-  findAll() {
+  async findAll() {
   try{
-     const res= this.planService.findAll();
+     const res= await this.planService.findAll();
     return {
       statusCode: HttpStatus.OK,
       message: 'Plans fetched successfully',
