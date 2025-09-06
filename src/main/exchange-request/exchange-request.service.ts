@@ -125,4 +125,27 @@ export class ExchangeRequestService {
     await this.prisma.exchangeRequest.delete({ where: { id } });
     return { message: `ExchangeRequest with ID ${id} deleted successfully` };
   }
+
+
+/** UPDATE */
+async acceptExchangeRequest(id: string) {
+  const existing = await this.prisma.exchangeRequest.findUnique({
+    where: { id },
+  });
+  if (!existing)
+    throw new NotFoundException(`ExchangeRequest with ID ${id} not found`);
+
+  // Update the status to 'ACCEPTED'
+  return this.prisma.exchangeRequest.update({
+    where: { id },
+    data: { status: 'ACCEPTED' },
+    include: {
+      fromUser: true,
+      toUser: true,
+      fromProperty: true,
+      toProperty: true,
+      chatMessages: true,
+    },
+  });
+}
 }
