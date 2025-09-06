@@ -83,4 +83,16 @@ export class ExchangeRequestController {
   remove(@Param('id') id: string) {
     return this.exchangeRequestService.remove(id);
   }
+
+  @Patch('aceept/:id')
+  @ApiOperation({ summary: 'Accept an exchange request by ID' })
+  @ApiParam({ name: 'id', description: 'Exchange request UUID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Exchange request accepted successfully',
+  })
+  @ApiResponse({ status: 404, description: 'Exchange request not found' })
+  accept(@Param('id') id: string) {
+    return this.exchangeRequestService.acceptExchangeRequest(id);
+  }
 }
