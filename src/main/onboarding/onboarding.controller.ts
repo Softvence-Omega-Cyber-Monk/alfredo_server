@@ -212,8 +212,6 @@ export class OnboardingController {
   ) {
     return this.onboardingService.createAmenity(dto, files);
   }
-  @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard)
   @Get('amenities')
   async getAllAmenities() {
     const res = await this.onboardingService.getAllAmenities();
