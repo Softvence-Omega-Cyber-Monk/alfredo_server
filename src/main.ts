@@ -19,6 +19,7 @@ async function bootstrap() {
       'https://luxury-longma-7b4d22.netlify.app',
       'https://vacanzagreece.gr/',
       'http://localhost:3000',
+      'https://vacanza-dashboard.vercel.app'
     ],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   });
