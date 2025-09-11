@@ -16,7 +16,7 @@ export class StripePaymentService {
   private stripe: Stripe;
 
   constructor(private prisma: PrismaService) {
-    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {});
+    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {});
   }
   async createCheckoutSession(
     priceId: string,
@@ -25,16 +25,15 @@ export class StripePaymentService {
     planDuration: any,
   ) {
     const price = await this.stripe.prices.retrieve(priceId);
-
     const session = await this.stripe.checkout.sessions.create({
       mode: price.recurring ? 'subscription' : 'payment',
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: process.env.SUCCESS_URL,
       cancel_url: process.env.CANCEL_URL,
       metadata: {
-        userId: user?.id || user, // store userId
+        userId: user?.id || user, 
         planId: planId,
-        planDuration: planDuration, // store plan or product id
+        planDuration: planDuration,
       },
     });
     console.log(session);
@@ -55,7 +54,7 @@ export class StripePaymentService {
       event = this.stripe.webhooks.constructEvent(
         rawBody,
         signature,
-        'whsec_xCqIv09l79FgqbcoMRXjJwdDBNngRfON',
+        process.env.STRIPE_WEBHOOK_SECRET as string,
       );
     } catch {
       throw new BadRequestException('Invalid Stripe signature');
