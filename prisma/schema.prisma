@@ -437,8 +437,8 @@ enum PlanStatus {
 }
 
 enum PlanType {
-  MONTHLY
   YEARLY
+  TWO_YEARLY
 }
 
 enum PaymentStatus {
