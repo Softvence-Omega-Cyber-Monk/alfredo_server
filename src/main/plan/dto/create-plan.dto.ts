@@ -52,8 +52,8 @@ export class CreatePlanDto {
 
   @ApiProperty({
     enum: PlanType,
-    example: PlanType.MONTHLY,
-    description: 'Type of the plan (e.g. MONTHLY, YEARLY)',
+    example: PlanType.YEARLY,
+    description: 'Type of the plan (YEARLY)',
   })
   @IsEnum(PlanType)
   planType: PlanType;

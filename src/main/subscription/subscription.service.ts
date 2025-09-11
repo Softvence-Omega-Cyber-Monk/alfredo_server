@@ -86,7 +86,7 @@ export class SubscriptionService {
       const plan = await this.prisma.plan.findUnique({ where: { id: planId } });
       if (!plan) throw new NotFoundException('Plan not found');
 
-      const durationDays = plan.planType === 'MONTHLY' ? 30 : 365;
+      const durationDays = plan.planType === 'YEARLY' ? 365 : 730;
 
       const sub = await this.prisma.subscription.create({
         data: {
