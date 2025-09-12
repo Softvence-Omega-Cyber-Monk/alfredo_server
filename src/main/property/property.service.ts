@@ -208,7 +208,9 @@ export class PropertyService {
         amenities: true,
         transports: true,
         surroundings: true,
+        Review:true
       },
+
     });
     if (!property)
       throw new NotFoundException(`Property with ID ${id} not found`);
