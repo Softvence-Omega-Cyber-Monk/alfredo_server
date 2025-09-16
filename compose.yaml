@@ -21,7 +21,7 @@ services:
     container_name: alfredo_db
     restart: always
     ports:
-      - "5400:5432"
+      - "5432:5432"
     environment:
       POSTGRES_USER: alfredo_user
       POSTGRES_PASSWORD: alfredo_pass
