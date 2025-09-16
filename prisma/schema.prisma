@@ -269,6 +269,7 @@ model Plan {
   description   String?
   price         Float
   features      String[]
+  plan_duration   String
   planType      PlanType
   status        PlanStatus     @default(ACTIVE)
   createdAt     DateTime       @default(now())
@@ -350,6 +351,10 @@ model KeyPoint {
   updatedAt DateTime @updatedAt
 }
 
+model Web_subscribe {
+  id String @id @default(uuid())
+  email String
+}
 
 enum BadgeType {
   REVIEW_BADGE

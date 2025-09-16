@@ -25,17 +25,25 @@ export class CreatePlanDto {
   description?: string;
 
   @ApiProperty({
+    example: '1 Year',
+    description: 'Plan duration',
+  })
+  @IsString()
+  plan_duration: string; // required
+
+  @ApiProperty({
     example: 19.99,
     description: 'The price of the plan in USD',
   })
   @IsNumber()
   price: number;
+
   @ApiProperty({
-    example: 19.99,
+    example: 'price_1ABC123xyz',
     description: 'The priceId of the plan in Stripe',
   })
-  @IsNumber()
-  priceId: string;
+  @IsString()
+  priceId: string; // fixed
 
   @ApiProperty({
     example: [

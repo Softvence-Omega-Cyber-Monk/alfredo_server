@@ -23,6 +23,7 @@ import { StripePaymentModule } from './main/stripe-payment/stripe-payment.module
 import { ReviewModule } from './main/review/review.module';
 import { ArticleModule } from './main/article/article.module';
 import { BadgeModule } from './main/badge/badge.module';
+import { WebSubscribeModule } from './main/web-subscribe/web-subscribe.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { BadgeModule } from './main/badge/badge.module';
     StripePaymentModule,
     ReviewModule,
     BadgeModule,
+    WebSubscribeModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, MailService, TwilioService],
