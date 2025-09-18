@@ -269,7 +269,7 @@ model Plan {
   description   String?
   price         Float
   features      String[]
-  plan_duration   String
+  plan_duration   String?
   planType      PlanType
   status        PlanStatus     @default(ACTIVE)
   createdAt     DateTime       @default(now())
