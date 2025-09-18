@@ -8,7 +8,7 @@ on:
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
-    
+     
     steps:
     # Step 1: Checkout code from GitHub repository
     - name: Checkout code
