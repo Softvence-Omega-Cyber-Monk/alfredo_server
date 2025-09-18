@@ -21,7 +21,6 @@ export class PlanService {
   findAll() {
     return this.prisma.plan.findMany({ where: { status: 'ACTIVE' } });
   }
-
   findOne(id: string) {
     return this.prisma.plan.findUnique({ where: { id } });
   }
