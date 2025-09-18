@@ -13,12 +13,14 @@ WORKDIR /app
 
 # Copy only package.json and package-lock.json first (for layer caching)
 COPY package*.json ./
+COPY prisma ./prisma/
 
 # Install dependencies with --build-from-source to ensure bcrypt is compiled for the current architecture
-RUN npm install --legacy-peer-deps --build-from-source
+RUN npm install
 
 # Copy the rest of the application
 COPY . .
+
 
 # 👇 Create uploads folder (ensure it exists inside the container)
 RUN mkdir -p uploads
