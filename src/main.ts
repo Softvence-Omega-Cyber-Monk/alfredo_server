@@ -50,7 +50,6 @@ async function bootstrap() {
   app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads',
   });
-
   // Start server
   await app.listen(process.env.PORT ?? 8000);
 }
