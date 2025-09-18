@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "public"."User" ALTER COLUMN "city" SET NOT NULL,
-ALTER COLUMN "city" SET DATA TYPE TEXT;
