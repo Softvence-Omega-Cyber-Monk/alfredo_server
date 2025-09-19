@@ -1,45 +1,43 @@
-import { PrismaClient } from '@prisma/client';
+import { Injectable, OnApplicationBootstrap, Logger } from '@nestjs/common';
+
 import * as bcrypt from 'bcrypt';
-import * as dotenv from 'dotenv';
+import { Role } from '@prisma/client';
+import { PrismaService } from 'src/main/prisma/prisma.service';
 
-dotenv.config(); // Load environment variables from .env
+@Injectable()
+export class SeederService implements OnApplicationBootstrap {
+  constructor(private prisma: PrismaService) {}
 
-const prisma = new PrismaClient();
+  private readonly logger = new Logger(SeederService.name);
 
-async function main() {
-  const adminEmail = process.env.ADMIN_EMAIL;
-  const adminPassword = process.env.ADMIN_PASSWORD;
-
-  if (!adminEmail || !adminPassword) {
-    throw new Error('❌ ADMIN_EMAIL or ADMIN_PASSWORD not defined in .env');
+  async onApplicationBootstrap() {
+    await this.seedAdmin();
   }
 
-  const existingAdmin = await prisma.user.findUnique({
-    where: { email: adminEmail },
-  });
+  private async seedAdmin() {
+    const adminEmail = process.env.ADMIN_EMAIL as string;
+    const adminPassword = process.env.ADMIN_PASSWORD as string;
 
-  if (!existingAdmin) {
+    const supperAdmin = await this.prisma.user.findFirst({
+      where: { role: Role.ADMIN},
+    });
+
+    if ( supperAdmin) {
+      this.logger.log('Admin is already exists, skipping seeding.');
+      return;
+    }
+
     const hashedPassword = await bcrypt.hash(adminPassword, 10);
 
-    await prisma.user.create({
+    await this.prisma.user.create({
       data: {
-        fullName: 'Admin User',
         email: adminEmail,
         password: hashedPassword,
-        phoneNumber: '0000000000',
-        role: 'ADMIN',
+        role: Role.ADMIN,
+        fullName: 'Admin User',
       },
     });
 
-    console.log('✅ Admin seeded successfully');
-  } else {
-    console.log('⚠️ Admin already exists');
+    this.logger.log(`Default super admin created: ${adminEmail}`);
   }
 }
-
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(() => prisma.$disconnect());

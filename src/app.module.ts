@@ -24,6 +24,7 @@ import { ReviewModule } from './main/review/review.module';
 import { ArticleModule } from './main/article/article.module';
 import { BadgeModule } from './main/badge/badge.module';
 import { WebSubscribeModule } from './main/web-subscribe/web-subscribe.module';
+import { SeederService } from './common/seeder/seed';
 
 @Module({
   imports: [
@@ -50,6 +51,6 @@ import { WebSubscribeModule } from './main/web-subscribe/web-subscribe.module';
     WebSubscribeModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService, MailService, TwilioService],
+  providers: [AppService, PrismaService, MailService, TwilioService,SeederService],
 })
 export class AppModule {}
