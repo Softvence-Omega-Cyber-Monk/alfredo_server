@@ -115,9 +115,10 @@ export class OnboardingService {
         surroundings: true,
       },
     });
+    console.log(uploadedImages[0])
     await this.prisma.user.update({
       where: { id: userId },
-      data: { hasOnboarded: true ,photo:uploadedImages[0]},
+      data: { hasOnboarded: true,photo:uploadedImages[0]},
     });
     return onboarding;
   }
@@ -199,7 +200,7 @@ export class OnboardingService {
       where: { userId },
       include: { amenities: true, transports: true, surroundings: true },
     });
-
+    console.log(existing)
     if (!existing) throw new BadRequestException('Onboarding not found');
 
     // 2️⃣ Handle image uploads
