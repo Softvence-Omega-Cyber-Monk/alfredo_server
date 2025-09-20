@@ -117,7 +117,7 @@ export class OnboardingService {
     });
     await this.prisma.user.update({
       where: { id: userId },
-      data: { hasOnboarded: true },
+      data: { hasOnboarded: true ,photo:uploadedImages[0]},
     });
     return onboarding;
   }

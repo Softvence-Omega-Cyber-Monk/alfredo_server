@@ -163,7 +163,7 @@ model Property {
   size        Float?
   bedrooms    Int?
   bathrooms   Int?
-  images      Json      // store array of objects [{ url: "...", publicId: "..." }]
+  images      Json
   propertyType    PropertyType?
   maxPeople            Int?
   isAvailable Boolean @default(true)
