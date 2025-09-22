@@ -104,6 +104,56 @@ export class PropertyController {
 
   /** GET ALL PROPERTIES */
 
+// @Get()
+// @ApiOperation({ summary: 'Get all properties with filters, search & pagination' })
+// @ApiQuery({ name: 'search', required: false, description: 'Search by title, location, or country' })
+// @ApiQuery({ name: 'location', required: false, description: 'Filter by location' })
+// @ApiQuery({ name: 'country', required: false, description: 'Filter by country' })
+// @ApiQuery({ name: 'maxPeople', required: false, description: 'Filter by minimum number of people' })
+// @ApiQuery({ name: 'propertyType', required: false, enum: ['HOME', 'APARTMENT'], description: 'Filter by property type' })
+// @ApiQuery({ name: 'amenities', required: false, description: 'Comma-separated list of amenity IDs' })
+// @ApiQuery({ name: 'transports', required: false, description: 'Comma-separated list of transport IDs' })
+// @ApiQuery({ name: 'page', required: false, description: 'Page number for pagination (default: 1)' })
+// @ApiQuery({ name: 'limit', required: false, description: 'Items per page for pagination (default: 10)' })
+// @ApiQuery({ name: 'availabilityStartDate', required: false, description: 'Filter by available start date (YYYY-MM-DD)' })
+// @ApiQuery({ name: 'availabilityEndDate', required: false, description: 'Filter by available end date (YYYY-MM-DD)' })
+// @ApiQuery({
+//   name: 'isTravelWithPets',
+//   required: false,
+//   type: Boolean,
+//   description: 'Filter properties that allow traveling with pets',
+// })
+// async getAllProperty(
+//   @Query('search') search?: string,
+//   @Query('location') location?: string,
+//   @Query('country') country?: string,
+//   @Query('maxPeople') maxPeople?: number,
+//   @Query('propertyType') propertyType?: string,
+//   @Query('availabilityStartDate') availabilityStartDate?: string,
+//   @Query('availabilityEndDate') availabilityEndDate?: string,
+//   @Query('isTravelWithPets') isTravelWithPets?: string,
+//   @Query('amenities') amenities?: string,
+//   @Query('transports') transports?: string,
+//   @Query('page') page?: number,
+//   @Query('limit') limit?: number,
+// ) {
+//   return this.ProperService.getAllProperty({
+//     search,
+//     location,
+//     country,
+//     maxPeople: maxPeople ? Number(maxPeople) : undefined,
+//     propertyType,
+//   availabilityStartDate: availabilityStartDate ? new Date(availabilityStartDate) : undefined,
+//     availabilityEndDate: availabilityEndDate ? new Date(availabilityEndDate) : undefined,
+//     isTravelWithPets: isTravelWithPets !== undefined ? isTravelWithPets === 'true' : undefined,
+//     amenities: amenities ? amenities.split(',') : undefined,
+//     transports: transports ? transports.split(',') : undefined,
+//     page: page ? Number(page) : undefined,
+//     limit: limit ? Number(limit) : undefined,
+//   });
+// }
+
+/** GET ALL PROPERTIES */
 @Get()
 @ApiOperation({ summary: 'Get all properties with filters, search & pagination' })
 @ApiQuery({ name: 'search', required: false, description: 'Search by title, location, or country' })
@@ -113,6 +163,7 @@ export class PropertyController {
 @ApiQuery({ name: 'propertyType', required: false, enum: ['HOME', 'APARTMENT'], description: 'Filter by property type' })
 @ApiQuery({ name: 'amenities', required: false, description: 'Comma-separated list of amenity IDs' })
 @ApiQuery({ name: 'transports', required: false, description: 'Comma-separated list of transport IDs' })
+@ApiQuery({ name: 'surroundings', required: false, description: 'Comma-separated list of surrounding IDs' }) // Added
 @ApiQuery({ name: 'page', required: false, description: 'Page number for pagination (default: 1)' })
 @ApiQuery({ name: 'limit', required: false, description: 'Items per page for pagination (default: 10)' })
 @ApiQuery({ name: 'availabilityStartDate', required: false, description: 'Filter by available start date (YYYY-MM-DD)' })
@@ -134,6 +185,7 @@ async getAllProperty(
   @Query('isTravelWithPets') isTravelWithPets?: string,
   @Query('amenities') amenities?: string,
   @Query('transports') transports?: string,
+  @Query('surroundings') surroundings?: string, // Added
   @Query('page') page?: number,
   @Query('limit') limit?: number,
 ) {
@@ -143,16 +195,16 @@ async getAllProperty(
     country,
     maxPeople: maxPeople ? Number(maxPeople) : undefined,
     propertyType,
-  availabilityStartDate: availabilityStartDate ? new Date(availabilityStartDate) : undefined,
+    availabilityStartDate: availabilityStartDate ? new Date(availabilityStartDate) : undefined,
     availabilityEndDate: availabilityEndDate ? new Date(availabilityEndDate) : undefined,
     isTravelWithPets: isTravelWithPets !== undefined ? isTravelWithPets === 'true' : undefined,
     amenities: amenities ? amenities.split(',') : undefined,
     transports: transports ? transports.split(',') : undefined,
+    surroundings: surroundings ? surroundings.split(',') : undefined, // Added
     page: page ? Number(page) : undefined,
     limit: limit ? Number(limit) : undefined,
   });
 }
-
 
   /** GET USER PROPERTIES */
   @ApiBearerAuth()
