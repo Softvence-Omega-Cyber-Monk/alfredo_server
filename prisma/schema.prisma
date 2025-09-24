@@ -264,19 +264,40 @@ model Notification {
 }
 
 model Plan {
-  id            String         @id @default(uuid())
-  name          String         @unique
-  description   String?
-  price         Float
-  features      String[]
-  plan_duration   String?
-  planType      PlanType
-  status        PlanStatus     @default(ACTIVE)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  priceId     String          @default("") // Stripe Price ID
-  subscriptions Subscription[]
+  id             String            @id @default(uuid())
+  price          Float             
+  status         PlanStatus        @default(ACTIVE)
+  priceId        String            @default("")
+  subscriptions  Subscription[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  translations   PlanTranslation[]
 }
+
+model PlanTranslation {
+  id            String   @id @default(uuid())
+  planId        String
+  language      String  
+
+  name          String
+  description   String?
+  features      String[]
+  planDuration  String? 
+  planType      String  
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  plan          Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  // prevent duplicates
+  @@unique([planId, language])
+}
+
+enum PlanStatus {
+  ACTIVE
+  INACTIVE
+}
+
 
 model Subscription {
   id        String   @id @default(uuid())
@@ -437,11 +458,6 @@ enum ExchangeStatus {
   ACCEPTED
   REJECTED
   CANCELLED
-}
-
-enum PlanStatus {
-  ACTIVE
-  INACTIVE
 }
 
 enum PlanType {

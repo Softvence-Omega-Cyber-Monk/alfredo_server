@@ -1,17 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
+import { ConfigService } from '@nestjs/config'; // Import ConfigService
 
 @Injectable()
 export class MailService {
-  private transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS,
-    },
-  });
+  private transporter: nodemailer.Transporter;
 
-  // Generic sendMail method for sending emails
+  constructor(private readonly configService: ConfigService) {
+    // Correctly initialize transporter using ConfigService
+    this.transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: {
+        user: this.configService.get<string>('SMTP_USER'),
+        pass: this.configService.get<string>('SMTP_PASS'),
+      },
+    });
+  }
+
   async sendMail(options: {
     to: string;
     subject: string;
@@ -19,25 +26,21 @@ export class MailService {
     html?: string;
   }) {
     const mailOptions = {
-      from: process.env.MAIL_FROM,
+      from: this.configService.get<string>('MAIL_FROM'),
       to: options.to,
       subject: options.subject,
-      text: options.text || '', // Fallback to empty string if text is not provided
-      html: options.html || '', // Fallback to empty string if html is not provided
+      text: options.text,
+      html: options.html,
     };
 
-    try {
-      await this.transporter.sendMail(mailOptions);
-      console.log(`Email sent to ${options.to}`);
-    } catch (error) {
-      console.error('Error sending email:', error);
-      throw new Error('Failed to send email');
-    }
+    // Let errors bubble up to the global exception filter
+    await this.transporter.sendMail(mailOptions);
+    console.log(`Email sent to ${options.to}`);
   }
 
-  // Specific method for sending reset password emails
   async sendResetPasswordEmail(email: string, token: string) {
-    const resetUrl = `http://localhost:5173/reset-password?token=${token}`;
+    const appUrl = this.configService.get<string>('CLIENT_URL');
+    const resetUrl = `${appUrl}/reset-password?token=${token}`;
     const mailOptions = {
       to: email,
       subject: 'Reset your password',
@@ -50,7 +53,6 @@ export class MailService {
     await this.sendMail(mailOptions);
   }
 
-  // Optional: Specific method for sending OTP emails
   async sendOtpEmail(email: string, otp: string) {
     const mailOptions = {
       to: email,

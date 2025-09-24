@@ -26,6 +26,7 @@ export class SubscriptionService {
   async createCheckoutSession(dto: CreateSubscriptionDto) {
     const plan = await this.prisma.plan.findUnique({
       where: { id: dto.planId },
+      include: { translations: true },
     });
     if (!plan) throw new BadRequestException('Plan not found');
 
@@ -36,7 +37,7 @@ export class SubscriptionService {
         {
           price_data: {
             currency: 'usd',
-            product_data: { name: plan.name },
+            product_data: { name: plan.translations[0]?.name || 'Plan' },
             unit_amount: Math.round(plan.price * 100),
           },
           quantity: 1,
@@ -83,10 +84,13 @@ export class SubscriptionService {
       const { planId, userId } = metadata;
       const amount = (session.amount_total ?? 0) / 100;
 
-      const plan = await this.prisma.plan.findUnique({ where: { id: planId } });
+      const plan = await this.prisma.plan.findUnique({ 
+        where: { id: planId },
+        include: { translations: true }
+      });
       if (!plan) throw new NotFoundException('Plan not found');
 
-      const durationDays = plan.planType === 'YEARLY' ? 365 : 730;
+      const durationDays = plan.translations[0]?.planType === 'YEARLY' ? 365 : 730;
 
       const sub = await this.prisma.subscription.create({
         data: {

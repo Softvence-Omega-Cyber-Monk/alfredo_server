@@ -1,77 +1,47 @@
 import {
-  IsEnum,
   IsNumber,
   IsOptional,
   IsString,
   IsArray,
+  ValidateNested,
+  IsEnum,
 } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { PlanType, PlanStatus } from '@prisma/client';
+import { PlanStatus } from '@prisma/client';
+import { CreatePlanTranslationDto } from './create-plan-transelation.dto';
+
 
 export class CreatePlanDto {
   @ApiProperty({
-    example: 'Pro Plan',
-    description: 'The name of the subscription plan',
-  })
-  @IsString()
-  name: string;
-
-  @ApiPropertyOptional({
-    example: 'Get access to all premium content and features',
-    description: 'A short description of the plan',
-  })
-  @IsOptional()
-  @IsString()
-  description?: string;
-
-  @ApiProperty({
-    example: '1 Year',
-    description: 'Plan duration',
-  })
-  @IsString()
-  plan_duration: string; // required
-
-  @ApiProperty({
     example: 19.99,
-    description: 'The price of the plan in USD',
+    description: 'The base price of the plan in USD',
   })
   @IsNumber()
   price: number;
 
   @ApiProperty({
     example: 'price_1ABC123xyz',
-    description: 'The priceId of the plan in Stripe',
+    description: 'The Stripe priceId for the plan',
   })
   @IsString()
-  priceId: string; // fixed
-
-  @ApiProperty({
-    example: [
-      'Unlimited content access',
-      'Priority support',
-      'Community access',
-    ],
-    description: 'List of features included in the plan',
-    type: [String],
-  })
-  @IsArray()
-  @IsString({ each: true })
-  features: string[];
-
-  @ApiProperty({
-    enum: PlanType,
-    example: PlanType.YEARLY,
-    description: 'Type of the plan (YEARLY)',
-  })
-  @IsEnum(PlanType)
-  planType: PlanType;
+  priceId: string;
 
   @ApiPropertyOptional({
     enum: PlanStatus,
     example: PlanStatus.ACTIVE,
-    description: 'Status of the plan (e.g. ACTIVE, INACTIVE)',
+    description: 'Status of the plan (ACTIVE/INACTIVE)',
   })
   @IsOptional()
   @IsEnum(PlanStatus)
-  status?: PlanStatus = PlanStatus.ACTIVE;
+  status?: PlanStatus; // ✅ default should be in Prisma, not DTO
+
+  @ApiProperty({
+    type: [CreatePlanTranslationDto],
+    description: 'Translations of the plan in multiple languages',
+  })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CreatePlanTranslationDto)
+  translations: CreatePlanTranslationDto[];
 }
