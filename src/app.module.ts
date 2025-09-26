@@ -25,6 +25,7 @@ import { ArticleModule } from './main/article/article.module';
 import { BadgeModule } from './main/badge/badge.module';
 import { WebSubscribeModule } from './main/web-subscribe/web-subscribe.module';
 import { SeederService } from './common/seeder/seed';
+import { PromotionalMailService } from './main/mail/another.mail.setup';
 
 @Module({
   imports: [
