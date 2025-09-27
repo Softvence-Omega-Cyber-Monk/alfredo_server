@@ -27,7 +27,7 @@ services:
       POSTGRES_PASSWORD: alfredo_pass
       POSTGRES_DB: alfredo_mydatabase
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - root_pgdata:/var/lib/postgresql/data
 
 volumes:
-  pgdata:
+  root_pgdata:
