@@ -30,7 +30,7 @@ export class PromotionalMailTemplatesService {
               <div class="content">
                   <p style="font-size: 18px; color: #fff8f8ff;"><strong>${subject}</strong></p>
                   <p>${message}</p>
-                  <a href="https://yourwebsite.com/promo" class="cta-button">Claim Your Offer Now</a>
+                  <a href="https://vacanzagreece.gr" class="cta-button">Claim Your Offer Now</a>
               </div>
               <div class="footer">
                   <p>You received this email because you are a valued subscriber to our newsletter. If you no longer wish to receive these emails, you can <a href="#">unsubscribe here</a>.</p>
