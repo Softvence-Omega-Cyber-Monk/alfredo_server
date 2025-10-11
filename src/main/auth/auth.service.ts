@@ -4,6 +4,7 @@ import {
   UnauthorizedException,
   HttpException,
   HttpStatus,
+  ForbiddenException,
 } from '@nestjs/common';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -17,6 +18,7 @@ import { MailService } from '../mail/mail.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { randomUUID } from 'crypto';
 import { OtpService } from './services/otp.service';
+import { generateUniqueSessionId } from 'src/utils/multer/generateUniqueSessionId';
 
 @Injectable()
 export class AuthService {
@@ -59,21 +61,67 @@ export class AuthService {
     };
   }
 
-  async login(dto: LoginDto) {
-    const user = await this.prisma.user.findUnique({
-      where: { email: dto.email },
-      include:{achievementBadges:true}
-    });
-    if (!user) throw new UnauthorizedException('Invalid credentials');
+// Assuming your service function signature changes to include the IP address:
+async login(dto: LoginDto, ipAddress: string) {
+  const user = await this.prisma.user.findUnique({
+    where: { email: dto.email },
+    // You might also include activeSessions here if you wanted to check them immediately, 
+    // but a separate count is often cleaner for concurrent checks.
+    include: { achievementBadges: true }, 
+  });
 
-    const valid = await bcrypt.compare(dto.password, user.password);
-    if (!valid) throw new UnauthorizedException('Invalid credentials');
+  if (!user) throw new UnauthorizedException('Invalid credentials');
 
-    return this.signToken(user);
+  // --- 1. Check for Account Suspension ---
+  if (user.isSuspended) {
+    throw new ForbiddenException(`Account suspended: ${user.suspensionReason || 'Contact support for details.'}`);
   }
 
+  const valid = await bcrypt.compare(dto.password, user.password);
+  if (!valid) throw new UnauthorizedException('Invalid credentials');
+
+  // --- 2. Enforce the Concurrent Device Limit (3) ---
+  const MAX_SESSIONS = 3;
+
+  const activeSessionCount = await this.prisma.activeSession.count({
+    where: { userId: user.id },
+  });
+
+  if (activeSessionCount >= MAX_SESSIONS) {
+    const suspensionReason = 'Exceeded concurrent device limit (3).';
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { 
+        isSuspended: true, 
+        suspensionReason: suspensionReason,
+      },
+    });
+
+    // You could optionally log out all existing sessions here if you wanted.
+    // For now, we just deny the new login and notify the user.
+    throw new ForbiddenException(`Login denied. Account suspended due to too many active devices. Please contact support.`);
+  }
+
+  // --- 3. Login is Valid: Create a new Active Session ---
+
+  const token = await this.signToken(user); 
+  const sessionToken =await generateUniqueSessionId(); // Example helper
+
+  await this.prisma.activeSession.create({
+    data: {
+      userId: user.id,
+      ipAddress: ipAddress,
+      sessionToken: sessionToken, 
+     
+    },
+  });
+
+  return token;
+}
+
   private async signToken(user: any) {
-    const payload = { id: user.id, email: user.email, role: user.role };
+    const payload = { id: user.id, email: user.email, role: user.role,sessionToken:user.sessionToken };
     const accessToken = await this.jwtService.signAsync(payload);
 
     const { password, ...userWithoutPassword } = user;
@@ -326,5 +374,55 @@ async createSuperAdmin(){
   }catch(err){
     throw new HttpException(err.message,HttpStatus.BAD_REQUEST)
   }
+}
+
+
+async logout(userId: string, sessionToken: string) {
+    try {
+      const result = await this.prisma.activeSession.deleteMany({
+        where: {
+          userId: userId,
+          sessionToken: sessionToken,
+        },
+      });
+      if (result.count === 0) {
+        console.warn(`Logout attempt for session ${sessionToken} failed (session not found).`);
+      }
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
+  }
+
+
+
+async terminateAllSessions(userId: string): Promise<void> {
+
+  const deleteResult = await this.prisma.activeSession.deleteMany({
+    where: { userId: userId },
+  });
+
+  await this.prisma.user.update({
+    where: { id: userId },
+    data: { 
+      isSuspended: false,
+      suspensionReason: null, 
+    },
+  });
+
+  console.log(`User ${userId} unsuspended. Terminated ${deleteResult.count} sessions.`);
+}
+
+
+
+async validateUserCredentials(email: string, password: string) {
+  const user = await this.prisma.user.findUnique({
+    where: { email: email },
+  });
+
+  if (!user) return null;
+
+  const valid = await bcrypt.compare(password, user.password);
+  
+  return valid ? user : null;
 }
 }

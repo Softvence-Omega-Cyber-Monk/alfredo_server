@@ -26,11 +26,14 @@ import { BadgeModule } from './main/badge/badge.module';
 import { WebSubscribeModule } from './main/web-subscribe/web-subscribe.module';
 import { SeederService } from './common/seeder/seed';
 import { PromotionalMailService } from './main/mail/another.mail.setup';
+import { ScheduleModule } from '@nestjs/schedule';
+import { SessionCleanupService } from './utils/multer/taskService';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
-      isGlobal: true, // Makes .env available app-wide
+      isGlobal: true,
     }),
     PrismaModule,
     AuthModule,
@@ -52,6 +55,6 @@ import { PromotionalMailService } from './main/mail/another.mail.setup';
     WebSubscribeModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService, MailService, TwilioService,SeederService],
+  providers: [AppService, PrismaService, MailService, TwilioService,SeederService,SessionCleanupService],
 })
 export class AppModule {}

@@ -1,4 +1,4 @@
-import { Body, Controller, HttpException, HttpStatus, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, ForbiddenException, HttpCode, HttpException, HttpStatus, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto, SendOtpDto, VerifyOtpDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -17,11 +17,26 @@ export class AuthController {
     return this.authService.register(dto);
   }
 
+ @HttpCode(HttpStatus.OK)
   @Post('login')
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  async login(
+    @Body() dto: LoginDto,
+    @Req() req: any, // 
+  ) {
+    const ipAddress = req.ip || req.header('x-forwarded-for')?.split(',')[0] || 'Unknown';
+    return this.authService.login(dto, ipAddress);
   }
 
+   @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  async logout(@Req() req) {
+    const userId = req.user.id;
+    const sessionToken = req.user.sessionToken;
+    await this.authService.logout(userId, sessionToken);
+    
+    return { message: 'Successfully logged out.' };
+  }
   @Post('forgot-password')
   @ApiOperation({ summary: 'Request password reset' })
   forgotPassword(@Body() dto: ForgotPasswordDto) {
@@ -75,4 +90,24 @@ export class AuthController {
       throw new HttpException(error.message,HttpStatus.INTERNAL_SERVER_ERROR)
     }
   }
+
+
+   @Post('reset-sessions-and-suspension')
+  async resetSessions(@Body() dto: LoginDto) { 
+    const user = await this.authService.validateUserCredentials(dto.email, dto.password);
+
+    if (!user) {
+        throw new ForbiddenException('Invalid credentials.');
+    }
+
+    await this.authService.terminateAllSessions(user.id);
+
+    return { 
+        message: 'All your active sessions have been terminated, and your account has been unsuspended. Please proceed to log in now.',
+    };
+  }
+
+
+  
 }
+

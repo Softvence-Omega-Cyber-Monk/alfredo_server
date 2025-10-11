@@ -17,12 +17,12 @@ export class ReviewService {
     propertyId: string,
     data: { rating: number; comment?: string },
   ) {
-    // ✅ Ensure rating is between 1 and 5
+    //  Ensure rating is between 1 and 5
     if (data.rating < 1 || data.rating > 5) {
       throw new BadRequestException('Rating must be between 1 and 5');
     }
 
-    // ✅ Ensure property exists
+    //  Ensure property exists
     const property = await this.prisma.property.findUnique({
       where: { id: propertyId },
     });
@@ -85,8 +85,6 @@ export class ReviewService {
 
    return result
   }
-
-
 
 private async updatePropertyRating(propertyId: string) {
   const result = await this.prisma.review.aggregate({

@@ -55,11 +55,23 @@ model User {
   // Onboarding relation
   onboarding Onboarding?
   hasOnboarded Boolean @default(false)
-  
+  isSuspended Boolean @default(false)
+  suspensionReason String?
   article Article[]
   Review Review[]
-
+  activeSession ActiveSession[]
   achievementBadges Badge[] @relation("UserBadges")
+}
+
+model ActiveSession {
+  id               String    @id @default(uuid())
+  userId           String    
+  user             User      @relation(fields: [userId], references: [id])
+  ipAddress        String    
+  sessionToken     String    @unique 
+  loginTime        DateTime  @default(now())
+  lastActivity     DateTime  @default(now())
+  userAgent        String?   
 }
 
 model OtpVerification {
