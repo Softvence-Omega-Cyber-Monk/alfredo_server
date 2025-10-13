@@ -10,6 +10,7 @@ import { UpdateStripePaymentDto } from './dto/update-stripe-payment.dto';
 import Stripe from 'stripe';
 import { Request } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
+import { BadgeType } from '@prisma/client';
 
 @Injectable()
 export class StripePaymentService {
@@ -112,6 +113,16 @@ export class StripePaymentService {
               status: 'SUCCESS',
             },
           });
+          await this.prisma.user.update({
+            where: { id: userId },
+            data: {
+              achievementBadges: {
+                connect: {
+                  type: BadgeType.SUSTAINABILITY_BADGE
+                }
+              }
+            },
+          })
         }
         break;
 
