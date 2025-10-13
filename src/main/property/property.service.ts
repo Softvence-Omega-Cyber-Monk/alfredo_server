@@ -8,6 +8,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { cloudinary } from 'src/config/cloudinary.config';
 import * as fs from 'fs';
+import { BadgeType } from '@prisma/client';
 
 @Injectable()
 export class PropertyService {
@@ -15,6 +16,8 @@ export class PropertyService {
 
   /** CREATE */
   async createProperty(propertyData: any) {
+
+
     const uploadedImages: { url: string; publicId: string }[] = [];
 
     if (propertyData.files?.length) {
@@ -43,7 +46,18 @@ export class PropertyService {
           where: { id: { in: propertyData.surroundings } },
         })
       : [];
-
+        await this.prisma.user.update({
+          where:{
+            id:propertyData.userId
+          },
+          data:{
+            achievementBadges:{
+              connect:{
+                type:BadgeType.LOYALTY_BADGE
+              }
+            }
+          }
+        })
     return this.prisma.property.create({
       data: {
         title: propertyData.title,
