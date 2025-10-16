@@ -9,10 +9,11 @@ import { PrismaService } from '../prisma/prisma.service';
 import { cloudinary } from 'src/config/cloudinary.config';
 import * as fs from 'fs';
 import { BadgeType } from '@prisma/client';
+import { BadgeService } from '../badge/badge.service';
 
 @Injectable()
 export class PropertyService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService,private badge:BadgeService) {}
 
   /** CREATE */
   async createProperty(propertyData: any) {
@@ -46,19 +47,8 @@ export class PropertyService {
           where: { id: { in: propertyData.surroundings } },
         })
       : [];
-        await this.prisma.user.update({
-          where:{
-            id:propertyData.userId
-          },
-          data:{
-            achievementBadges:{
-              connect:{
-                type:BadgeType.LOYALTY_BADGE
-              }
-            }
-          }
-        })
-    return this.prisma.property.create({
+
+    const res=await this.prisma.property.create({
       data: {
         title: propertyData.title,
         description: propertyData.description,
@@ -91,6 +81,19 @@ export class PropertyService {
         surroundings: true,
       },
     });
+    const ownerProperty=await this.prisma.property.count({
+      where:{
+        ownerId:propertyData.ownerId
+      }
+    })
+    if(ownerProperty==1){
+      await this.badge.awardBadgeToUser(propertyData.ownerId,BadgeType.PHILOXENIA)
+    }else if(ownerProperty===3){
+      await this.badge.awardBadgeToUser(propertyData.ownerId,BadgeType.IT_MY_TOWN)
+    }else if(ownerProperty>=10){
+      await this.badge.awardBadgeToUser(propertyData.ownerId,BadgeType.EMPIRE)
+    }
+    return res
   }
 
   /** GET PROPERTIES */

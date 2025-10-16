@@ -3,22 +3,23 @@ import {
   HttpException,
   Injectable,
   RawBodyRequest,
-  Search,
 } from '@nestjs/common';
-
-import { UpdateStripePaymentDto } from './dto/update-stripe-payment.dto';
 import Stripe from 'stripe';
 import { Request } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
-import { BadgeType } from '@prisma/client';
+import { BadgeType, SubscriptionStatus } from '@prisma/client';
+import { BadgeService } from '../badge/badge.service';
 
 @Injectable()
 export class StripePaymentService {
   private stripe: Stripe;
 
-  constructor(private prisma: PrismaService) {
-    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {});
+  constructor(private prisma: PrismaService,private badgeService: BadgeService) {
+    this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+      
+    });
   }
+
   async createCheckoutSession(
     priceId: string,
     user: any,
@@ -26,148 +27,168 @@ export class StripePaymentService {
     planDuration: any,
   ) {
     const price = await this.stripe.prices.retrieve(priceId);
+
     const session = await this.stripe.checkout.sessions.create({
-      mode: price.recurring ? 'subscription' : 'payment',
+      mode:  'subscription',
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: process.env.SUCCESS_URL,
       cancel_url: process.env.CANCEL_URL,
       metadata: {
-        userId: user?.id || user, 
-        planId: planId,
-        planDuration: planDuration,
+        userId: user?.id || user,
+        planId,
+        planDuration,
       },
     });
-    console.log(session);
+
     return { url: session.url };
   }
 
-  /** ✅ Handle Stripe Webhooks */
-  async handleWebhook(req: RawBodyRequest<Request>) {
-    let event: Stripe.Event;
-    const rawBody = req.rawBody;
-    console.log(rawBody);
-    const signature = req.headers['stripe-signature'] as string;
-    if (!rawBody) {
-      throw new BadRequestException('No webhook payload was provided.');
-    }
+  /**  Handle Stripe Webhook Events */
 
-    try {
-      event = this.stripe.webhooks.constructEvent(
-        rawBody,
-        signature,
-        process.env.STRIPE_WEBHOOK_SECRET as string,
-      );
-    } catch {
-      throw new BadRequestException('Invalid Stripe signature');
-    }
+async handleWebhook(req: RawBodyRequest<Request>) {
+  let event: Stripe.Event;
+  const rawBody = req.rawBody;
+  const signature = req.headers['stripe-signature'] as string;
 
-    //  Handle important events
-    switch (event.type) {
-      case 'checkout.session.completed':
-        const session = event.data.object as Stripe.Checkout.Session;
-        if (session.payment_status === 'paid') {
-          console.log('💰 Payment success:');
-          console.log(
-            '💰 Payment success:',
-            session.id,
-            session.customer_email,
-          );
-          const userId = session.metadata?.userId;
-          const planId = session.metadata?.planId;
-          const planDuration = parseInt(
-            session.metadata?.planDuration || '1',
-            10,
-          );
-          if (!userId || !planId) {
-            console.warn(
-              '⚠️ Missing metadata: cannot create subscription record',
-            );
-            return;
-          }
-          const startDate = new Date();
-          // End date = startDate + planDuration years
-          const endDate = new Date(startDate);
-          endDate.setFullYear(endDate.getFullYear() + planDuration);
-          const subscription = await this.prisma.subscription.create({
-            data: {
-              userId: userId,
-              planId: planId,
-              endDate: endDate,
-            },
-          });
-          console.log(subscription);
-          await this.prisma.user.update({
-            where: { id: userId },
-            data: {
-              isSubscribed: true,
-            },
-          });
-
-          await this.prisma.payment.create({
-            data: {
-              subscription: {
-                connect: { id: subscription.id },
-              },
-              amount: session.amount_total ? session.amount_total / 100 : 0,
-              currency: session.currency || 'USD',
-              status: 'SUCCESS',
-            },
-          });
-          await this.prisma.user.update({
-            where: { id: userId },
-            data: {
-              achievementBadges: {
-                connect: {
-                  type: BadgeType.SUSTAINABILITY_BADGE
-                }
-              }
-            },
-          })
-        }
-        break;
-
-      case 'invoice.payment_succeeded':
-        console.log('✅ Subscription renewed');
-        break;
-
-      case 'payment_intent.payment_failed':
-        console.log('❌ Payment failed');
-        break;
-
-      default:
-        console.log(`Unhandled event: ${event.type}`);
-    }
-
-    return { received: true };
+  if (!rawBody) {
+    throw new BadRequestException('No webhook payload was provided.');
   }
+
+  try {
+    event = this.stripe.webhooks.constructEvent(
+      rawBody,
+      signature,
+      process.env.STRIPE_WEBHOOK_SECRET as string,
+    );
+  } catch {
+    throw new BadRequestException('Invalid Stripe signature');
+  }
+
+  switch (event.type) {
+    case 'checkout.session.completed': {
+      const session = event.data.object as Stripe.Checkout.Session;
+      if (session.payment_status === 'paid') {
+        const userId = session.metadata?.userId;
+        const planId = session.metadata?.planId;
+        const planDuration = parseInt(session.metadata?.planDuration || '1', 10);
+
+        if (!userId || !planId) {
+          console.warn('⚠️ Missing metadata: cannot create subscription record');
+          return;
+        }
+
+        const startDate = new Date();
+        const endDate = new Date(startDate);
+        endDate.setFullYear(endDate.getFullYear() + planDuration);
+        const subscription = await this.prisma.subscription.create({
+          data: {
+            userId,
+            planId,
+            endDate,
+            autoRenew: true,
+            stripeSubscriptionId: session.subscription as string,
+          },
+        });
+
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: { isSubscribed: true },
+        });
+        await this.prisma.payment.create({
+          data: {
+            subscription: { connect: { id: subscription.id } },
+            amount: session.amount_total ? session.amount_total / 100 : 0,
+            currency: session.currency || 'USD',
+            status: 'SUCCESS',
+          },
+        });
+
+
+        await this.badgeService.awardBadgeToUser(userId, BadgeType.EARLY_ADOPTER);
+      }
+
+      console.log('💰 Checkout session completed and subscription created');
+      break;
+    }
+
+    case 'payment_intent.payment_failed':
+      console.log('❌ Payment failed');
+      break;
+
+    default:
+      console.log(`Unhandled event type: ${event.type}`);
+  }
+
+  return { received: true };
+}
+
+
+  /** ✅ Stop Auto-Renew */
+  async stopAutoRenew(subscriptionId: string) {
+    const subscription = await this.prisma.subscription.findUnique({
+      where: { id: subscriptionId },
+    });
+
+    if (!subscription || !subscription.stripeSubscriptionId) {
+      throw new BadRequestException('Subscription not found.');
+    }
+
+    // Stop auto-renew in Stripe
+    await this.stripe.subscriptions.update(subscription.stripeSubscriptionId, {
+      cancel_at_period_end: true,
+    });
+
+    // Update DB
+    if(subscription.autoRenew){
+      return this.prisma.subscription.update({
+      where: { id: subscription.id },
+      data: { autoRenew: false },
+    });
+    }
+    return this.prisma.subscription.update({
+      where: { id: subscription.id },
+      data: { autoRenew:true },
+    });
+  }
+
+  /** ✅ Resume Auto-Renew */
+  async resumeAutoRenew(subscriptionId: string) {
+    const subscription = await this.prisma.subscription.findUnique({
+      where: { id: subscriptionId },
+    });
+
+    if (!subscription || !subscription.stripeSubscriptionId) {
+      throw new BadRequestException('Subscription not found.');
+    }
+
+    await this.stripe.subscriptions.update(subscription.stripeSubscriptionId, {
+      cancel_at_period_end: false,
+    });
+
+    return this.prisma.subscription.update({
+      where: { id: subscription.id },
+      data: { autoRenew: true },
+    });
+  }
+
+  /** ✅ Fetch All Payments Summary */
   async findAll() {
     try {
-      const response = await this.prisma.payment.findMany();
+      const payments = await this.prisma.payment.findMany();
       const summary = await this.prisma.payment.aggregate({
         _sum: { amount: true },
         _count: true,
         _avg: { amount: true },
       });
+
       return {
-        response,
+        payments,
         totalAmount: summary._sum.amount || 0,
         totalCount: summary._count || 0,
         averageAmount: summary._avg.amount || 0,
       };
     } catch (error) {
-      throw new HttpException('Faild to fectch All Payments', 500);
+      throw new HttpException('Failed to fetch payments', 500);
     }
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} stripePayment`;
-  }
-
-  update(id: number, updateStripePaymentDto: UpdateStripePaymentDto) {
-    return `This action updates a #${id} stripePayment`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} stripePayment`;
   }
 }

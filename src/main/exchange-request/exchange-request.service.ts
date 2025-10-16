@@ -2,10 +2,12 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateExchangeRequestDto } from './dto/create-exchange-request.dto';
 import { UpdateExchangeRequestDto } from './dto/update-exchange-request.dto';
+import { BadgeService } from '../badge/badge.service';
+import { BadgeType } from '@prisma/client';
 
 @Injectable()
 export class ExchangeRequestService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService,private badge:BadgeService) {}
 
   /** CREATE */
   async create(createDto: CreateExchangeRequestDto) {
@@ -126,17 +128,38 @@ export class ExchangeRequestService {
     return { message: `ExchangeRequest with ID ${id} deleted successfully` };
   }
 
-
 /** UPDATE */
 async acceptExchangeRequest(id: string) {
   const existing = await this.prisma.exchangeRequest.findUnique({
     where: { id },
   });
-  if (!existing)
+  if (!existing){
     throw new NotFoundException(`ExchangeRequest with ID ${id} not found`);
-
+  }
+  const toUser=await this.prisma.user.findFirst({
+    where:{
+      id:existing.toUserId
+    }
+  })
+  const fromUser=await this.prisma.user.findFirst({
+    where:{
+      id:existing.fromUserId
+    }
+  })
+  const totalExchaneOfToUser=await this.prisma.exchangeRequest.count({
+    where:{
+      toUserId:toUser?.id,
+      status:"ACCEPTED"
+    }
+  })
+   const totalExchaneOfFromUser=await this.prisma.exchangeRequest.count({
+    where:{
+      toUserId:fromUser?.id,
+      status:"ACCEPTED"
+    }
+  })
   // Update the status to 'ACCEPTED'
-  return this.prisma.exchangeRequest.update({
+  const res=await this.prisma.exchangeRequest.update({
     where: { id },
     data: { status: 'ACCEPTED' },
     include: {
@@ -147,5 +170,22 @@ async acceptExchangeRequest(id: string) {
       chatMessages: true,
     },
   });
+   if(totalExchaneOfToUser==1 && toUser?.id){
+      await this.badge.awardBadgeToUser(toUser.id,BadgeType.THE_FIRST_TRADE)
+    }else if(totalExchaneOfToUser==20 && toUser?.id){
+      await this.badge.awardBadgeToUser(toUser.id,BadgeType.EXPERIENCED)
+    }else if(totalExchaneOfToUser>=100 && toUser?.id){
+      await this.badge.awardBadgeToUser(toUser.id,BadgeType.VETERAN)
+    }
+
+    if(totalExchaneOfFromUser==1 && fromUser?.id){
+      await this.badge.awardBadgeToUser(fromUser.id,BadgeType.THE_FIRST_TRADE)
+    }else if(totalExchaneOfFromUser==20 && fromUser?.id){
+      await this.badge.awardBadgeToUser(fromUser.id,BadgeType.EXPERIENCED)
+    }else if(totalExchaneOfFromUser>=100 && fromUser?.id){
+      await this.badge.awardBadgeToUser(fromUser.id,BadgeType.VETERAN)
+    }
+
+  return res
 }
 }

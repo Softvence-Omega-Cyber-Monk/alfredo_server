@@ -19,6 +19,8 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { randomUUID } from 'crypto';
 import { OtpService } from './services/otp.service';
 import { generateUniqueSessionId } from 'src/utils/multer/generateUniqueSessionId';
+import { BadgeService } from '../badge/badge.service';
+import { BadgeType } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
@@ -27,6 +29,7 @@ export class AuthService {
     private jwtService: JwtService,
     private mailService: MailService,
     private otpService: OtpService,
+    private badge:BadgeService
   ) {}
 
   async register(dto: RegisterDto) {
@@ -305,13 +308,24 @@ async login(dto: LoginDto, ipAddress: string) {
     });
 
     if (referredByUser) {
-      await this.prisma.user.update({
+    const user=  await this.prisma.user.update({
         where: { id: referredByUser.id },
         data: {
           balance: { increment: 3 },
-          totalReferrals: { increment: 1 },
+          totalReferrals: { increment: 1 }
         },
       });
+      if(user.totalReferrals==1){
+        await this.badge.awardBadgeToUser(user.id,BadgeType.GOLDEN_HOST)
+      }else if(user.totalReferrals===3){
+        await this.badge.awardBadgeToUser(user.id,BadgeType.LOTS_OF_FRIENDS)
+      }else if(user.totalReferrals===10){
+        await this.badge.awardBadgeToUser(user.id,BadgeType.PURE_CHARISMA)
+      }else if(user.totalReferrals===50){
+        await this.badge.awardBadgeToUser(user.id,BadgeType.VIP)
+      }else if(user.totalReferrals===200){
+        await this.badge.awardBadgeToUser(user.id,BadgeType.DIAMOND_VIP)
+      }
     }
     // 6. Clean up related OTPs to avoid FK issues
     await this.prisma.otpVerification.deleteMany({

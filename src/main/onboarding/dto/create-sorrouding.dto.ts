@@ -10,6 +10,13 @@ export class CreateSurroundingDto {
   @IsString()
   name: string;
 
+
+   @ApiProperty({
+    description: 'greek Name of the surrounding',
+    example: 'asfldjfd',
+  })
+  @IsString()
+  greek_name: string;
   @ApiProperty({
     description: 'Icon file for the surrounding',
     type: 'string',

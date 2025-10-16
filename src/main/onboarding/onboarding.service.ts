@@ -6,10 +6,12 @@ import { CreateOnboardingDto } from './dto/create-onboarding.dto';
 import { CreateTransportDto } from './dto/create-transport.dto';
 import { CreateAmenityDto } from './dto/create-animity.dto';
 import { CreateSurroundingDto } from './dto/create-sorrouding.dto';
+import { BadgeService } from '../badge/badge.service';
+import { BadgeType } from '@prisma/client';
 
 @Injectable()
 export class OnboardingService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService, private badge:BadgeService) {}
 
   private async uploadFile(
     file: Express.Multer.File,
@@ -120,6 +122,7 @@ export class OnboardingService {
       where: { id: userId },
       data: { hasOnboarded: true,photo:uploadedImages[0]},
     });
+    await this.badge.awardBadgeToUser(userId,BadgeType.VERIFIED)
     return onboarding;
   }
 
@@ -328,7 +331,7 @@ export class OnboardingService {
       : null;
 
     return this.prisma.amenity.create({
-      data: { name: dto.name, icon: iconUrl },
+      data: { name: dto.name,greek_name:dto.greek_name, icon: iconUrl },
     });
   }
 
@@ -380,7 +383,7 @@ export class OnboardingService {
       ? await this.uploadFile(files[0], 'transport_icons')
       : null;
     return this.prisma.transportOption.create({
-      data: { name: dto.name, icon: iconUrl },
+      data: { name: dto.name,greek_name:dto.greek_name, icon: iconUrl },
     });
   }
 
@@ -437,7 +440,7 @@ export class OnboardingService {
       ? await this.uploadFile(files[0], 'surrounding_icons')
       : null;
     return this.prisma.surroundingType.create({
-      data: { name: dto.name, icon: iconUrl },
+      data: { name: dto.name,greek_name:dto.greek_name, icon: iconUrl },
     });
   }
 

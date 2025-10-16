@@ -56,7 +56,8 @@ export class UserService {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include:{
-        achievementBadges:true
+        achievementBadges:true,
+        onboarding:true
       }
     });
 

@@ -8,140 +8,124 @@ datasource db {
 }
 
 model PendingUser {
-  id          String   @id @default(uuid())
-  fullName    String
-  email       String   @unique
-  phoneNumber String?  @unique
-  password    String
-  createdAt   DateTime @default(now())
-  referralCode  String? 
-  role Role @default(USER)
-  otps OtpVerification[] @relation("PendingUserOtp")
+  id           String            @id @default(uuid())
+  fullName     String
+  email        String            @unique
+  phoneNumber  String?           @unique
+  password     String
+  createdAt    DateTime          @default(now())
+  referralCode String?
+  role         Role              @default(USER)
+  otps         OtpVerification[] @relation("PendingUserOtp")
 }
 
 model User {
-  id                 String              @id @default(uuid())
-  fullName           String
-  email              String              @unique
-  phoneNumber        String?             @unique
-  photo              String?
-  age                String?
-  dateOfBirth        String?
-  identification     IdentificationType?
-  languagePreference Language?
-  city               String? @default("")
-  password           String
-  resetToken         String?
-  resetTokenExpiry   DateTime?
-  subscriptions      Subscription[]
-  isSubscribed       Boolean?            @default(false)
-  paymentCardNumber  String[] 
-  role               Role                @default(USER)
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
- referralCode  String?   @unique @default(uuid())
-  referredBy    String?  
-  balance     Float    @default(0.0)
-  totalReferrals Int      @default(0)
-  totalListed Int @default(0)
-  totalExchange Int @default(0)
-  properties               Property[]        @relation("UserProperties")
-  sentMessages             ChatMessage[]     @relation("Sender")
-  receivedMessages         ChatMessage[]     @relation("Receiver")
-  exchangeRequestsSent     ExchangeRequest[] @relation("FromUser")
-  exchangeRequestsReceived ExchangeRequest[] @relation("ToUser")
+  id                       String              @id @default(uuid())
+  fullName                 String
+  email                    String              @unique
+  phoneNumber              String?             @unique
+  photo                    String?
+  age                      String?
+  dateOfBirth              String?
+  identification           IdentificationType?
+  languagePreference       Language?
+  city                     String?             @default("")
+  password                 String
+  resetToken               String?
+  resetTokenExpiry         DateTime?
+  isSubscribed             Boolean?            @default(false)
+  paymentCardNumber        String[]
+  role                     Role                @default(USER)
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
+  referralCode             String?             @unique @default(uuid())
+  referredBy               String?
+  balance                  Float               @default(0.0)
+  totalReferrals           Int                 @default(0)
+  totalListed              Int                 @default(0)
+  totalExchange            Int                 @default(0)
+  hasOnboarded             Boolean             @default(false)
+  isSuspended              Boolean             @default(false)
+  suspensionReason         String?
+  activeSession            ActiveSession[]
+  receivedMessages         ChatMessage[]       @relation("Receiver")
+  sentMessages             ChatMessage[]       @relation("Sender")
+  exchangeRequestsSent     ExchangeRequest[]   @relation("FromUser")
+  exchangeRequestsReceived ExchangeRequest[]   @relation("ToUser")
   favorites                Favorite[]
-  notifications Notification[]
-  // Onboarding relation
-  onboarding Onboarding?
-  hasOnboarded Boolean @default(false)
-  isSuspended Boolean @default(false)
-  suspensionReason String?
-  article Article[]
-  Review Review[]
-  activeSession ActiveSession[]
-  achievementBadges Badge[] @relation("UserBadges")
+  notifications            Notification[]
+  onboarding               Onboarding?
+  properties               Property[]          @relation("UserProperties")
+  Review                   Review[]
+  subscriptions            Subscription[]
+  article                  Article[]
+  achievementBadges        Badge[]             @relation("UserBadges")
 }
 
 model ActiveSession {
-  id               String    @id @default(uuid())
-  userId           String    
-  user             User      @relation(fields: [userId], references: [id])
-  ipAddress        String    
-  sessionToken     String    @unique 
-  loginTime        DateTime  @default(now())
-  lastActivity     DateTime  @default(now())
-  userAgent        String?   
+  id           String   @id @default(uuid())
+  userId       String
+  ipAddress    String
+  sessionToken String   @unique
+  loginTime    DateTime @default(now())
+  lastActivity DateTime @default(now())
+  userAgent    String?
+  user         User     @relation(fields: [userId], references: [id])
 }
 
 model OtpVerification {
   id         String      @id @default(uuid())
   userId     String
-  user       PendingUser @relation("PendingUserOtp", fields: [userId], references: [id], onDelete: Cascade)
   otp        String
   method     String
   expiresAt  DateTime
   verifiedAt DateTime?
   createdAt  DateTime    @default(now())
+  user       PendingUser @relation("PendingUserOtp", fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Onboarding {
-  id     String @id @default(uuid()) // use uuid() instead of cuid()
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId String @unique
-
-  // Step 1: Home Listing
-  homeAddress String?
-  destination String?
-
-  // Step 2: Verification Info
-  ageRange             String
-  gender               Gender?
-  employmentStatus     EmploymentStatus?
-  travelType           String[]
-  favoriteDestinations String[]
-  travelMostlyWith     TravelGroup?
-  isTravelWithPets     Boolean
-  notes                String?
-
-  maxPeople            Int?
-
-  // Step 3: Property Type Info
-  propertyType    PropertyType?
-  isMainResidence Boolean?
-
-  // Step 4: Amenities & Environment (Many-to-Many)
-  amenities    Amenity[]         @relation("OnboardingAmenities")
-  transports   TransportOption[] @relation("OnboardingTransports")
-  surroundings SurroundingType[] @relation("OnboardingSurroundings")
-
-  // Step 5: About Home
-  homeName          String?
-  homeDescription   String?
-  aboutNeighborhood String?
-
-  // Step 6: Upload Photo
-  homeImages String[] // Array of image URLs
-
-  // Step 7: Home Availability
-  isAvailableForExchange Boolean   @default(true)
+  id                     String            @id @default(uuid())
+  userId                 String            @unique
+  homeAddress            String?
+  destination            String?
+  ageRange               String
+  gender                 Gender?
+  employmentStatus       EmploymentStatus?
+  travelType             String[]
+  favoriteDestinations   String[]
+  travelMostlyWith       TravelGroup?
+  isTravelWithPets       Boolean
+  notes                  String?
+  maxPeople              Int?
+  propertyType           PropertyType?
+  isMainResidence        Boolean?
+  homeName               String?
+  homeDescription        String?
+  aboutNeighborhood      String?
+  homeImages             String[]
+  isAvailableForExchange Boolean           @default(true)
   availabilityStartDate  DateTime?
   availabilityEndDate    DateTime?
+  user                   User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amenities              Amenity[]         @relation("OnboardingAmenities")
+  surroundings           SurroundingType[] @relation("OnboardingSurroundings")
+  transports             TransportOption[] @relation("OnboardingTransports")
 }
 
-model Favorite{
-  id        String   @id @default(uuid())
-  userId    String
+model Favorite {
+  id         String   @id @default(uuid())
+  userId     String
   propertyId String
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  property  Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
+
 model Amenity {
   id          String       @id @default(cuid())
   name        String
   icon        String?
-
+  greek_name  String?
   onboardings Onboarding[] @relation("OnboardingAmenities")
   properties  Property[]   @relation("PropertyAmenities")
 }
@@ -150,73 +134,64 @@ model TransportOption {
   id          String       @id @default(cuid())
   name        String
   icon        String?
-
+  greek_name  String?
   onboardings Onboarding[] @relation("OnboardingTransports")
-   properties  Property[]   @relation("PropertyTransports")
+  properties  Property[]   @relation("PropertyTransports")
 }
 
 model SurroundingType {
   id          String       @id @default(cuid())
   name        String
   icon        String?
-
-  onboardings Onboarding[] @relation("OnboardingSurroundings" )
+  greek_name  String?
+  onboardings Onboarding[] @relation("OnboardingSurroundings")
   properties  Property[]   @relation("PropertySurroundings")
 }
 
-
 model Property {
-  id          String   @id @default(uuid())
-  title       String
-  description String
-  location    String
-  country     String
-  price       Float?
-  size        Float?
-  bedrooms    Int?
-  bathrooms   Int?
-  images      Json
-  propertyType    PropertyType?
-  maxPeople            Int?
-  isAvailable Boolean @default(true)
-  isTravelWithPets     Boolean
-  ownerId String
-  owner   User   @relation("UserProperties", fields: [ownerId], references: [id], onDelete: Cascade)
-
-  isDeleted   Boolean  @default(false)
-  averageRating Float   @default(0)
-  reviewCount   Int     @default(0)
-  availabilityStartDate  DateTime?
-  availabilityEndDate    DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  favoritedBy Favorite[]
+  id                       String            @id @default(uuid())
+  title                    String
+  description              String
+  location                 String
+  country                  String
+  price                    Float?
+  size                     Float?
+  bedrooms                 Int?
+  bathrooms                Int?
+  images                   Json
+  propertyType             PropertyType?
+  maxPeople                Int?
+  isAvailable              Boolean           @default(true)
+  isTravelWithPets         Boolean
+  ownerId                  String
+  isDeleted                Boolean           @default(false)
+  averageRating            Float             @default(0)
+  reviewCount              Int               @default(0)
+  availabilityStartDate    DateTime?
+  availabilityEndDate      DateTime?
+  createdAt                DateTime          @default(now())
+  updatedAt                DateTime          @updatedAt
   exchangeRequestsSent     ExchangeRequest[] @relation("FromProperty")
   exchangeRequestsReceived ExchangeRequest[] @relation("ToProperty")
- 
-
-  amenities    Amenity[]         @relation("PropertyAmenities")
-  transports   TransportOption[] @relation("PropertyTransports")
-  surroundings SurroundingType[] @relation("PropertySurroundings")
-
-  Review Review[]
+  favoritedBy              Favorite[]
+  owner                    User              @relation("UserProperties", fields: [ownerId], references: [id], onDelete: Cascade)
+  Review                   Review[]
+  amenities                Amenity[]         @relation("PropertyAmenities")
+  surroundings             SurroundingType[] @relation("PropertySurroundings")
+  transports               TransportOption[] @relation("PropertyTransports")
 }
 
 model Review {
-  id          String   @id @default(uuid())
-  rating      Int      // 1 to 5 stars
-  comment     String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  userId      String
-  user        User      @relation(fields: [userId], references: [id])
-
-  propertyId  String
-  property    Property  @relation(fields: [propertyId], references: [id])
+  id         String   @id @default(uuid())
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  userId     String
+  propertyId String
+  property   Property @relation(fields: [propertyId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
 }
-
 
 model Article {
   id          String   @id @default(uuid())
@@ -226,24 +201,23 @@ model Article {
   image       String
   isFeatured  Boolean  @default(false)
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  createdAt    DateTime @default(now())
+  createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id])
+
   @@map("articles")
 }
 
 model ChatMessage {
-  id         String   @id @default(uuid())
-  senderId   String
-  receiverId String
-  content    String
-  createdAt  DateTime @default(now())
-
-  sender   User @relation("Sender", fields: [senderId], references: [id] ,onDelete: Cascade)
-  receiver User @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
-
-  exchangeRequestId String? 
+  id                String           @id @default(uuid())
+  senderId          String
+  receiverId        String
+  content           String
+  createdAt         DateTime         @default(now())
+  exchangeRequestId String?
   exchangeRequest   ExchangeRequest? @relation(fields: [exchangeRequestId], references: [id])
+  receiver          User             @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  sender            User             @relation("Sender", fields: [senderId], references: [id], onDelete: Cascade)
 }
 
 model ExchangeRequest {
@@ -253,77 +227,68 @@ model ExchangeRequest {
   fromPropertyId String
   toPropertyId   String
   status         ExchangeStatus @default(PENDING)
-  message        String? // Optional message
+  message        String?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
-
-  fromUser     User     @relation("FromUser", fields: [fromUserId], references: [id], onDelete: Cascade)
-  toUser       User     @relation("ToUser", fields: [toUserId], references: [id], onDelete: Cascade)
-  fromProperty Property @relation("FromProperty", fields: [fromPropertyId], references: [id], onDelete: Cascade)
-  toProperty   Property @relation("ToProperty", fields: [toPropertyId], references: [id],onDelete: Cascade)
-
-  chatMessages ChatMessage[]
+  chatMessages   ChatMessage[]
+  fromProperty   Property       @relation("FromProperty", fields: [fromPropertyId], references: [id], onDelete: Cascade)
+  fromUser       User           @relation("FromUser", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toProperty     Property       @relation("ToProperty", fields: [toPropertyId], references: [id], onDelete: Cascade)
+  toUser         User           @relation("ToUser", fields: [toUserId], references: [id], onDelete: Cascade)
 }
 
 model Notification {
   id        String   @id @default(uuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
   title     String
   message   String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Plan {
-  id             String            @id @default(uuid())
-  price          Float             
-  status         PlanStatus        @default(ACTIVE)
-  priceId        String            @default("")
-  subscriptions  Subscription[]
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  translations   PlanTranslation[]
+  id            String            @id @default(uuid())
+  price         Float
+  status        PlanStatus        @default(ACTIVE)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  priceId       String            @default("")
+  is_populer    Boolean           @default(false)
+  translations  PlanTranslation[]
+  subscriptions Subscription[]
 }
 
 model PlanTranslation {
-  id            String   @id @default(uuid())
-  planId        String
-  language      String  
+  id           String   @id @default(uuid())
+  planId       String
+  language     String
+  name         String
+  description  String?
+  features     String[]
+  planDuration String?
+  planType     String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  plan         Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
 
-  name          String
-  description   String?
-  features      String[]
-  planDuration  String? 
-  planType      String  
-
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  plan          Plan     @relation(fields: [planId], references: [id], onDelete: Cascade)
-
-  // prevent duplicates
   @@unique([planId, language])
 }
 
-enum PlanStatus {
-  ACTIVE
-  INACTIVE
-}
-
-
 model Subscription {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   userId    String
   planId    String
-  startDate DateTime @default(now())
+  startDate DateTime  @default(now())
   endDate   DateTime
-
-  user     User      @relation(fields: [userId], references: [id],onDelete: Cascade)
-  plan     Plan      @relation(fields: [planId], references: [id])
-  payments Payment[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  stripeSubscriptionId  String?
+  autoRenew Boolean @default(true)
+  payments  Payment[]
+  status     SubscriptionStatus @default(ACTIVE)
+  plan      Plan      @relation(fields: [planId], references: [id])
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Payment {
@@ -332,9 +297,8 @@ model Payment {
   currency       String        @default("USD")
   status         PaymentStatus
   subscriptionId String
-
-  subscription Subscription @relation(fields: [subscriptionId], references: [id],onDelete: Cascade)
-  createdAt    DateTime     @default(now())
+  createdAt      DateTime      @default(now())
+  subscription   Subscription  @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
 }
 
 model Contact {
@@ -349,9 +313,9 @@ model Contact {
 model FAQCategory {
   id        String   @id @default(uuid())
   name      String   @unique
-  faqs      FAQ[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  faqs      FAQ[]
 }
 
 model FAQ {
@@ -359,58 +323,116 @@ model FAQ {
   question   String
   answer     String
   categoryId String
-  category   FAQCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
+  category   FAQCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 }
 
 model TermsCategory {
   id          String     @id @default(uuid())
   title       String
   lastUpdated DateTime   @default(now())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
   keyPoints   KeyPoint[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model KeyPoint {
   id         String        @id @default(uuid())
   point      String
   categoryId String
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
   category   TermsCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model Web_subscribe {
-  id String @id @default(uuid())
+  id    String @id @default(uuid())
   email String
 }
 
-enum BadgeType {
-  REVIEW_BADGE
-  REGION_BADGE
-  SUSTAINABILITY_BADGE
-  SEASONAL_BADGE
-  EXCHANGE_BADGE
-  REFERRAL_BADGE
-  VERIFICATION_BADGE
-  LOYALTY_BADGE
-}
-
 model Badge {
-  id          String    @id @default(uuid())
-  type        BadgeType @unique
-  displayName String
-  description String?
-  icon        String?
-  iconPublicId  String?
-  createdAt   DateTime @default(now())
-  users       User[]   @relation("UserBadges")
+  id           String    @id @default(uuid())
+  type         BadgeType @unique
+  displayName  String
+  description  String?
+  icon         String?
+  iconPublicId String?
+  createdAt    DateTime  @default(now())
+  users        User[]    @relation("UserBadges")
 }
 
+enum PlanStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum BadgeType {
+REVIEW_BADGE
+REGION_BADGE
+SUSTAINABILITY_BADGE
+SEASONAL_BADGE
+EXCHANGE_BADGE
+REFERRAL_BADGE
+VERIFICATION_BADGE
+LOYALTY_BADGE
+EARLY_ADOPTER
+PREMIUM_TRAVELER
+TOP_SUPPORTER
+ONE_YEAR_TRAVELER
+SUPPORTER
+GOLDEN_HOST
+VERIFIED
+DUO
+LOTS_OF_FRIENDS
+PURE_CHARISMA
+VIP
+DIAMOND_VIP
+THE_FIRST_TRADE
+EXPERIENCED
+VETERAN
+PHILOXENIA
+IT_MY_TOWN
+EMPIRE
+EXPLORER
+AUTUMN_TRAVELER
+AUTUMN_EXPERT_TRAVELER
+WINTER_TRAVELER
+WINTER_EXPERT_TRAVELER
+SPRING_TRAVELER
+SPRING_EXPERT_TRAVELER
+SUMMER_TRAVELER
+SUMMER_EXPERT_TRAVELER
+ECO_CONSCIOUS_HOST
+EVERY_EURO_COUNTS
+ATTICA
+ATTICA_EXPERT
+CENTRAL_GREECE
+CENTRAL_GREECE_EXPERT
+SPORADES
+SPORADES_EXPERT
+THRACE
+THRACE_EXPERT
+IONIAN
+IONIAN_EXPERT
+SARONIC
+SARONIC_EXPERT
+CRETE
+CRETE_EXPERT
+EPIRUS
+EPIRUS_EXPERT
+CYCLADES
+CYCLADES_EXPERT
+DODECANESE
+DODECANESE_EXPERT
+GREECE_TROTTER
+PELOPONNESE
+PELOPONNESE_EXPERT
+NORTH_AEGEAN
+NORTH_AEGEAN_EXPERT
+MACEDONIA
+MACEDONIA_EXPERT
+}
 
 enum AgeRange {
   AGE_18_30
@@ -488,4 +510,11 @@ enum Role {
   ADMIN
   USER
   SUPER_ADMIN
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  CANCELLED
+  EXPIRED
+  PAST_DUE
 }

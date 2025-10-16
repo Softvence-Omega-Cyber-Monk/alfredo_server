@@ -9,6 +9,12 @@ export class CreateAmenityDto {
   })
   @IsString()
   name: string;
+  
+ @ApiProperty({
+  description: "Greek name",
+  example: "asta fala sha"
+ })
+ greek_name:string
 
   @ApiProperty({
     description: 'Icon file for the amenity',

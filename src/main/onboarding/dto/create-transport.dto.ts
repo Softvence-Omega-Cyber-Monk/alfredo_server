@@ -11,6 +11,13 @@ export class CreateTransportDto {
   name: string;
 
   @ApiProperty({
+    description: 'Name of the transport option',
+    example: 'Bus Station',
+  })
+  @IsString()
+  greek_name: string;
+  
+  @ApiProperty({
     description: 'Icon file for the transport option',
     type: 'string',
     format: 'binary',

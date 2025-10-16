@@ -115,7 +115,7 @@ private async checkReviewBadge(userId: string) {
 
     // If review count >= 100, award badge
     if (reviewCount >= 100) {
-      await this.badgeService.awardBadgeToUser(userId, BadgeType.REVIEW_BADGE);
+      await this.badgeService.awardBadgeToUser(userId, BadgeType.GOLDEN_HOST);
     }
   }
 
