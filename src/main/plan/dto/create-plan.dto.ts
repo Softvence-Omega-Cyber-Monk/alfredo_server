@@ -5,6 +5,7 @@ import {
   IsArray,
   ValidateNested,
   IsEnum,
+  IsBoolean,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -26,6 +27,14 @@ export class CreatePlanDto {
   })
   @IsString()
   priceId: string;
+
+  
+   @ApiProperty({example:"true",description:"Set plan populer or not"})
+  @IsBoolean()
+  @IsOptional()
+  is_populer: boolean
+
+
 
   @ApiPropertyOptional({
     enum: PlanStatus,

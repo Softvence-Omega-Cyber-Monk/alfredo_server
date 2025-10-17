@@ -28,6 +28,7 @@ export class PlanService {
         price: data.price,
         priceId: data.priceId,
         status: data.status,
+        is_populer:data.is_populer,
         translations: {
           create: data.translations.map((t) => ({
             language: t.language,
@@ -89,6 +90,7 @@ export class PlanService {
         price: dto.price ?? existingPlan.price,
         priceId: dto.priceId ?? existingPlan.priceId,
         status: dto.status ?? existingPlan.status,
+        is_populer:dto.is_populer
       },
     });
 
@@ -133,7 +135,7 @@ export class PlanService {
 
   // Remove plan (cascades translations)
   async remove(id: string) {
-    const existingPlan = await this.prisma.plan.findUnique({ where: { id } });
+    const existingPlan = await this.prisma.plan.findFirst({ where: { id } });
     if (!existingPlan) throw new NotFoundException('Plan not found');
 
     return this.prisma.plan.delete({ where: { id } });

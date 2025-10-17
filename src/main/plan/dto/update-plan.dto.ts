@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/swagger';
 import { CreatePlanDto } from './create-plan.dto';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsOptional, IsArray, IsString } from 'class-validator';
+import { IsEnum, IsOptional, IsArray, IsString, IsBoolean } from 'class-validator';
 import { PlanStatus } from '@prisma/client';
 
 export class UpdatePlanDto extends PartialType(CreatePlanDto) {
@@ -13,6 +13,11 @@ export class UpdatePlanDto extends PartialType(CreatePlanDto) {
   @IsOptional()
   @IsEnum(PlanStatus)
   status?: PlanStatus;
+
+     @ApiPropertyOptional({example:"true",description:"Set plan populer or not"})
+    @IsBoolean()
+    @IsOptional()
+    is_populer: boolean
 
   @ApiPropertyOptional({
     type: [String],

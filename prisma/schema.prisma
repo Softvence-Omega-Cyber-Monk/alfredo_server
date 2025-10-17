@@ -287,7 +287,7 @@ model Subscription {
   autoRenew Boolean @default(true)
   payments  Payment[]
   status     SubscriptionStatus @default(ACTIVE)
-  plan      Plan      @relation(fields: [planId], references: [id])
+  plan      Plan      @relation(fields: [planId], references: [id],onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 

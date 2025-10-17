@@ -2,6 +2,7 @@ import {
   IsString,
   IsOptional,
   IsArray,
+  IsBoolean,
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
@@ -13,6 +14,8 @@ export class CreatePlanTranslationDto {
   @ApiProperty({ example: 'Pro Plan', description: 'Translated plan name' })
   @IsString()
   name: string;
+ 
+
 
   @ApiPropertyOptional({
     example: 'Get access to all premium content and features',
