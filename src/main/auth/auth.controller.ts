@@ -21,7 +21,7 @@ export class AuthController {
   @Post('login')
   async login(
     @Body() dto: LoginDto,
-    @Req() req: any, // 
+    @Req() req: any,
   ) {
     const ipAddress = req.ip || req.header('x-forwarded-for')?.split(',')[0] || 'Unknown';
     return this.authService.login(dto, ipAddress);
@@ -93,8 +93,8 @@ export class AuthController {
 
 
    @Post('reset-sessions-and-suspension')
-  async resetSessions(@Body() dto: LoginDto) { 
-    const user = await this.authService.validateUserCredentials(dto.email, dto.password);
+  async resetSessions(@Body() dto:LoginDto) { 
+    const user = await this.authService.validateUserCredentials(dto.email,dto.password);
 
     if (!user) {
         throw new ForbiddenException('Invalid credentials.');

@@ -8,9 +8,18 @@ export class CreateBadgeDto {
   @IsNotEmpty()
   displayName: string;
 
+    @IsString()
+  @IsNotEmpty()
+  greek_displayName: string;
+
   @IsString()
   @IsOptional()
   description?: string;
+
+
+    @IsString()
+  @IsOptional()
+  greek_discription?: string;
 
   @IsString()
   @IsOptional()

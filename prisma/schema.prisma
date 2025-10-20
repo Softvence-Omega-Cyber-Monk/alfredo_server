@@ -355,7 +355,9 @@ model Badge {
   id           String    @id @default(uuid())
   type         BadgeType @unique
   displayName  String
+  greek_displayName String?
   description  String?
+  greek_discription String?
   icon         String?
   iconPublicId String?
   createdAt    DateTime  @default(now())

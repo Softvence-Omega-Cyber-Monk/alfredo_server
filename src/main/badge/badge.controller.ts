@@ -62,7 +62,9 @@ export class BadgeController {
       properties: {
         type: { type: 'string', enum: Object.values(BadgeType),example: 'REVIEW_BADGE'  },
         displayName: { type: 'string',example: 'Review Badge',  },
+        greek_displayName:{type:'string',example:'gree_name here'},
         description: { type: 'string',example: 'Awarded to users when their property receives 100 reviews.'  },
+        greek_discription: { type: 'string',example: 'here will go greek description'  },
         icon: { type: 'string', format: 'binary' }, // file upload
       },
       required: ['type', 'displayName', 'icon'],

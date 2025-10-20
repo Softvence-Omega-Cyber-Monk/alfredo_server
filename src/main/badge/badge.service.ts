@@ -11,7 +11,7 @@ export class BadgeService {
   constructor(private prisma: PrismaService) {}
 
   async create(dto: CreateBadgeDto) {
-    const isExist = await this.prisma.badge.findUnique({ where: { type: dto.type } });
+    const isExist = await this.prisma.badge.findFirst({ where: { type: dto.type } });
     if (isExist) throw new BadRequestException(`The Badge ${dto.type} already exists!`);
     return this.prisma.badge.create({ data: dto });
   }

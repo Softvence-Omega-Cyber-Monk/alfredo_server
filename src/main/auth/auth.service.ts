@@ -101,8 +101,6 @@ async login(dto: LoginDto, ipAddress: string) {
       },
     });
 
-    // You could optionally log out all existing sessions here if you wanted.
-    // For now, we just deny the new login and notify the user.
     throw new ForbiddenException(`Login denied. Account suspended due to too many active devices. Please contact support.`);
   }
 

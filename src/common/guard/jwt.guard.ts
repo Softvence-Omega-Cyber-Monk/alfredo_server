@@ -54,7 +54,7 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     // --- 3. Active Session Validation (Is this session still active?) ---
-    const activeSession = await this.prisma.activeSession.findUnique({
+    const activeSession = await this.prisma.activeSession.findFirst({
       where: {
         userId: userId,
         sessionToken: sessionToken,
