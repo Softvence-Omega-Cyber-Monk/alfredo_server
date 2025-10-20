@@ -30,6 +30,9 @@ import { extname } from 'path';
 import { Role } from '../auth/authorization/roleEnum';
 import { RolesGuard } from '../auth/authorization/roles.guard';
 import { Roles } from '../auth/authorization/roles.decorator';
+// Add this import to correctly type the uploaded file,
+// which is a common requirement when Multer types aren't global.
+import { Express } from 'express'; 
 
 @ApiTags('Badges')
 @Controller('badges')
@@ -61,11 +64,12 @@ export class BadgeController {
       type: 'object',
       properties: {
         type: { type: 'string', enum: Object.values(BadgeType),example: 'REVIEW_BADGE'  },
+        badge_type:{type:'string',example:"Apnr je type ar badge add koreben oita akhane diben"},
         displayName: { type: 'string',example: 'Review Badge',  },
         greek_displayName:{type:'string',example:'gree_name here'},
         description: { type: 'string',example: 'Awarded to users when their property receives 100 reviews.'  },
         greek_discription: { type: 'string',example: 'here will go greek description'  },
-        icon: { type: 'string', format: 'binary' }, // file upload
+        icon: { type: 'string', format: 'binary' },
       },
       required: ['type', 'displayName', 'icon'],
     },
@@ -130,9 +134,8 @@ export class BadgeController {
   }
 
   /** DELETE BADGE */
-  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @ApiBearerAuth()
+  @ApiBearerAuth() // Removed redundant @ApiBearerAuth()
   @Roles(Role.Admin,Role.SuperAdmin)
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a badge (Admin only)' })
