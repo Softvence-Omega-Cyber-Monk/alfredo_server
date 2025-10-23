@@ -330,7 +330,11 @@ async getAllProperty(filters: {
     const property = await this.prisma.property.findUnique({
       where: { id, isDeleted: false },
       include: {
-        owner: true,
+        owner:{
+          include:{
+            achievementBadges:true
+          }
+        },
         amenities: true,
         transports: true,
         surroundings: true,
