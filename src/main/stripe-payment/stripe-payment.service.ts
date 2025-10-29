@@ -30,9 +30,11 @@ export class StripePaymentService {
 
     const session = await this.stripe.checkout.sessions.create({
       mode:  'subscription',
+      allow_promotion_codes:true,
       line_items: [{ price: priceId, quantity: 1 }],
       success_url: process.env.SUCCESS_URL,
       cancel_url: process.env.CANCEL_URL,
+      discounts:[],
       metadata: {
         userId: user?.id || user,
         planId,
