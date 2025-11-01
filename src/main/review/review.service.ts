@@ -33,6 +33,20 @@ export class ReviewService {
       throw new BadRequestException('You can not review your own property');
     }
 
+    // not all person can review property..who exchange the property he will review just.
+    const findExchangeRequestWithPropertyIdAndUserId=await this.prisma.exchangeRequest.findFirst({
+      where:{
+      OR:[
+        {toPropertyId:propertyId,fromUserId:userId},
+        {fromPropertyId:propertyId,toUserId:userId}
+      ],
+      status:'ACCEPTED'
+      },
+
+    })
+    if(!findExchangeRequestWithPropertyIdAndUserId){
+      throw new BadRequestException('You can not review this property because you have not exchanged it');
+    }
     const result=await  this.prisma.review.create({
       data: {
         rating: data.rating,

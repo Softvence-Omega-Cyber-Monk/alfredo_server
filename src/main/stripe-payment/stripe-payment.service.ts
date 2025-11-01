@@ -106,7 +106,7 @@ async handleWebhook(req: RawBodyRequest<Request>) {
         });
 
 
-        await this.badgeService.awardBadgeToUser(userId, BadgeType.EARLY_ADOPTER);
+        await this.badgeService.awardBadgeToUser(userId, BadgeType.PREMIUM_TRAVELER);
       }
 
       console.log('💰 Checkout session completed and subscription created');
