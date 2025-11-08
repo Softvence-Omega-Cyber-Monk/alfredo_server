@@ -45,7 +45,7 @@ async function bootstrap() {
     bodyParser.raw({ type: 'application/json' }),
   );
 
-  // ⚡ Serve uploaded files publicly
+  //  Serve uploaded files publicly
   // Access via: http://localhost:8000/uploads/filename.jpg
   app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads',

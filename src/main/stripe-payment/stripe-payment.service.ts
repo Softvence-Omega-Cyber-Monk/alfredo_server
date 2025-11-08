@@ -125,7 +125,7 @@ async handleWebhook(req: RawBodyRequest<Request>) {
 }
 
 
-  /** ✅ Stop Auto-Renew */
+  /**  Stop Auto-Renew */
   async stopAutoRenew(subscriptionId: string) {
     const subscription = await this.prisma.subscription.findUnique({
       where: { id: subscriptionId },
@@ -153,7 +153,7 @@ async handleWebhook(req: RawBodyRequest<Request>) {
     });
   }
 
-  /** ✅ Resume Auto-Renew */
+  /**  Resume Auto-Renew */
   async resumeAutoRenew(subscriptionId: string) {
     const subscription = await this.prisma.subscription.findUnique({
       where: { id: subscriptionId },
@@ -173,7 +173,7 @@ async handleWebhook(req: RawBodyRequest<Request>) {
     });
   }
 
-  /** ✅ Fetch All Payments Summary */
+  /**  Fetch All Payments Summary */
   async findAll() {
     try {
       const payments = await this.prisma.payment.findMany();

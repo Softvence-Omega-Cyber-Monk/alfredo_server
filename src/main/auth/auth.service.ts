@@ -68,58 +68,59 @@ export class AuthService {
 async login(dto: LoginDto, ipAddress: string) {
   const user = await this.prisma.user.findUnique({
     where: { email: dto.email },
-    // You might also include activeSessions here if you wanted to check them immediately, 
-    // but a separate count is often cleaner for concurrent checks.
-    include: { achievementBadges: true }, 
+    include: { achievementBadges: true },
   });
 
   if (!user) throw new UnauthorizedException('Invalid credentials');
-
-  // --- 1. Check for Account Suspension ---
-  if (user.isSuspended) {
-    throw new ForbiddenException(`Account suspended: ${user.suspensionReason || 'Contact support for details.'}`);
-  }
+  if (user.isSuspended)
+    throw new ForbiddenException(
+      `Account suspended: ${user.suspensionReason || 'Contact support for details.'}`
+    );
 
   const valid = await bcrypt.compare(dto.password, user.password);
   if (!valid) throw new UnauthorizedException('Invalid credentials');
 
-  // --- 2. Enforce the Concurrent Device Limit (3) ---
+  // --- Enforce 3 unique devices limit ---
   const MAX_SESSIONS = 3;
 
-  const activeSessionCount = await this.prisma.activeSession.count({
-    where: { userId: user.id },
+  // Check if a session already exists from the same IP (same device)
+  const existingSession = await this.prisma.activeSession.findFirst({
+    where: { userId: user.id, ipAddress },
   });
 
-  if (activeSessionCount >= MAX_SESSIONS) {
-    const suspensionReason = 'Exceeded concurrent device limit (3).';
-
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { 
-        isSuspended: true, 
-        suspensionReason: suspensionReason,
-      },
+  if (!existingSession) {
+    // Count total unique active sessions (different IPs)
+    const uniqueSessionCount = await this.prisma.activeSession.count({
+      where: { userId: user.id },
     });
 
-    throw new ForbiddenException(`Login denied. Account suspended due to too many active devices. Please contact support.`);
+    if (uniqueSessionCount >= MAX_SESSIONS) {
+      throw new ForbiddenException(
+        `Login denied. You are already logged in on ${MAX_SESSIONS} devices. Please log out from another device first.`
+      );
+    }
+
+    // Create a new session only if new device
+    await this.prisma.activeSession.create({
+      data: {
+        userId: user.id,
+        ipAddress,
+        sessionToken: await generateUniqueSessionId(),
+      },
+    });
+  } else {
+    // Optionally: update timestamp or token
+    await this.prisma.activeSession.update({
+      where: { id: existingSession.id },
+      data: { lastActivity: new Date() },
+    });
   }
 
-  // --- 3. Login is Valid: Create a new Active Session ---
-
-  const token = await this.signToken(user); 
-  const sessionToken =await generateUniqueSessionId(); // Example helper
-
-  await this.prisma.activeSession.create({
-    data: {
-      userId: user.id,
-      ipAddress: ipAddress,
-      sessionToken: sessionToken, 
-     
-    },
-  });
-
+  // --- Return JWT token ---
+  const token = await this.signToken(user);
   return token;
 }
+
 
   private async signToken(user: any) {
     const payload = { id: user.id, email: user.email, role: user.role,sessionToken:user.sessionToken };
