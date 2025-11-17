@@ -157,6 +157,7 @@ model Property {
   price                    Float?
   size                     Float?
   bedrooms                 Int?
+  isExchanged              Boolean?
   bathrooms                Int?
   images                   Json
   propertyType             PropertyType?
