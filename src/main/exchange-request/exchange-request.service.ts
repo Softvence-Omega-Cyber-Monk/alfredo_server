@@ -170,6 +170,22 @@ async acceptExchangeRequest(id: string) {
       chatMessages: true,
     },
   });
+  await this.prisma.property.update({
+    where:{
+      id:existing.fromPropertyId
+    },
+    data:{
+      isExchanged:true
+    }
+  })
+    await this.prisma.property.update({
+    where:{
+      id:existing.toPropertyId
+    },
+    data:{
+      isExchanged:true
+    }
+  })
    if(totalExchaneOfToUser==1 && toUser?.id){
       await this.badge.awardBadgeToUser(toUser.id,BadgeType.THE_FIRST_TRADE)
     }else if(totalExchaneOfToUser==20 && toUser?.id){
