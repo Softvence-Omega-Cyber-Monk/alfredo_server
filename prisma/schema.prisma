@@ -70,7 +70,7 @@ model ActiveSession {
   loginTime    DateTime @default(now())
   lastActivity DateTime @default(now())
   userAgent    String?
-  user         User     @relation(fields: [userId], references: [id])
+  user         User     @relation(fields: [userId], references: [id],onDelete:Cascade )
 }
 
 model OtpVerification {
@@ -191,7 +191,7 @@ model Review {
   userId     String
   propertyId String
   property   Property @relation(fields: [propertyId], references: [id])
-  user       User     @relation(fields: [userId], references: [id])
+  user       User     @relation(fields: [userId], references: [id],onDelete: Cascade)
 }
 
 model Article {
@@ -204,7 +204,7 @@ model Article {
   userId      String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @default(now())
-  user        User     @relation(fields: [userId], references: [id])
+  user        User     @relation(fields: [userId], references: [id],onDelete: Cascade)
 
   @@map("articles")
 }
@@ -245,7 +245,7 @@ model Notification {
   message   String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
-  user      User     @relation(fields: [userId], references: [id])
+  user      User     @relation(fields: [userId], references: [id],onDelete: Cascade)
 }
 
 model Plan {
