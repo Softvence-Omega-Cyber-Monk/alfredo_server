@@ -72,11 +72,10 @@ getSingleUser(@Param('id') userId: string) {
 }
 
   // Delete logged-in user
-  @Delete('delete')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  deleteUser(@CurrentUser('id') userId: string) {
-    return this.userService.deleteUser(userId);
+  @Delete('delete/:id')
+
+  deleteUser(@Param('id') id:string) {
+    return this.userService.deleteUser(id);
   }
 
   // Update user role (admin only)

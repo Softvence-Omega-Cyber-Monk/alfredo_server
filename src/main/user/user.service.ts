@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -132,7 +133,15 @@ export class UserService {
 
   // Delete a user
   async deleteUser(userId: string) {
-    return this.prisma.user.delete({
+    const isExist=await this.prisma.user.findFirst({
+      where:{
+        id:userId
+      }
+    })
+    if(!isExist){
+      throw new NotFoundException("User not found")
+    }
+    await this.prisma.user.delete({
       where: { id: userId },
       select: {
         id: true,
@@ -140,5 +149,9 @@ export class UserService {
         email: true,
       },
     });
+    return{
+      status:HttpStatus.OK,
+      message:"user deleted succesfull"
+    }
   }
 }
