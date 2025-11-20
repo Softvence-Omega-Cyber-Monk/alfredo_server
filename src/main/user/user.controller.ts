@@ -8,6 +8,7 @@ import {
   Param,
   UploadedFile,
   UseInterceptors,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserRoleDto } from './dto/updateAdmin.dto';
@@ -26,6 +27,7 @@ import { Roles } from '../auth/authorization/roles.decorator';
 import { Role } from '../auth/authorization/roleEnum';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { GiveBadgeDto } from './dto/badge.dto';
 
 @ApiTags('User')
 @Controller('user')
@@ -101,4 +103,23 @@ getSingleUser(@Param('id') userId: string) {
   ) {
     return this.userService.updateUserRole(id, dto.role);
   }
+
+//*give badge to user
+@Patch('give-badge/:id')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(Role.Admin)
+@ApiBearerAuth()
+@ApiBody({ type: GiveBadgeDto })
+giveBadgeToUser(
+  @Param('id') id: string,
+  @Body() dto: GiveBadgeDto,
+) {
+  try {
+    return this.userService.giveBadgesToUser(id, dto.badgetype);
+  } catch (error) {
+    throw new InternalServerErrorException(error.message);
+  }
+}
+
+
 }
