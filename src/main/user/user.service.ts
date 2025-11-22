@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -9,10 +10,14 @@ import { Express } from 'express';
 import { v2 as cloudinary } from 'cloudinary';
 import * as streamifier from 'streamifier';
 import '../../config/cloudinary.config';
+import { BadgeService } from '../badge/badge.service';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly badgeService:BadgeService
+  ) {}
 
   private async uploadPhotoToCloudinary(
     file: Express.Multer.File,
@@ -132,7 +137,15 @@ export class UserService {
 
   // Delete a user
   async deleteUser(userId: string) {
-    return this.prisma.user.delete({
+    const isExist=await this.prisma.user.findFirst({
+      where:{
+        id:userId
+      }
+    })
+    if(!isExist){
+      throw new NotFoundException("User not found")
+    }
+    await this.prisma.user.delete({
       where: { id: userId },
       select: {
         id: true,
@@ -140,5 +153,32 @@ export class UserService {
         email: true,
       },
     });
+    return{
+      status:HttpStatus.OK,
+      message:"user deleted succesfull"
+    }
+  }
+
+
+  //* give bathc to user by admin
+  async giveBadgesToUser(userId:string,badgeType:any){
+    const user=await this.prisma.user.findFirst({
+      where:{
+        id:userId
+      }
+    })
+    if(!user){
+      throw new NotFoundException("User not found")
+    }
+    const isBadgeExist=await this.prisma.badge.findFirst({
+      where:{
+        type:badgeType
+      }
+    })
+    if(!isBadgeExist){
+      throw new NotFoundException("Badge not found in  you database")
+    }
+    const badge=await this.badgeService.awardBadgeToUser(userId,badgeType)
+    return badge
   }
 }
