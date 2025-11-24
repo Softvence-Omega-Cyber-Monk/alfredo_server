@@ -1,10 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { ChatMessage } from '@prisma/client';
+import { MailService } from '../mail/mail.service';
+import { MesageAlertMailTemplatesService } from '../mail/messageAlert';
 
 @Injectable()
 export class ChatService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService,
+    private readonly mailService:MailService,
+    private readonly MessageAlert:MesageAlertMailTemplatesService
+  ) {}
 
   // Save a message with validation
   async saveMessage(data: {
@@ -36,7 +41,11 @@ export class ChatService {
         );
       }
     }
-
+    const mailToRevicer=await this.mailService.sendMail({
+      to:receiverExists.email,
+      subject:"New Message",
+      text:await this.MessageAlert.getUserAlertTemplate(receiverExists.fullName,receiverExists.email)
+    })
     return this.prisma.chatMessage.create({
       data: {
         senderId: data.senderId,
