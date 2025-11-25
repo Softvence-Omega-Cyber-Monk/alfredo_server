@@ -28,6 +28,7 @@ import { SeederService } from './common/seeder/seed';
 import { PromotionalMailService } from './main/mail/another.mail.setup';
 import { ScheduleModule } from '@nestjs/schedule';
 import { SessionCleanupService } from './utils/multer/taskService';
+import { NotificationModule } from './main/notification/notification.module';
 
 @Module({
   imports: [
@@ -53,6 +54,7 @@ import { SessionCleanupService } from './utils/multer/taskService';
     ReviewModule,
     BadgeModule,
     WebSubscribeModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, MailService, TwilioService,SeederService,SessionCleanupService],

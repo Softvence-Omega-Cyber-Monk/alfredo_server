@@ -20,7 +20,7 @@ async function bootstrap() {
       'https://vacanzagreece.gr/',
       'http://localhost:3000',
       'https://vacanza-dashboard.vercel.app',
-      'https://admin.vacanzagreece.gr'
+      'https://admin.vacanzagreece.gr',
     ],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   });
