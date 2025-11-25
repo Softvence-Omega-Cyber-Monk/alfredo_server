@@ -7,6 +7,6 @@ import { NotificationGateway } from '../notification/notification.gateway';
 
 @Module({
   controllers: [ExchangeRequestController],
-  providers: [ExchangeRequestService,BadgeService,NotificationService,NotificationGateway],
+  providers: [ExchangeRequestService,BadgeService],
 })
 export class ExchangeRequestModule {}

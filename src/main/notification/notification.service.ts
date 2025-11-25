@@ -23,10 +23,18 @@ export class NotificationService {
 
   // Get all notifications of user
   async getUserNotifications(userId: string) {
-    return this.prisma.notification.findMany({
+    const res=await this.prisma.notification.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' }
     });
+    const total=await this.prisma.notification.count({
+      where: { userId,isRead:false },
+    })
+    return{
+      unreadCount:total,
+      notifications:res
+      
+    }
   }
 
   // Count unread notifications
@@ -50,5 +58,24 @@ export class NotificationService {
       where: { userId, isRead: false },
       data: { isRead: true }
     });
+  }
+
+
+  async deleteNotification(id:string){
+    const isExist=await this.prisma.notification.findUnique({where:{id}})
+    if(!isExist){
+      throw new Error('Notification not found')
+    }
+    const res=await this.prisma.notification.delete({where:{id}})
+    return res
+  }
+
+  async deleteMyAllNotification(userId:string){
+    const isExist=await this.prisma.notification.findMany({where:{userId}})
+    if(!isExist){
+      throw new Error('Notification not found')
+    }
+    const res=await this.prisma.notification.deleteMany({where:{userId}})
+    return res
   }
 }

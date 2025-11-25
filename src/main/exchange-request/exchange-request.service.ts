@@ -9,7 +9,7 @@ import { NotificationService } from '../notification/notification.service';
 @Injectable()
 export class ExchangeRequestService {
   constructor(private readonly prisma: PrismaService,private badge:BadgeService,
-    private readonly notification:NotificationService
+    // private readonly notification:NotificationService
   ) {}
 
   /** CREATE */
