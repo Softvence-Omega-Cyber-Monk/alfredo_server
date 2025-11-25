@@ -75,39 +75,69 @@ export class UserService {
   }
 
  
-  async updateMe(userId: string, dto: UpdateUserDto, file?: Express.Multer.File) {
-    const userExists = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!userExists) {
-      throw new NotFoundException('User not found');
-    }
+async updateMe(userId: string, dto: UpdateUserDto, file?: Express.Multer.File) {
+  let photoUrl: string | undefined = undefined;
 
-    let photoUrl: string | undefined;
-    if (file) {
+  // Upload photo to Cloudinary if file exists
+  if (file) {
+    try {
       photoUrl = await this.uploadPhotoToCloudinary(file);
+      console.log(photoUrl)
+    } catch (error) {
+      throw new BadRequestException('Photo upload failed: ' + error.message);
     }
+  }
 
-    const { photo, city, achievementBadges, paymentCardNumber, ...updateData } = dto;
-    return this.prisma.user.update({
-      where: { id: userId },
+  // Update user fields
+  const updatedUser = await this.prisma.user.update({
+    where: { id: userId },
+    data: {
+      fullName: dto.fullName ?? undefined,
+      email: dto.email ?? undefined,
+      phoneNumber: dto.phoneNumber ?? undefined,
+      city: dto.city ?? undefined,
+      age: dto.age ?? undefined,
+      dateOfBirth: dto.dateOfBirth ?? undefined,
+      identification: dto.identification ?? undefined,
+      languagePreference: dto.languagePreference ?? undefined,
+      photo: photoUrl ?? undefined,
+    },
+  });
+
+  // Update onboarding if exists
+  const existingOnboarding = await this.prisma.onboarding.findUnique({
+    where: { userId },
+  });
+
+  if (existingOnboarding) {
+    await this.prisma.onboarding.update({
+      where: { userId },
       data: {
-        ...updateData,
-        ...(photoUrl ? { photo: photoUrl } : {}),
-      },
-      select: {
-        id: true,
-        fullName: true,
-        email: true,
-        phoneNumber: true,
-        photo: true,
-        role: true,
-        isSubscribed: true,
-        subscriptions: true,
-        notifications: true,
-        createdAt: true,
-        updatedAt: true,
+        homeAddress: dto.homeAddress ?? undefined,
+        travelType: dto.travelType ?? undefined,
+        favoriteDestinations: dto.favoriteDestinations ?? undefined,
+        isTravelWithPets: dto.isTravelWithPets ?? undefined,
+        notes: dto.notes ?? undefined,
+        homeDescription: dto.homeDescription ?? undefined,
+        aboutNeighborhood: dto.aboutNeighborhood ?? undefined,
+        isAvailableForExchange: dto.isAvailableForExchange ?? undefined,
+        availabilityStartDate: dto.availabilityStartDate ?? undefined,
+        availabilityEndDate: dto.availabilityEndDate ?? undefined,
+        maxPeople: dto.maxPeople ?? undefined,
+        propertyType: dto.propertyType ?? undefined,
+        isMainResidence: dto.isMainResidence ?? undefined,
+        homeName: dto.homeName ?? undefined,
       },
     });
   }
+
+  // Return updated user with onboarding
+  return this.prisma.user.findUnique({
+    where: { id: userId },
+    include: { onboarding: true },
+  });
+}
+
 
   // Update user role (admin-only)
   async updateUserRole(userId: string, role: string) {

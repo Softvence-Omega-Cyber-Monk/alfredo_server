@@ -1,83 +1,76 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IdentificationType, Language } from '@prisma/client';
-import {
-  IsArray,
-  IsEmail,
-  IsEnum,
-  IsOptional,
-  IsString,
-} from 'class-validator';
-import { Express } from 'express';
+import { IsOptional, IsString, IsBoolean, IsArray, IsEnum, IsDateString, IsNumber } from 'class-validator';
+import { IdentificationType, Language, PropertyType } from '@prisma/client';
 
 export class UpdateUserDto {
-  @ApiPropertyOptional({
-    example: 'John Doe',
-    description: 'Full name of the user',
-  })
-  @IsOptional()
-  @IsString()
-  fullName?: string;
+  // ===== User fields =====
+  @ApiPropertyOptional({ description: 'Full name of the user' })
+  @IsOptional() @IsString() fullName?: string;
 
-  @ApiPropertyOptional({
-    example: 'john@example.com',
-    description: 'Email address',
-  })
-  @IsOptional()
-  @IsEmail()
-  email?: string;
+  @ApiPropertyOptional({ description: 'Email of the user' })
+  @IsOptional() @IsString() email?: string;
 
-  @ApiPropertyOptional({ example: '1234567890', description: 'Phone number' })
-  @IsOptional()
-  @IsString()
-  phoneNumber?: string;
+  @ApiPropertyOptional({ description: 'Phone number of the user' })
+  @IsOptional() @IsString() phoneNumber?: string;
 
-  // File upload field
-  @ApiPropertyOptional({
-    type: 'string',
-    format: 'binary',
-    description: 'Profile photo file',
-  })
-  @IsOptional()
-  photo?: Express.Multer.File;
+  @ApiPropertyOptional({ description: 'City of the user' })
+  @IsOptional() @IsString() city?: string;
 
-  @ApiPropertyOptional({ example: '25', description: 'Age of the user' })
-  @IsOptional()
-  @IsString()
-  age?: string;
+  @ApiPropertyOptional({ description: 'Age of the user' })
+  @IsOptional() @IsString() age?: string;
 
-  @ApiPropertyOptional({ example: '1998-05-20', description: 'Date of birth' })
-  @IsOptional()
-  @IsString()
-  dateOfBirth?: string;
+  @ApiPropertyOptional({ description: 'Date of birth (ISO string)' })
+  @IsOptional() @IsDateString() dateOfBirth?: string;
 
-  @ApiPropertyOptional({
-    enum: IdentificationType,
-    description: 'Type of identification',
-  })
-  @IsOptional()
-  @IsEnum(IdentificationType)
-  identification?: IdentificationType;
+  @ApiPropertyOptional({ description: 'Identification type', enum: IdentificationType })
+  @IsOptional() @IsEnum(IdentificationType) identification?: IdentificationType;
 
-  @ApiPropertyOptional({ enum: Language, description: 'Preferred language' })
-  @IsOptional()
-  @IsEnum(Language)
-  languagePreference?: Language;
+  @ApiPropertyOptional({ description: 'Language preference', enum: Language })
+  @IsOptional() @IsEnum(Language) languagePreference?: Language;
 
-  @ApiPropertyOptional({ type: [String], description: 'List of cities' })
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  city?: string[];
+  @ApiPropertyOptional({ description: 'Is subscribed?' })
+  @IsOptional() @IsBoolean() isSubscribed?: boolean;
 
-  @ApiPropertyOptional({ type: [String], description: 'Achievement badges' })
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  achievementBadges?: string[];
+  // ===== Onboarding fields =====
+  @ApiPropertyOptional({ description: 'Home address' })
+  @IsOptional() @IsString() homeAddress?: string;
 
-  @ApiPropertyOptional({ type: [String], description: 'Payment card numbers' })
-  @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
-  paymentCardNumber?: string[];
+  @ApiPropertyOptional({ description: 'Travel types', type: [String] })
+  @IsOptional() @IsArray() travelType?: string[];
+
+  @ApiPropertyOptional({ description: 'Favorite destinations', type: [String] })
+  @IsOptional() @IsArray() favoriteDestinations?: string[];
+
+  @ApiPropertyOptional({ description: 'Traveling with pets?' })
+  @IsOptional() @IsBoolean() isTravelWithPets?: boolean;
+
+  @ApiPropertyOptional({ description: 'Notes about onboarding' })
+  @IsOptional() @IsString() notes?: string;
+
+  @ApiPropertyOptional({ description: 'Home description' })
+  @IsOptional() @IsString() homeDescription?: string;
+
+  @ApiPropertyOptional({ description: 'About neighborhood' })
+  @IsOptional() @IsString() aboutNeighborhood?: string;
+
+  @ApiPropertyOptional({ description: 'Is available for exchange?' })
+  @IsOptional() @IsBoolean() isAvailableForExchange?: boolean;
+
+  @ApiPropertyOptional({ description: 'Availability start date', type: String, format: 'date-time' })
+  @IsOptional() @IsDateString() availabilityStartDate?: Date;
+
+  @ApiPropertyOptional({ description: 'Availability end date', type: String, format: 'date-time' })
+  @IsOptional() @IsDateString() availabilityEndDate?: Date;
+
+  @ApiPropertyOptional({ description: 'Maximum people' })
+  @IsOptional() @IsNumber() maxPeople?: number;
+
+  @ApiPropertyOptional({ description: 'Property type', enum: PropertyType })
+  @IsOptional() propertyType?: PropertyType;
+
+  @ApiPropertyOptional({ description: 'Is main residence?' })
+  @IsOptional() @IsBoolean() isMainResidence?: boolean;
+
+  @ApiPropertyOptional({ description: 'Home name' })
+  @IsOptional() @IsString() homeName?: string;
 }

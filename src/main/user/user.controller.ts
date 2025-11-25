@@ -28,6 +28,7 @@ import { Role } from '../auth/authorization/roleEnum';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GiveBadgeDto } from './dto/badge.dto';
+import { IdentificationType, Language, PropertyType } from '@prisma/client';
 
 @ApiTags('User')
 @Controller('user')
@@ -51,19 +52,46 @@ export class UserController {
     return this.userService.getAllUsers();
   }
 
-  @Patch('me')
+ @Patch('me')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @UseInterceptors(FileInterceptor('photo'))
   @ApiConsumes('multipart/form-data')
-  @ApiBody({type:UpdateUserDto
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        photo: { type: 'string', format: 'binary' }, // file input
+        fullName: { type: 'string' },
+        email: { type: 'string' },
+        phoneNumber: { type: 'string' },
+        city: { type: 'string' },
+        age: { type: 'string' },
+        dateOfBirth: { type: 'string', format: 'date-time' },
+        identification: { type: 'string', enum: Object.values(IdentificationType) },
+        languagePreference: { type: 'string', enum: Object.values(Language) },
+        homeAddress: { type: 'string' },
+        travelType: { type: 'array', items: { type: 'string' } },
+        favoriteDestinations: { type: 'array', items: { type: 'string' } },
+        isTravelWithPets: { type: 'boolean' },
+        notes: { type: 'string' },
+        homeDescription: { type: 'string' },
+        aboutNeighborhood: { type: 'string' },
+        isAvailableForExchange: { type: 'boolean' },
+        availabilityStartDate: { type: 'string', format: 'date-time' },
+        availabilityEndDate: { type: 'string', format: 'date-time' },
+        maxPeople: { type: 'number' },
+        propertyType: { type: 'string', enum: Object.values(PropertyType) },
+        isMainResidence: { type: 'boolean' },
+        homeName: { type: 'string' },
+      },
+    },
   })
   updateMe(
     @CurrentUser('id') userId: string,
     @Body() dto: UpdateUserDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    console.log(dto)
     return this.userService.updateMe(userId, dto, file);
   }
 
