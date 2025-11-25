@@ -4,38 +4,42 @@ import { CreateExchangeRequestDto } from './dto/create-exchange-request.dto';
 import { UpdateExchangeRequestDto } from './dto/update-exchange-request.dto';
 import { BadgeService } from '../badge/badge.service';
 import { BadgeType } from '@prisma/client';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class ExchangeRequestService {
-  constructor(private readonly prisma: PrismaService,private badge:BadgeService) {}
+  constructor(private readonly prisma: PrismaService,private badge:BadgeService,
+    private readonly notification:NotificationService
+  ) {}
 
   /** CREATE */
-  async create(createDto: CreateExchangeRequestDto) {
-    console.log(createDto);
-    // Validate related users
-    const fromUser = await this.prisma.pendingUser.findUnique({
-      where: { id: createDto.fromUserId },
-    });
-    console.log(fromUser);
-    const toUser = await this.prisma.user.findUnique({
-      where: { id: createDto.toUserId },
-    });
-    if (!toUser) throw new NotFoundException('toUserId does not exist');
+async create(createDto: CreateExchangeRequestDto) {
+  console.log(createDto);
 
-    // Validate related properties
-    const fromProperty = await this.prisma.property.findUnique({
-      where: { id: createDto.fromPropertyId },
-    });
-    if (!fromProperty)
-      throw new NotFoundException('fromPropertyId does not exist');
+  // Validate users
+  const fromUser = await this.prisma.pendingUser.findUnique({
+    where: { id: createDto.fromUserId },
+  });
+  const toUser = await this.prisma.user.findUnique({
+    where: { id: createDto.toUserId },
+  });
+  if (!toUser) throw new NotFoundException('toUserId does not exist');
+  if (!fromUser) throw new NotFoundException('fromUserId does not exist');
 
-    const toProperty = await this.prisma.property.findUnique({
-      where: { id: createDto.toPropertyId },
-    });
-    if (!toProperty) throw new NotFoundException('toPropertyId does not exist');
+  // Validate properties
+  const fromProperty = await this.prisma.property.findUnique({
+    where: { id: createDto.fromPropertyId },
+  });
+  if (!fromProperty) throw new NotFoundException('fromPropertyId does not exist');
 
-    // Create ExchangeRequest with proper relations
-    return this.prisma.exchangeRequest.create({
+  const toProperty = await this.prisma.property.findUnique({
+    where: { id: createDto.toPropertyId },
+  });
+  if (!toProperty) throw new NotFoundException('toPropertyId does not exist');
+
+  // Use a transaction so creation + notification is consistent
+  const result = await this.prisma.$transaction(async (prisma) => {
+    const exchange = await prisma.exchangeRequest.create({
       data: {
         message: createDto.message,
         status: 'PENDING',
@@ -52,7 +56,19 @@ export class ExchangeRequestService {
         chatMessages: true,
       },
     });
-  }
+
+    // Send notification to `toUserId` via NotificationService
+    // await this.notification.createNotification(
+    //   createDto.toUserId,
+    //   'New Exchange Request',
+    //   `You have a new exchange request from ${fromUser.fullName}`
+    // );
+
+    return exchange;
+  });
+
+  return result;
+}
 
   /** READ ALL */
   async findAll() {
