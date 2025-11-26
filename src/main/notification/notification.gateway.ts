@@ -6,7 +6,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
-@WebSocketGateway({ cors: { origin:['https://vacanzagreece.gr','http://localhost:3000'] ,
+@WebSocketGateway({ cors: { origin:['https://vacanzagreece.gr','http://localhost:3000','http://localhost:5173'] ,
      methods: ['GET', 'POST'],
     credentials: true, } })
 export class NotificationGateway implements OnGatewayConnection, OnGatewayDisconnect {
