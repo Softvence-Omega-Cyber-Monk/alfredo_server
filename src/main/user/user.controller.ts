@@ -63,7 +63,7 @@ export class UserController {
       properties: {
         photo: { type: 'string', format: 'binary' }, // file input
         fullName: { type: 'string' },
-        phoneNumber: { type: 'string' },
+        phoneNumber: { type: 'string' ,example:"0440958458"},
         city: { type: 'string' },
         age: { type: 'string' },
         dateOfBirth: { type: 'string', format: 'date-time' },
