@@ -76,24 +76,39 @@ export class UserService {
 
  
 async updateMe(userId: string, dto: UpdateUserDto, file?: Express.Multer.File) {
-  let photoUrl: string | undefined = undefined;
+  
+  const parseArray = (value: any) => {
+    if (!value) return undefined;
+    if (Array.isArray(value)) return value;
+    if (typeof value === "string") return value.split(',').map(v => v.trim());
+    return undefined;
+  };
 
-  // Upload photo to Cloudinary if file exists
+  const parseBool = (value: any) => {
+    if (value === undefined || value === null) return undefined;
+    if (typeof value === "boolean") return value;
+    if (value === "true") return true;
+    if (value === "false") return false;
+    return undefined;
+  };
+
+  const parseNumber = (value: any) => {
+    if (value === undefined || value === null) return undefined;
+    const n = Number(value);
+    return isNaN(n) ? undefined : n;
+  };
+
+  // ---- File upload ----
+  let photoUrl: string | undefined = undefined;
   if (file) {
-    try {
-      photoUrl = await this.uploadPhotoToCloudinary(file);
-      console.log(photoUrl)
-    } catch (error) {
-      throw new BadRequestException('Photo upload failed: ' + error.message);
-    }
+    photoUrl = await this.uploadPhotoToCloudinary(file);
   }
 
-  // Update user fields
-  const updatedUser = await this.prisma.user.update({
+  // ---- Update User ----
+  await this.prisma.user.update({
     where: { id: userId },
     data: {
       fullName: dto.fullName ?? undefined,
-      email: dto.email ?? undefined,
       phoneNumber: dto.phoneNumber ?? undefined,
       city: dto.city ?? undefined,
       age: dto.age ?? undefined,
@@ -104,7 +119,7 @@ async updateMe(userId: string, dto: UpdateUserDto, file?: Express.Multer.File) {
     },
   });
 
-  // Update onboarding if exists
+  // ---- Update Onboarding ----
   const existingOnboarding = await this.prisma.onboarding.findUnique({
     where: { userId },
   });
@@ -114,29 +129,30 @@ async updateMe(userId: string, dto: UpdateUserDto, file?: Express.Multer.File) {
       where: { userId },
       data: {
         homeAddress: dto.homeAddress ?? undefined,
-        travelType: dto.travelType ?? undefined,
-        favoriteDestinations: dto.favoriteDestinations ?? undefined,
-        isTravelWithPets: dto.isTravelWithPets ?? undefined,
+        travelType: parseArray(dto.travelType),
+        favoriteDestinations: parseArray(dto.favoriteDestinations),
+        isTravelWithPets: parseBool(dto.isTravelWithPets),
+        travelMostlyWith: dto.travelMostlyWith ?? undefined,
         notes: dto.notes ?? undefined,
         homeDescription: dto.homeDescription ?? undefined,
         aboutNeighborhood: dto.aboutNeighborhood ?? undefined,
-        isAvailableForExchange: dto.isAvailableForExchange ?? undefined,
+        isAvailableForExchange: parseBool(dto.isAvailableForExchange),
         availabilityStartDate: dto.availabilityStartDate ?? undefined,
         availabilityEndDate: dto.availabilityEndDate ?? undefined,
-        maxPeople: dto.maxPeople ?? undefined,
+        maxPeople: parseNumber(dto.maxPeople),
         propertyType: dto.propertyType ?? undefined,
-        isMainResidence: dto.isMainResidence ?? undefined,
+        isMainResidence: parseBool(dto.isMainResidence),
         homeName: dto.homeName ?? undefined,
       },
     });
   }
 
-  // Return updated user with onboarding
   return this.prisma.user.findUnique({
     where: { id: userId },
     include: { onboarding: true },
   });
 }
+
 
 
   // Update user role (admin-only)

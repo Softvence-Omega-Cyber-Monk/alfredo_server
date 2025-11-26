@@ -28,7 +28,7 @@ import { Role } from '../auth/authorization/roleEnum';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GiveBadgeDto } from './dto/badge.dto';
-import { IdentificationType, Language, PropertyType } from '@prisma/client';
+import { IdentificationType, Language, PropertyType, TravelGroup } from '@prisma/client';
 
 @ApiTags('User')
 @Controller('user')
@@ -63,7 +63,6 @@ export class UserController {
       properties: {
         photo: { type: 'string', format: 'binary' }, // file input
         fullName: { type: 'string' },
-        email: { type: 'string' },
         phoneNumber: { type: 'string' },
         city: { type: 'string' },
         age: { type: 'string' },
@@ -72,6 +71,7 @@ export class UserController {
         languagePreference: { type: 'string', enum: Object.values(Language) },
         homeAddress: { type: 'string' },
         travelType: { type: 'array', items: { type: 'string' } },
+        travelMostlyWith:{type:'string',enum:Object.values(TravelGroup)},
         favoriteDestinations: { type: 'array', items: { type: 'string' } },
         isTravelWithPets: { type: 'boolean' },
         notes: { type: 'string' },

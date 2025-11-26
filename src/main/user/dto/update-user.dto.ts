@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, IsBoolean, IsArray, IsEnum, IsDateString, IsNumber } from 'class-validator';
-import { IdentificationType, Language, PropertyType } from '@prisma/client';
+import { IdentificationType, Language, PropertyType, TravelGroup } from '@prisma/client';
 
 export class UpdateUserDto {
   // ===== User fields =====
@@ -67,6 +67,9 @@ export class UpdateUserDto {
 
   @ApiPropertyOptional({ description: 'Property type', enum: PropertyType })
   @IsOptional() propertyType?: PropertyType;
+
+   @ApiPropertyOptional({ description: 'Property type', enum: PropertyType })
+  @IsOptional() travelMostlyWith?: TravelGroup;
 
   @ApiPropertyOptional({ description: 'Is main residence?' })
   @IsOptional() @IsBoolean() isMainResidence?: boolean;
