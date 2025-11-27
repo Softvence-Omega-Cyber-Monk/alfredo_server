@@ -27,6 +27,8 @@ import { Roles } from '../auth/authorization/roles.decorator';
 import { Role } from '../auth/authorization/roleEnum';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { GiveBadgeDto } from './dto/badge.dto';
+import { IdentificationType, Language, PropertyType, TravelGroup } from '@prisma/client';
 
 @ApiTags('User')
 @Controller('user')
@@ -50,19 +52,46 @@ export class UserController {
     return this.userService.getAllUsers();
   }
 
-  @Patch('me')
+ @Patch('me')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @UseInterceptors(FileInterceptor('photo'))
   @ApiConsumes('multipart/form-data')
-  @ApiBody({type:UpdateUserDto
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        photo: { type: 'string', format: 'binary' }, // file input
+        fullName: { type: 'string' },
+        phoneNumber: { type: 'string' ,example:"0440958458"},
+        city: { type: 'string' },
+        age: { type: 'string' },
+        dateOfBirth: { type: 'string', format: 'date-time' },
+        identification: { type: 'string', enum: Object.values(IdentificationType) },
+        languagePreference: { type: 'string', enum: Object.values(Language) },
+        homeAddress: { type: 'string' },
+        travelType: { type: 'array', items: { type: 'string' } },
+        travelMostlyWith:{type:'string',enum:Object.values(TravelGroup)},
+        favoriteDestinations: { type: 'array', items: { type: 'string' } },
+        isTravelWithPets: { type: 'boolean' },
+        notes: { type: 'string' },
+        homeDescription: { type: 'string' },
+        aboutNeighborhood: { type: 'string' },
+        isAvailableForExchange: { type: 'boolean' },
+        availabilityStartDate: { type: 'string', format: 'date-time' },
+        availabilityEndDate: { type: 'string', format: 'date-time' },
+        maxPeople: { type: 'number' },
+        propertyType: { type: 'string', enum: Object.values(PropertyType) },
+        isMainResidence: { type: 'boolean' },
+        homeName: { type: 'string' },
+      },
+    },
   })
   updateMe(
     @CurrentUser('id') userId: string,
     @Body() dto: UpdateUserDto,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    console.log(dto)
     return this.userService.updateMe(userId, dto, file);
   }
 
@@ -105,4 +134,23 @@ getSingleUser(@Param('id') userId: string) {
   ) {
     return this.userService.updateUserRole(id, dto.role);
   }
+
+//*give badge to user
+@Patch('give-badge/:id')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(Role.Admin)
+@ApiBearerAuth()
+@ApiBody({ type: GiveBadgeDto })
+giveBadgeToUser(
+  @Param('id') id: string,
+  @Body() dto: GiveBadgeDto,
+) {
+  try {
+    return this.userService.giveBadgesToUser(id, dto.badgetype);
+  } catch (error) {
+    throw new InternalServerErrorException(error.message);
+  }
+}
+
+
 }

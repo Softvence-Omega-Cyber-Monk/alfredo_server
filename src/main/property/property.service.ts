@@ -347,82 +347,97 @@ async getAllProperty(filters: {
     return property;
   }
   /** UPDATE */
-  async updateProperty(id: string, updateData: any) {
-    const existing = await this.prisma.property.findUnique({
-      where: { id, isDeleted: false },
-    });
-    if (!existing)
-      throw new NotFoundException(`Property with ID ${id} not found`);
+ async updateProperty(id: string, updateData: any) {
+  const existing = await this.prisma.property.findUnique({
+    where: { id, isDeleted: false },
+  });
+  if (!existing)
+    throw new NotFoundException(`Property with ID ${id} not found`);
 
-    // Current images stored in DB
-    let currentImages =
-      (existing.images as { url: string; publicId: string }[]) || [];
+  // Current images stored in DB
+  let currentImages =
+    (existing.images as { url: string; publicId: string }[]) || [];
 
-    // Remove requested images
-    if (updateData.removeImages?.length) {
-      for (const publicId of updateData.removeImages) {
-        await this.deleteFromCloudinary(publicId);
-      }
-      currentImages = currentImages.filter(
-        (img) => !updateData.removeImages.includes(img.publicId),
-      );
+  // Remove requested images
+  if (updateData.removeImages?.length) {
+    for (const publicId of updateData.removeImages) {
+      await this.deleteFromCloudinary(publicId);
     }
+    currentImages = currentImages.filter(
+      (img) => !updateData.removeImages.includes(img.publicId),
+    );
+  }
 
-    // Add new images
-    if (updateData.files?.length) {
-      for (const file of updateData.files) {
-        const uploaded = await this.uploadFile(file, 'property_images');
-        currentImages.push(uploaded);
+  // 🔥 Add new images (max 4 logic)
+  if (updateData.files?.length) {
+    for (const file of updateData.files) {
+      // If already 4 images → remove last index
+      if (currentImages.length >= 4) {
+        const lastImage = currentImages[currentImages.length - 1];
+
+        await this.deleteFromCloudinary(lastImage.publicId);
+        currentImages.pop();
       }
+
+      const uploaded = await this.uploadFile(file, 'property_images');
+      currentImages.push(uploaded);
     }
+  }
 
-    // Validate relations
-    const validAmenities = updateData.amenities?.length
-      ? await this.prisma.amenity.findMany({
-          where: { id: { in: updateData.amenities } },
-        })
-      : [];
+  // Validate relations
+  const validAmenities = updateData.amenities?.length
+    ? await this.prisma.amenity.findMany({
+        where: { id: { in: updateData.amenities } },
+      })
+    : [];
 
-    const validTransports = updateData.transports?.length
-      ? await this.prisma.transportOption.findMany({
-          where: { id: { in: updateData.transports } },
-        })
-      : [];
+  const validTransports = updateData.transports?.length
+    ? await this.prisma.transportOption.findMany({
+        where: { id: { in: updateData.transports } },
+      })
+    : [];
 
-    const validSurroundings = updateData.surroundings?.length
-      ? await this.prisma.surroundingType.findMany({
-          where: { id: { in: updateData.surroundings } },
-        })
-      : [];
+  const validSurroundings = updateData.surroundings?.length
+    ? await this.prisma.surroundingType.findMany({
+        where: { id: { in: updateData.surroundings } },
+      })
+    : [];
 
-    return this.prisma.property.update({
-      where: { id },
-      data: {
-        ...updateData,
-        files: undefined,
-        removeImages: undefined,
-        images: currentImages,
+  // Prevent overwriting images
+  delete updateData.images;
 
-        propertyType: updateData.propertyType ?? existing.propertyType,
-        maxPeople: updateData.maxPeople ?? existing.maxPeople,
-        isTravelWithPets:updateData.isTravelWithPets ?? existing.isTravelWithPets,
-        availabilityStartDate: updateData.availabilityStartDate
+  return this.prisma.property.update({
+    where: { id },
+    data: {
+      ...updateData,
+      files: undefined,
+      removeImages: undefined,
+      images: currentImages,
+
+      propertyType: updateData.propertyType ?? existing.propertyType,
+      maxPeople: updateData.maxPeople ?? existing.maxPeople,
+      isTravelWithPets: updateData.isTravelWithPets ?? existing.isTravelWithPets,
+
+      availabilityStartDate: updateData.availabilityStartDate
         ? new Date(updateData.availabilityStartDate)
         : existing.availabilityStartDate,
-        availabilityEndDate: updateData.availabilityEndDate
+
+      availabilityEndDate: updateData.availabilityEndDate
         ? new Date(updateData.availabilityEndDate)
         : existing.availabilityEndDate,
-        amenities: { set: validAmenities.map((a) => ({ id: a.id })) },
-        transports: { set: validTransports.map((t) => ({ id: t.id })) },
-        surroundings: { set: validSurroundings.map((s) => ({ id: s.id })) },
-      },
-      include: {
-        amenities: true,
-        transports: true,
-        surroundings: true,
-      },
-    });
-  }
+
+      amenities: { set: validAmenities.map((a) => ({ id: a.id })) },
+      transports: { set: validTransports.map((t) => ({ id: t.id })) },
+      surroundings: { set: validSurroundings.map((s) => ({ id: s.id })) },
+    },
+    include: {
+      amenities: true,
+      transports: true,
+      surroundings: true,
+    },
+  });
+}
+
 
   /** DELETE */
   async deleteProperty(id: string) {

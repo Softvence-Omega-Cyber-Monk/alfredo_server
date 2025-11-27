@@ -10,10 +10,14 @@ import { Express } from 'express';
 import { v2 as cloudinary } from 'cloudinary';
 import * as streamifier from 'streamifier';
 import '../../config/cloudinary.config';
+import { BadgeService } from '../badge/badge.service';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly badgeService:BadgeService
+  ) {}
 
   private async uploadPhotoToCloudinary(
     file: Express.Multer.File,
@@ -71,39 +75,85 @@ export class UserService {
   }
 
  
-  async updateMe(userId: string, dto: UpdateUserDto, file?: Express.Multer.File) {
-    const userExists = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!userExists) {
-      throw new NotFoundException('User not found');
-    }
+async updateMe(userId: string, dto: UpdateUserDto, file?: Express.Multer.File) {
+  
+  const parseArray = (value: any) => {
+    if (!value) return undefined;
+    if (Array.isArray(value)) return value;
+    if (typeof value === "string") return value.split(',').map(v => v.trim());
+    return undefined;
+  };
 
-    let photoUrl: string | undefined;
-    if (file) {
-      photoUrl = await this.uploadPhotoToCloudinary(file);
-    }
+  const parseBool = (value: any) => {
+    if (value === undefined || value === null) return undefined;
+    if (typeof value === "boolean") return value;
+    if (value === "true") return true;
+    if (value === "false") return false;
+    return undefined;
+  };
 
-    const { photo, city, achievementBadges, paymentCardNumber, ...updateData } = dto;
-    return this.prisma.user.update({
-      where: { id: userId },
+  const parseNumber = (value: any) => {
+    if (value === undefined || value === null) return undefined;
+    const n = Number(value);
+    return isNaN(n) ? undefined : n;
+  };
+
+  // ---- File upload ----
+  let photoUrl: string | undefined = undefined;
+  if (file) {
+    photoUrl = await this.uploadPhotoToCloudinary(file);
+  }
+
+  // ---- Update User ----
+  await this.prisma.user.update({
+    where: { id: userId },
+    data: {
+      fullName: dto.fullName ?? undefined,
+      phoneNumber: dto.phoneNumber ?? undefined,
+      city: dto.city ?? undefined,
+      age: dto.age ?? undefined,
+      dateOfBirth: dto.dateOfBirth ?? undefined,
+      identification: dto.identification ?? undefined,
+      languagePreference: dto.languagePreference ?? undefined,
+      photo: photoUrl ?? undefined,
+    },
+  });
+
+  // ---- Update Onboarding ----
+  const existingOnboarding = await this.prisma.onboarding.findUnique({
+    where: { userId },
+  });
+
+  if (existingOnboarding) {
+    await this.prisma.onboarding.update({
+      where: { userId },
       data: {
-        ...updateData,
-        ...(photoUrl ? { photo: photoUrl } : {}),
-      },
-      select: {
-        id: true,
-        fullName: true,
-        email: true,
-        phoneNumber: true,
-        photo: true,
-        role: true,
-        isSubscribed: true,
-        subscriptions: true,
-        notifications: true,
-        createdAt: true,
-        updatedAt: true,
+        homeAddress: dto.homeAddress ?? undefined,
+        travelType: parseArray(dto.travelType),
+        favoriteDestinations: parseArray(dto.favoriteDestinations),
+        isTravelWithPets: parseBool(dto.isTravelWithPets),
+        travelMostlyWith: dto.travelMostlyWith ?? undefined,
+        notes: dto.notes ?? undefined,
+        homeDescription: dto.homeDescription ?? undefined,
+        aboutNeighborhood: dto.aboutNeighborhood ?? undefined,
+        isAvailableForExchange: parseBool(dto.isAvailableForExchange),
+        availabilityStartDate: dto.availabilityStartDate ?? undefined,
+        availabilityEndDate: dto.availabilityEndDate ?? undefined,
+        maxPeople: parseNumber(dto.maxPeople),
+        propertyType: dto.propertyType ?? undefined,
+        isMainResidence: parseBool(dto.isMainResidence),
+        homeName: dto.homeName ?? undefined,
       },
     });
   }
+
+  return this.prisma.user.findUnique({
+    where: { id: userId },
+    include: { onboarding: true },
+  });
+}
+
+
 
   // Update user role (admin-only)
   async updateUserRole(userId: string, role: string) {
@@ -153,5 +203,28 @@ export class UserService {
       status:HttpStatus.OK,
       message:"user deleted succesfull"
     }
+  }
+
+
+  //* give bathc to user by admin
+  async giveBadgesToUser(userId:string,badgeType:any){
+    const user=await this.prisma.user.findFirst({
+      where:{
+        id:userId
+      }
+    })
+    if(!user){
+      throw new NotFoundException("User not found")
+    }
+    const isBadgeExist=await this.prisma.badge.findFirst({
+      where:{
+        type:badgeType
+      }
+    })
+    if(!isBadgeExist){
+      throw new NotFoundException("Badge not found in  you database")
+    }
+    const badge=await this.badgeService.awardBadgeToUser(userId,badgeType)
+    return badge
   }
 }
