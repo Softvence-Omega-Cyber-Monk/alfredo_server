@@ -8,6 +8,7 @@ import {
   Param,
   UploadedFile,
   UseInterceptors,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UpdateUserRoleDto } from './dto/updateAdmin.dto';
@@ -73,9 +74,12 @@ getSingleUser(@Param('id') userId: string) {
 
   // Delete logged-in user
   @Delete('delete/:id')
-
   deleteUser(@Param('id') id:string) {
-    return this.userService.deleteUser(id);
+    try{
+      return this.userService.deleteUser(id);
+    }catch(error){
+      throw new InternalServerErrorException(error.message,error.status)
+    }
   }
 
   // Update user role (admin only)
