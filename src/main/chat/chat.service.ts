@@ -44,7 +44,7 @@ export class ChatService {
     const mailToRevicer=await this.mailService.sendMail({
       to:receiverExists.email,
       subject:"New Message",
-      text:await this.MessageAlert.getUserAlertTemplate(receiverExists.fullName,receiverExists.email)
+      html:await this.MessageAlert.getUserAlertTemplate(receiverExists.fullName,receiverExists.email)
     })
     return this.prisma.chatMessage.create({
       data: {

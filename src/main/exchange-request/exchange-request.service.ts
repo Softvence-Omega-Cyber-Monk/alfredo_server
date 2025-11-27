@@ -9,7 +9,7 @@ import { NotificationService } from '../notification/notification.service';
 @Injectable()
 export class ExchangeRequestService {
   constructor(private readonly prisma: PrismaService,private badge:BadgeService,
-    // private readonly notification:NotificationService
+    private readonly notification:NotificationService
   ) {}
 
   /** CREATE */
@@ -17,58 +17,56 @@ async create(createDto: CreateExchangeRequestDto) {
   console.log(createDto);
 
   // Validate users
-  const fromUser = await this.prisma.pendingUser.findUnique({
+  const fromUser = await this.prisma.user.findFirst({
     where: { id: createDto.fromUserId },
   });
-  const toUser = await this.prisma.user.findUnique({
+  if (!fromUser) throw new NotFoundException('fromUserId does not exist');
+
+  const toUser = await this.prisma.user.findFirst({
     where: { id: createDto.toUserId },
   });
   if (!toUser) throw new NotFoundException('toUserId does not exist');
-  if (!fromUser) throw new NotFoundException('fromUserId does not exist');
 
   // Validate properties
-  const fromProperty = await this.prisma.property.findUnique({
+  const fromProperty = await this.prisma.property.findFirst({
     where: { id: createDto.fromPropertyId },
   });
   if (!fromProperty) throw new NotFoundException('fromPropertyId does not exist');
 
-  const toProperty = await this.prisma.property.findUnique({
+  const toProperty = await this.prisma.property.findFirst({
     where: { id: createDto.toPropertyId },
   });
   if (!toProperty) throw new NotFoundException('toPropertyId does not exist');
 
-  // Use a transaction so creation + notification is consistent
-  const result = await this.prisma.$transaction(async (prisma) => {
-    const exchange = await prisma.exchangeRequest.create({
-      data: {
-        message: createDto.message,
-        status: 'PENDING',
-        fromUser: { connect: { id: createDto.fromUserId } },
-        toUser: { connect: { id: createDto.toUserId } },
-        fromProperty: { connect: { id: createDto.fromPropertyId } },
-        toProperty: { connect: { id: createDto.toPropertyId } },
-      },
-      include: {
-        fromUser: true,
-        toUser: true,
-        fromProperty: true,
-        toProperty: true,
-        chatMessages: true,
-      },
-    });
-
-    // Send notification to `toUserId` via NotificationService
-    // await this.notification.createNotification(
-    //   createDto.toUserId,
-    //   'New Exchange Request',
-    //   `You have a new exchange request from ${fromUser.fullName}`
-    // );
-
-    return exchange;
+  // Create exchange request (no transaction)
+  const exchange = await this.prisma.exchangeRequest.create({
+    data: {
+      message: createDto.message,
+      status: 'PENDING',
+      fromUserId: createDto.fromUserId,
+      toUserId: createDto.toUserId,
+      fromPropertyId: createDto.fromPropertyId,
+      toPropertyId: createDto.toPropertyId,
+    },
+    include: {
+      fromUser: true,
+      toUser: true,
+      fromProperty: true,
+      toProperty: true,
+      chatMessages: true,
+    },
   });
 
-  return result;
+  Optional: Notification
+  await this.notification.createNotification(
+    createDto.toUserId,
+    'New Exchange Request',
+    `You have a new exchange request from ${fromUser.fullName}`
+  );
+
+  return exchange;
 }
+
 
   /** READ ALL */
   async findAll() {
