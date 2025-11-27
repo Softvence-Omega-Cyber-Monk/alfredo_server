@@ -57,7 +57,6 @@ async create(createDto: CreateExchangeRequestDto) {
     },
   });
 
-  Optional: Notification
   await this.notification.createNotification(
     createDto.toUserId,
     'New Exchange Request',
