@@ -105,16 +105,17 @@ async handleWebhook(req: RawBodyRequest<Request>) {
           },
         });
 
-        const plan=await this.prisma.planTranslation.findFirst({
-          where:{
-            id:planId
-          }
-        })
-        if(plan?.planType==="TWO_YEARLY"){
-          await this.badgeService.awardBadgeToUser(userId, BadgeType.PREMIUM_TRAVELER);
-        }else{
-          await this.badgeService.awardBadgeToUser(userId, BadgeType.TRAVELER);
-        }
+     const planTranslation = await this.prisma.planTranslation.findFirst({
+  where: {
+    planId: planId, 
+  }
+       });
+
+if (planTranslation?.planType === "TWO_YEARLY") {
+  await this.badgeService.awardBadgeToUser(userId, BadgeType.PREMIUM_TRAVELER);
+} else {
+  await this.badgeService.awardBadgeToUser(userId, BadgeType.TRAVELER);
+}
         
       }
 
