@@ -171,7 +171,7 @@ async acceptExchangeRequest(id: string) {
       status:"ACCEPTED"
     }
   })
-  // Update the status to 'ACCEPTED'
+  //* Update the status to 'ACCEPTED'
   const res=await this.prisma.exchangeRequest.update({
     where: { id },
     data: { status: 'ACCEPTED' },
