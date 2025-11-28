@@ -103,9 +103,12 @@ getSingleUser(@Param('id') userId: string) {
 
   // Delete logged-in user
   @Delete('delete/:id')
-
   deleteUser(@Param('id') id:string) {
-    return this.userService.deleteUser(id);
+    try{
+      return this.userService.deleteUser(id);
+    }catch(error){
+      throw new InternalServerErrorException(error.message,error.status)
+    }
   }
 
   // Update user role (admin only)

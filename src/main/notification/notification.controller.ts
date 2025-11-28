@@ -101,7 +101,7 @@ export class NotificationController {
   async deleteMyAllNotification(@Req() req:any) {
     try{
       const id=req.user.userId
-      const res=await this.service.deleteNotification(id);
+      const res=await this.service.deleteMyAllNotification(id);
       return {
         status:HttpStatus.OK,
         Message:"Notification deleted successfully",

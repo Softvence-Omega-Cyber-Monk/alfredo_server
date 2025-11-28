@@ -62,7 +62,7 @@ export class NotificationService {
 
 
   async deleteNotification(id:string){
-    const isExist=await this.prisma.notification.findUnique({where:{id}})
+    const isExist=await this.prisma.notification.findFirst({where:{id}})
     if(!isExist){
       throw new Error('Notification not found')
     }
@@ -70,12 +70,20 @@ export class NotificationService {
     return res
   }
 
-  async deleteMyAllNotification(userId:string){
-    const isExist=await this.prisma.notification.findMany({where:{userId}})
-    if(!isExist){
-      throw new Error('Notification not found')
-    }
-    const res=await this.prisma.notification.deleteMany({where:{userId}})
-    return res
+async deleteMyAllNotification(userId: string) {
+  const count = await this.prisma.notification.count({
+    where: { userId },
+  });
+
+  if (count === 0) {
+    throw new Error('Notification not found');
   }
+
+  const res = await this.prisma.notification.deleteMany({
+    where: { userId },
+  });
+
+  return res;
+}
+
 }
