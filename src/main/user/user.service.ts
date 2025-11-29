@@ -185,7 +185,7 @@ async updateMe(userId: string, dto: UpdateUserDto, file?: Express.Multer.File) {
       }
     })
     if(!isExist){
-      throw new NotFoundException("User not found")
+      throw new NotFoundException("User not found..")
     }
     await this.prisma.user.delete({
       where: { id: userId },
