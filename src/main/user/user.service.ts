@@ -41,17 +41,12 @@ export class UserService {
   // Get all users (without sensitive info)
   async getAllUsers() {
     return this.prisma.user.findMany({
-      select: {
-        id: true,
-        fullName: true,
-        email: true,
-        phoneNumber: true,
-        photo: true,
-        role: true,
-        isSubscribed: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      include:{
+        achievementBadges:true,
+        onboarding:true,
+        properties:true
+      
+      }
     });
   }
 
@@ -62,7 +57,8 @@ export class UserService {
       where: { id: userId },
       include:{
         achievementBadges:true,
-        onboarding:true
+        onboarding:true,
+        properties:true
       }
     });
 
