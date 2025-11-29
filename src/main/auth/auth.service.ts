@@ -270,7 +270,7 @@ async login(dto: LoginDto, ipAddress: string) {
     });
 
     if (!pending) {
-      throw new BadRequestException('Pending user not found');
+      throw new BadRequestException('Pending user not found....');
     }
 
     // // 4. Ensure phoneNumber is not null (avoid runtime error)
