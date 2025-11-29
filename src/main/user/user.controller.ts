@@ -28,7 +28,7 @@ import { Role } from '../auth/authorization/roleEnum';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { GiveBadgeDto } from './dto/badge.dto';
-import { IdentificationType, Language, PropertyType, TravelGroup } from '@prisma/client';
+import { EmploymentStatus, IdentificationType, Language, PropertyType, TravelGroup } from '@prisma/client';
 
 @ApiTags('User')
 @Controller('user')
@@ -65,13 +65,15 @@ export class UserController {
         fullName: { type: 'string' },
         phoneNumber: { type: 'string' ,example:"0440958458 "},
         city: { type: 'string' },
-        age: { type: 'string' },
+        ageRange: { type: 'string' },
         dateOfBirth: { type: 'string', format: 'date-time' },
         identification: { type: 'string', enum: Object.values(IdentificationType) },
         languagePreference: { type: 'string', enum: Object.values(Language) },
         homeAddress: { type: 'string' },
         travelType: { type: 'array', items: { type: 'string' } },
         travelMostlyWith:{type:'string',enum:Object.values(TravelGroup)},
+        employmentStatus:{type:'string',enum:Object.values(EmploymentStatus)},
+
         favoriteDestinations: { type: 'array', items: { type: 'string' } },
         isTravelWithPets: { type: 'boolean' },
         notes: { type: 'string' },

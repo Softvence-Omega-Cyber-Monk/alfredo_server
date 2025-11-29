@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, IsBoolean, IsArray, IsEnum, IsDateString, IsNumber } from 'class-validator';
-import { IdentificationType, Language, PropertyType, TravelGroup } from '@prisma/client';
+import { EmploymentStatus, IdentificationType, Language, PropertyType, TravelGroup } from '@prisma/client';
 
 export class UpdateUserDto {
   // ===== User fields =====
@@ -17,13 +17,18 @@ export class UpdateUserDto {
   @IsOptional() @IsString() city?: string;
 
   @ApiPropertyOptional({ description: 'Age of the user' })
-  @IsOptional() @IsString() age?: string;
+  @IsOptional() @IsString() ageRange?: string;
+
+   
 
   @ApiPropertyOptional({ description: 'Date of birth (ISO string)' })
   @IsOptional() @IsDateString() dateOfBirth?: string;
 
   @ApiPropertyOptional({ description: 'Identification type', enum: IdentificationType })
   @IsOptional() @IsEnum(IdentificationType) identification?: IdentificationType;
+
+  @ApiPropertyOptional({ description: 'Identification type', enum:EmploymentStatus })
+ @IsOptional() @IsEnum(EmploymentStatus) employmentStatus?:EmploymentStatus
 
   @ApiPropertyOptional({ description: 'Language preference', enum: Language })
   @IsOptional() @IsEnum(Language) languagePreference?: Language;
