@@ -143,36 +143,26 @@ async create(createDto: CreateExchangeRequestDto) {
 
 /** UPDATE */
 async acceptExchangeRequest(id: string) {
+  // 1. Check existing request
   const existing = await this.prisma.exchangeRequest.findUnique({
     where: { id },
   });
-  if (!existing){
+
+  if (!existing) {
     throw new NotFoundException(`ExchangeRequest with ID ${id} not found`);
   }
-  const toUser=await this.prisma.user.findFirst({
-    where:{
-      id:existing.toUserId
-    }
-  })
-  const fromUser=await this.prisma.user.findFirst({
-    where:{
-      id:existing.fromUserId
-    }
-  })
-  const totalExchaneOfToUser=await this.prisma.exchangeRequest.count({
-    where:{
-      toUserId:toUser?.id,
-      status:"ACCEPTED"
-    }
-  })
-   const totalExchaneOfFromUser=await this.prisma.exchangeRequest.count({
-    where:{
-      toUserId:fromUser?.id,
-      status:"ACCEPTED"
-    }
-  })
-  //* Update the status to 'ACCEPTED'
-  const res=await this.prisma.exchangeRequest.update({
+
+  // 2. Fetch both users
+  const toUser = await this.prisma.user.findUnique({
+    where: { id: existing.toUserId },
+  });
+
+  const fromUser = await this.prisma.user.findUnique({
+    where: { id: existing.fromUserId },
+  });
+
+  // 3. Update the exchange request status to ACCEPTED
+  const res = await this.prisma.exchangeRequest.update({
     where: { id },
     data: { status: 'ACCEPTED' },
     include: {
@@ -183,38 +173,55 @@ async acceptExchangeRequest(id: string) {
       chatMessages: true,
     },
   });
+
+  // 4. Mark both properties as exchanged
   await this.prisma.property.update({
-    where:{
-      id:existing.fromPropertyId
-    },
-    data:{
-      isExchanged:true
-    }
-  })
-    await this.prisma.property.update({
-    where:{
-      id:existing.toPropertyId
-    },
-    data:{
-      isExchanged:true
-    }
-  })
-   if(totalExchaneOfToUser==1 && toUser?.id){
-      await this.badge.awardBadgeToUser(toUser.id,BadgeType.THE_FIRST_TRADE)
-    }else if(totalExchaneOfToUser==20 && toUser?.id){
-      await this.badge.awardBadgeToUser(toUser.id,BadgeType.EXPERIENCED)
-    }else if(totalExchaneOfToUser>=100 && toUser?.id){
-      await this.badge.awardBadgeToUser(toUser.id,BadgeType.VETERAN)
-    }
+    where: { id: existing.fromPropertyId },
+    data: { isExchanged: true },
+  });
 
-    if(totalExchaneOfFromUser==1 && fromUser?.id){
-      await this.badge.awardBadgeToUser(fromUser.id,BadgeType.THE_FIRST_TRADE)
-    }else if(totalExchaneOfFromUser==20 && fromUser?.id){
-      await this.badge.awardBadgeToUser(fromUser.id,BadgeType.EXPERIENCED)
-    }else if(totalExchaneOfFromUser>=100 && fromUser?.id){
-      await this.badge.awardBadgeToUser(fromUser.id,BadgeType.VETERAN)
-    }
+  await this.prisma.property.update({
+    where: { id: existing.toPropertyId },
+    data: { isExchanged: true },
+  });
 
-  return res
+  // 5. Count accepted trades AFTER update (correct logic)
+  const totalExchaneOfToUser = await this.prisma.exchangeRequest.count({
+    where: {
+      toUserId: toUser?.id,
+      status: 'ACCEPTED',
+    },
+  });
+
+  const totalExchaneOfFromUser = await this.prisma.exchangeRequest.count({
+    where: {
+      toUserId: fromUser?.id,
+      status: 'ACCEPTED',
+    },
+  });
+
+  // 6. Award badges to BOTH users (correct logic)
+  if (toUser?.id) {
+    if (totalExchaneOfToUser === 1) {
+      await this.badge.awardBadgeToUser(toUser.id, BadgeType.THE_FIRST_TRADE);
+    } else if (totalExchaneOfToUser === 20) {
+      await this.badge.awardBadgeToUser(toUser.id, BadgeType.EXPERIENCED);
+    } else if (totalExchaneOfToUser >= 100) {
+      await this.badge.awardBadgeToUser(toUser.id, BadgeType.VETERAN);
+    }
+  }
+
+  if (fromUser?.id) {
+    if (totalExchaneOfFromUser === 1) {
+      await this.badge.awardBadgeToUser(fromUser.id, BadgeType.THE_FIRST_TRADE);
+    } else if (totalExchaneOfFromUser === 20) {
+      await this.badge.awardBadgeToUser(fromUser.id, BadgeType.EXPERIENCED);
+    } else if (totalExchaneOfFromUser >= 100) {
+      await this.badge.awardBadgeToUser(fromUser.id, BadgeType.VETERAN);
+    }
+  }
+
+  return res;
 }
+
 }
