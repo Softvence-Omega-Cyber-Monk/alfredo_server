@@ -3,7 +3,7 @@ version: '3.8'
 services:
   app: 
     build: .
-    image: imranwebstudio/alfredo_backend:latest
+    image: ${DOCKER_USERNAME}/alfredo_backend:latest
     platform: linux/amd64
     container_name: alfredo_backend
     restart: always
