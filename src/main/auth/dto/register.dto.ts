@@ -50,6 +50,14 @@ export class RegisterDto {
   @IsString()
   @MinLength(6)
   password: string;
+
+  @ApiProperty({
+    example: '1234567890',
+    description: 'Phone number',
+  })
+  @IsString()
+  @IsNotEmpty()
+  phoneNumber:string
 }
 
 export class SendOtpDto {
