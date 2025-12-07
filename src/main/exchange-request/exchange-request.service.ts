@@ -143,7 +143,7 @@ async create(createDto: CreateExchangeRequestDto) {
 
 /** UPDATE */
 async acceptExchangeRequest(id: string) {
-  // 1. Check existing request
+  // 1. Find existing request
   const existing = await this.prisma.exchangeRequest.findUnique({
     where: { id },
   });
@@ -160,6 +160,11 @@ async acceptExchangeRequest(id: string) {
   const fromUser = await this.prisma.user.findUnique({
     where: { id: existing.fromUserId },
   });
+
+  // Safety check
+  if (!toUser || !fromUser) {
+    throw new NotFoundException(`One of the users is missing`);
+  }
 
   // 3. Update the exchange request status to ACCEPTED
   const res = await this.prisma.exchangeRequest.update({
@@ -185,43 +190,47 @@ async acceptExchangeRequest(id: string) {
     data: { isExchanged: true },
   });
 
-  // 5. Count accepted trades AFTER update (correct logic)
+  // 5. Count accepted trades for BOTH users
   const totalExchaneOfToUser = await this.prisma.exchangeRequest.count({
     where: {
-      toUserId: toUser?.id,
       status: 'ACCEPTED',
+      OR: [
+        { toUserId: toUser.id },
+        { fromUserId: toUser.id },
+      ],
     },
   });
 
   const totalExchaneOfFromUser = await this.prisma.exchangeRequest.count({
     where: {
-      toUserId: fromUser?.id,
       status: 'ACCEPTED',
+      OR: [
+        { toUserId: fromUser.id },
+        { fromUserId: fromUser.id },
+      ],
     },
   });
 
-  // 6. Award badges to BOTH users (correct logic)
-  if (toUser?.id) {
-    if (totalExchaneOfToUser === 1) {
-      await this.badge.awardBadgeToUser(toUser.id, BadgeType.THE_FIRST_TRADE);
-    } else if (totalExchaneOfToUser === 20) {
-      await this.badge.awardBadgeToUser(toUser.id, BadgeType.EXPERIENCED);
-    } else if (totalExchaneOfToUser >= 100) {
-      await this.badge.awardBadgeToUser(toUser.id, BadgeType.VETERAN);
-    }
+  // 6. Award badges for TO user
+  if (totalExchaneOfToUser === 1) {
+    await this.badge.awardBadgeToUser(toUser.id, BadgeType.THE_FIRST_TRADE);
+  } else if (totalExchaneOfToUser === 20) {
+    await this.badge.awardBadgeToUser(toUser.id, BadgeType.EXPERIENCED);
+  } else if (totalExchaneOfToUser >= 100) {
+    await this.badge.awardBadgeToUser(toUser.id, BadgeType.VETERAN);
   }
 
-  if (fromUser?.id) {
-    if (totalExchaneOfFromUser === 1) {
-      await this.badge.awardBadgeToUser(fromUser.id, BadgeType.THE_FIRST_TRADE);
-    } else if (totalExchaneOfFromUser === 20) {
-      await this.badge.awardBadgeToUser(fromUser.id, BadgeType.EXPERIENCED);
-    } else if (totalExchaneOfFromUser >= 100) {
-      await this.badge.awardBadgeToUser(fromUser.id, BadgeType.VETERAN);
-    }
+  // 7. Award badges for FROM user
+  if (totalExchaneOfFromUser === 1) {
+    await this.badge.awardBadgeToUser(fromUser.id, BadgeType.THE_FIRST_TRADE);
+  } else if (totalExchaneOfFromUser === 20) {
+    await this.badge.awardBadgeToUser(fromUser.id, BadgeType.EXPERIENCED);
+  } else if (totalExchaneOfFromUser >= 100) {
+    await this.badge.awardBadgeToUser(fromUser.id, BadgeType.VETERAN);
   }
 
   return res;
 }
+
 
 }
