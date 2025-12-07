@@ -19,12 +19,13 @@ export class NotificationController {
     );
   }
 
-    @ApiBearerAuth()
+   
     @UseGuards(JwtAuthGuard)
+     @ApiBearerAuth()
   @Get('user')
   async getUserNotifications(@Req() req:any) {
    try{
-    const userId=req.user.userId
+    const userId=req.user.id
      const res=await this.service.getUserNotifications(userId);
     return {
       status:200,
