@@ -23,6 +23,7 @@ export class NotificationService {
 
   // Get all notifications of user
   async getUserNotifications(userId: string) {
+    console.log(userId)
     const res=await this.prisma.notification.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' }

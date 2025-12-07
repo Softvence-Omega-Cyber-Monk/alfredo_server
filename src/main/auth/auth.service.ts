@@ -36,13 +36,30 @@ export class AuthService {
     const emailExists = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
+ 
+
     if (emailExists) throw new BadRequestException('Email already in use');
     const pendingEmail = await this.prisma.pendingUser.findUnique({
       where: { email: dto.email },
     });
     if (pendingEmail)
       throw new BadRequestException('Email already pending verification');
-
+       const isPhoneNumberExist=await this.prisma.user.findUnique({
+      where:{
+        phoneNumber:dto.phoneNumber
+      }
+    })
+    if(isPhoneNumberExist){
+      throw new BadRequestException("Phone number already in use")
+    }
+    const pendingPhone=await this.prisma.pendingUser.findFirst({
+      where:{
+        phoneNumber:dto.phoneNumber
+      }
+    })
+    if(pendingPhone){
+      throw new BadRequestException("Phone already pending verification")
+    }
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
     const fullName = `${dto.firstName} ${dto.lastName}`;
