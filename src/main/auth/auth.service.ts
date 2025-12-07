@@ -36,13 +36,7 @@ export class AuthService {
     const emailExists = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
-    const isPhoneNumberExist=await this.prisma.user.findFirst({
-      where:{
-        phoneNumber:dto.phoneNumber
-      }
-    })
     if (emailExists) throw new BadRequestException('Email already in use');
-    if(isPhoneNumberExist) throw new BadRequestException('Phone number already in use');
     const pendingEmail = await this.prisma.pendingUser.findUnique({
       where: { email: dto.email },
     });
