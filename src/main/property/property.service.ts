@@ -13,7 +13,7 @@ import { BadgeService } from '../badge/badge.service';
 
 @Injectable()
 export class PropertyService {
-  constructor(private prisma: PrismaService,private badge:BadgeService) {}
+  constructor(private prisma: PrismaService, private badge: BadgeService) { }
 
   /** CREATE */
   async createProperty(propertyData: any) {
@@ -32,23 +32,23 @@ export class PropertyService {
     // Validate relations
     const validAmenities = propertyData.amenities?.length
       ? await this.prisma.amenity.findMany({
-          where: { id: { in: propertyData.amenities } },
-        })
+        where: { id: { in: propertyData.amenities } },
+      })
       : [];
 
     const validTransports = propertyData.transports?.length
       ? await this.prisma.transportOption.findMany({
-          where: { id: { in: propertyData.transports } },
-        })
+        where: { id: { in: propertyData.transports } },
+      })
       : [];
 
     const validSurroundings = propertyData.surroundings?.length
       ? await this.prisma.surroundingType.findMany({
-          where: { id: { in: propertyData.surroundings } },
-        })
+        where: { id: { in: propertyData.surroundings } },
+      })
       : [];
 
-    const res=await this.prisma.property.create({
+    const res = await this.prisma.property.create({
       data: {
         title: propertyData.title,
         description: propertyData.description,
@@ -64,11 +64,11 @@ export class PropertyService {
         images: uploadedImages,
         ownerId: propertyData.ownerId,
         availabilityStartDate: propertyData.availabilityStartDate
-        ? new Date(propertyData.availabilityStartDate)
-        : null,
+          ? new Date(propertyData.availabilityStartDate)
+          : null,
         availabilityEndDate: propertyData.availabilityEndDate
-        ? new Date(propertyData.availabilityEndDate)
-        : null,
+          ? new Date(propertyData.availabilityEndDate)
+          : null,
 
         // Relations
         amenities: { connect: validAmenities.map((a) => ({ id: a.id })) },
@@ -81,17 +81,17 @@ export class PropertyService {
         surroundings: true,
       },
     });
-    const ownerProperty=await this.prisma.property.count({
-      where:{
-        ownerId:propertyData.ownerId
+    const ownerProperty = await this.prisma.property.count({
+      where: {
+        ownerId: propertyData.ownerId
       }
     })
-    if(ownerProperty==1){
-      await this.badge.awardBadgeToUser(propertyData.ownerId,BadgeType.PHILOXENIA)
-    }else if(ownerProperty===3){
-      await this.badge.awardBadgeToUser(propertyData.ownerId,BadgeType.IT_MY_TOWN)
-    }else if(ownerProperty>=10){
-      await this.badge.awardBadgeToUser(propertyData.ownerId,BadgeType.EMPIRE)
+    if (ownerProperty == 1) {
+      await this.badge.awardBadgeToUser(propertyData.ownerId, BadgeType.PHILOXENIA)
+    } else if (ownerProperty === 3) {
+      await this.badge.awardBadgeToUser(propertyData.ownerId, BadgeType.IT_MY_TOWN)
+    } else if (ownerProperty >= 10) {
+      await this.badge.awardBadgeToUser(propertyData.ownerId, BadgeType.EMPIRE)
     }
     return res
   }
@@ -109,236 +109,138 @@ export class PropertyService {
     });
   }
 
-  // async getAllProperty(filters: {
-  //   search?: string;
-  //   location?: string;
-  //   country?: string;
-  //   maxPeople?: number;
-  //   propertyType?: string;
-  //   amenities?: string[];
-  //   transports?: string[];
-  //   availabilityStartDate?: Date; 
-  //   availabilityEndDate?: Date;  
-  //   isTravelWithPets?: boolean; 
-  //   page?: number;
-  //   limit?: number;
-  // }) {
-  //   const where: any = {
-  //     isDeleted: false,
-  //   };
 
-  //   // ✅ Search by title, location, country
-  //   if (filters.search) {
-  //     where.OR = [
-  //       { title: { contains: filters.search, mode: 'insensitive' } },
-  //       { location: { contains: filters.search, mode: 'insensitive' } },
-  //       { country: { contains: filters.search, mode: 'insensitive' } },
-  //     ];
-  //   }
+  async getAllProperty(filters: {
+    search?: string;
+    location?: string;
+    country?: string;
+    maxPeople?: number;
+    propertyType?: string;
+    amenities?: string[];
+    transports?: string[];
+    surroundings?: string[]; // Added surroundings
+    availabilityStartDate?: Date;
+    availabilityEndDate?: Date;
+    isTravelWithPets?: boolean;
+    page?: number;
+    limit?: number;
+  }) {
+    const where: any = {
+      isDeleted: false,
+    };
 
-  //   // ✅ Specific location filter
-  //   if (filters.location) {
-  //     where.location = { contains: filters.location, mode: 'insensitive' };
-  //   }
+    // Search by title, location, country
+    if (filters.search) {
+      where.OR = [
+        { title: { contains: filters.search, mode: 'insensitive' } },
+        { location: { contains: filters.search, mode: 'insensitive' } },
+        { country: { contains: filters.search, mode: 'insensitive' } },
+      ];
+    }
 
-  //   // ✅ Country filter
-  //   if (filters.country) {
-  //     where.country = { contains: filters.country, mode: 'insensitive' };
-  //   }
+    // Location filter
+    if (filters.location) {
+      where.location = { contains: filters.location, mode: 'insensitive' };
+    }
 
-  //   // ✅ Max people filter
-  //   if (filters.maxPeople) {
-  //     where.maxPeople = { gte: filters.maxPeople };
-  //   }
+    // Country filter
+    if (filters.country) {
+      where.country = { contains: filters.country, mode: 'insensitive' };
+    }
 
-  //   // ✅ Property type filter
-  //   if (filters.propertyType) {
-  //     where.propertyType = filters.propertyType as any;
-  //   }
+    // Max people filter
+    if (filters.maxPeople) {
+      where.maxPeople = { gte: filters.maxPeople };
+    }
 
-  //   // ✅ Pets filter
-  // if (typeof filters.isTravelWithPets === 'boolean') {
-  //   where.isTravelWithPets = filters.isTravelWithPets;
-  // }
+    // Property type filter
+    if (filters.propertyType) {
+      where.propertyType = filters.propertyType as any;
+    }
 
-  // // ✅ Availability date range filter
-  // if (filters.availabilityStartDate && filters.availabilityEndDate) {
-  //   // property must be available for the whole requested period
-  //   where.AND = [
-  //     {
-  //       availabilityStartDate: { lte: filters.availabilityStartDate },
-  //     },
-  //     {
-  //       availabilityEndDate: { gte: filters.availabilityEndDate },
-  //     },
-  //   ];
-  // }
-  //   // ✅ Amenities filter
-  //   if (filters.amenities?.length) {
-  //     where.amenities = { some: { id: { in: filters.amenities } } };
-  //   }
+    // Pets filter
+    if (typeof filters.isTravelWithPets === 'boolean') {
+      where.isTravelWithPets = filters.isTravelWithPets;
+    }
 
-  //   // ✅ Transports filter
-  //   if (filters.transports?.length) {
-  //     where.transports = { some: { id: { in: filters.transports } } };
-  //   }
 
-  //   // ✅ Pagination
-  //   const page = filters.page && filters.page > 0 ? filters.page : 1;
-  //   const limit = filters.limit && filters.limit > 0 ? filters.limit : 12;
-  //   const skip = (page - 1) * limit;
+    // Availability date range filter
+    // if (filters.availabilityStartDate && filters.availabilityEndDate) {
+    //   where.AND = [
+    //     { availabilityStartDate: { lte: filters.availabilityEndDate } },
+    //     { availabilityEndDate: { gte: filters.availabilityStartDate } },
+    //   ];
+    // }
 
-  //   const [data, total] = await this.prisma.$transaction([
-  //     this.prisma.property.findMany({
-  //       where,
-  //       include: {
-  //         owner: true,
-  //         amenities: true,
-  //         transports: true,
-  //         surroundings: true,
-  //       },
-  //       orderBy: {
-  //         createdAt: 'desc',
-  //       },
-  //       skip,
-  //       take: limit,
-  //     }),
-  //     this.prisma.property.count({ where }),
-  //   ]);
+    if (filters.availabilityStartDate && filters.availabilityEndDate) {
+      where.AND = [
+        { availabilityStartDate: { lte: filters.availabilityEndDate } },
+        { availabilityEndDate: { gte: filters.availabilityStartDate } },
+      ];
+    }
 
-  //   return {
-  //     data,
-  //     meta: {
-  //       total,
-  //       page,
-  //       limit,
-  //       totalPages: Math.ceil(total / limit),
-  //     },
-  //   };
-  // }
-async getAllProperty(filters: {
-  search?: string;
-  location?: string;
-  country?: string;
-  maxPeople?: number;
-  propertyType?: string;
-  amenities?: string[];
-  transports?: string[];
-  surroundings?: string[]; // Added surroundings
-  availabilityStartDate?: Date; 
-  availabilityEndDate?: Date;  
-  isTravelWithPets?: boolean; 
-  page?: number;
-  limit?: number;
-}) {
-  const where: any = {
-    isDeleted: false,
-  };
+    // Amenities filter
+    if (filters.amenities?.length) {
+      where.amenities = { some: { id: { in: filters.amenities } } };
+    }
 
-  // Search by title, location, country
-  if (filters.search) {
-    where.OR = [
-      { title: { contains: filters.search, mode: 'insensitive' } },
-      { location: { contains: filters.search, mode: 'insensitive' } },
-      { country: { contains: filters.search, mode: 'insensitive' } },
-    ];
-  }
+    // Transports filter
+    if (filters.transports?.length) {
+      where.transports = { some: { id: { in: filters.transports } } };
+    }
 
-  // Location filter
-  if (filters.location) {
-    where.location = { contains: filters.location, mode: 'insensitive' };
-  }
+    // Surroundings filter
+    if (filters.surroundings?.length) {
+      where.surroundings = { some: { id: { in: filters.surroundings } } };
+    }
 
-  // Country filter
-  if (filters.country) {
-    where.country = { contains: filters.country, mode: 'insensitive' };
-  }
+    // Pagination
+    const page = filters.page && filters.page > 0 ? filters.page : 1;
+    const limit = filters.limit && filters.limit > 0 ? filters.limit : 12;
+    const skip = (page - 1) * limit;
 
-  // Max people filter
-  if (filters.maxPeople) {
-    where.maxPeople = { gte: filters.maxPeople };
-  }
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.property.findMany({
+        where,
+        include: {
+          owner: true,
+          amenities: true,
+          transports: true,
+          surroundings: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        skip,
+        take: limit,
+      }),
+      this.prisma.property.count({ where }),
+    ]);
 
-  // Property type filter
-  if (filters.propertyType) {
-    where.propertyType = filters.propertyType as any;
-  }
-
-  // Pets filter
-  if (typeof filters.isTravelWithPets === 'boolean') {
-    where.isTravelWithPets = filters.isTravelWithPets;
-  }
-
-  // Availability date range filter
-  if (filters.availabilityStartDate && filters.availabilityEndDate) {
-    where.AND = [
-      { availabilityStartDate: { lte: filters.availabilityStartDate } },
-      { availabilityEndDate: { gte: filters.availabilityEndDate } },
-    ];
-  }
-
-  // Amenities filter
-  if (filters.amenities?.length) {
-    where.amenities = { some: { id: { in: filters.amenities } } };
-  }
-
-  // Transports filter
-  if (filters.transports?.length) {
-    where.transports = { some: { id: { in: filters.transports } } };
-  }
-
-  // Surroundings filter
-  if (filters.surroundings?.length) {
-    where.surroundings = { some: { id: { in: filters.surroundings } } };
-  }
-
-  // Pagination
-  const page = filters.page && filters.page > 0 ? filters.page : 1;
-  const limit = filters.limit && filters.limit > 0 ? filters.limit : 12;
-  const skip = (page - 1) * limit;
-
-  const [data, total] = await this.prisma.$transaction([
-    this.prisma.property.findMany({
-      where,
-      include: {
-        owner: true,
-        amenities: true,
-        transports: true,
-        surroundings: true,
+    return {
+      data,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
       },
-      orderBy: {
-        createdAt: 'desc',
-      },
-      skip,
-      take: limit,
-    }),
-    this.prisma.property.count({ where }),
-  ]);
-
-  return {
-    data,
-    meta: {
-      total,
-      page,
-      limit,
-      totalPages: Math.ceil(total / limit),
-    },
-  };
-}
+    };
+  }
 
   async getPropertyById(id: string) {
     const property = await this.prisma.property.findUnique({
       where: { id, isDeleted: false },
       include: {
-        owner:{
-          include:{
-            achievementBadges:true
+        owner: {
+          include: {
+            achievementBadges: true
           }
         },
         amenities: true,
         transports: true,
         surroundings: true,
-        Review:true
+        Review: true
       },
 
     });
@@ -347,96 +249,96 @@ async getAllProperty(filters: {
     return property;
   }
   /** UPDATE */
- async updateProperty(id: string, updateData: any) {
-  const existing = await this.prisma.property.findUnique({
-    where: { id, isDeleted: false },
-  });
-  if (!existing)
-    throw new NotFoundException(`Property with ID ${id} not found`);
+  async updateProperty(id: string, updateData: any) {
+    const existing = await this.prisma.property.findUnique({
+      where: { id, isDeleted: false },
+    });
+    if (!existing)
+      throw new NotFoundException(`Property with ID ${id} not found`);
 
-  // Current images stored in DB
-  let currentImages =
-    (existing.images as { url: string; publicId: string }[]) || [];
+    // Current images stored in DB
+    let currentImages =
+      (existing.images as { url: string; publicId: string }[]) || [];
 
-  // Remove requested images
-  if (updateData.removeImages?.length) {
-    for (const publicId of updateData.removeImages) {
-      await this.deleteFromCloudinary(publicId);
-    }
-    currentImages = currentImages.filter(
-      (img) => !updateData.removeImages.includes(img.publicId),
-    );
-  }
-
-  // 🔥 Add new images (max 4 logic)
-  if (updateData.files?.length) {
-    for (const file of updateData.files) {
-      // If already 4 images → remove last index
-      if (currentImages.length >= 4) {
-        const lastImage = currentImages[currentImages.length - 1];
-
-        await this.deleteFromCloudinary(lastImage.publicId);
-        currentImages.pop();
+    // Remove requested images
+    if (updateData.removeImages?.length) {
+      for (const publicId of updateData.removeImages) {
+        await this.deleteFromCloudinary(publicId);
       }
-
-      const uploaded = await this.uploadFile(file, 'property_images');
-      currentImages.push(uploaded);
+      currentImages = currentImages.filter(
+        (img) => !updateData.removeImages.includes(img.publicId),
+      );
     }
-  }
 
-  // Validate relations
-  const validAmenities = updateData.amenities?.length
-    ? await this.prisma.amenity.findMany({
+    // 🔥 Add new images (max 4 logic)
+    if (updateData.files?.length) {
+      for (const file of updateData.files) {
+        // If already 4 images → remove last index
+        if (currentImages.length >= 4) {
+          const lastImage = currentImages[currentImages.length - 1];
+
+          await this.deleteFromCloudinary(lastImage.publicId);
+          currentImages.pop();
+        }
+
+        const uploaded = await this.uploadFile(file, 'property_images');
+        currentImages.push(uploaded);
+      }
+    }
+
+    // Validate relations
+    const validAmenities = updateData.amenities?.length
+      ? await this.prisma.amenity.findMany({
         where: { id: { in: updateData.amenities } },
       })
-    : [];
+      : [];
 
-  const validTransports = updateData.transports?.length
-    ? await this.prisma.transportOption.findMany({
+    const validTransports = updateData.transports?.length
+      ? await this.prisma.transportOption.findMany({
         where: { id: { in: updateData.transports } },
       })
-    : [];
+      : [];
 
-  const validSurroundings = updateData.surroundings?.length
-    ? await this.prisma.surroundingType.findMany({
+    const validSurroundings = updateData.surroundings?.length
+      ? await this.prisma.surroundingType.findMany({
         where: { id: { in: updateData.surroundings } },
       })
-    : [];
+      : [];
 
-  // Prevent overwriting images
-  delete updateData.images;
+    // Prevent overwriting images
+    delete updateData.images;
 
-  return this.prisma.property.update({
-    where: { id },
-    data: {
-      ...updateData,
-      files: undefined,
-      removeImages: undefined,
-      images: currentImages,
+    return this.prisma.property.update({
+      where: { id },
+      data: {
+        ...updateData,
+        files: undefined,
+        removeImages: undefined,
+        images: currentImages,
 
-      propertyType: updateData.propertyType ?? existing.propertyType,
-      maxPeople: updateData.maxPeople ?? existing.maxPeople,
-      isTravelWithPets: updateData.isTravelWithPets ?? existing.isTravelWithPets,
+        propertyType: updateData.propertyType ?? existing.propertyType,
+        maxPeople: updateData.maxPeople ?? existing.maxPeople,
+        isTravelWithPets: updateData.isTravelWithPets ?? existing.isTravelWithPets,
 
-      availabilityStartDate: updateData.availabilityStartDate
-        ? new Date(updateData.availabilityStartDate)
-        : existing.availabilityStartDate,
+        availabilityStartDate: updateData.availabilityStartDate
+          ? new Date(updateData.availabilityStartDate)
+          : existing.availabilityStartDate,
 
-      availabilityEndDate: updateData.availabilityEndDate
-        ? new Date(updateData.availabilityEndDate)
-        : existing.availabilityEndDate,
+        availabilityEndDate: updateData.availabilityEndDate
+          ? new Date(updateData.availabilityEndDate)
+          : existing.availabilityEndDate,
 
-      amenities: { set: validAmenities.map((a) => ({ id: a.id })) },
-      transports: { set: validTransports.map((t) => ({ id: t.id })) },
-      surroundings: { set: validSurroundings.map((s) => ({ id: s.id })) },
-    },
-    include: {
-      amenities: true,
-      transports: true,
-      surroundings: true,
-    },
-  });
-}
+        amenities: { set: validAmenities.map((a) => ({ id: a.id })) },
+        transports: { set: validTransports.map((t) => ({ id: t.id })) },
+        surroundings: { set: validSurroundings.map((s) => ({ id: s.id })) },
+      },
+      include: {
+        amenities: true,
+        transports: true,
+        surroundings: true,
+      },
+    });
+  }
 
 
   /** DELETE */
