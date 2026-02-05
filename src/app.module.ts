@@ -29,6 +29,7 @@ import { PromotionalMailService } from './main/mail/another.mail.setup';
 import { ScheduleModule } from '@nestjs/schedule';
 import { SessionCleanupService } from './utils/multer/taskService';
 import { NotificationModule } from './main/notification/notification.module';
+import { FeaturedPropertyModule } from './main/featured-property/featured-property.module';
 
 @Module({
   imports: [
@@ -55,8 +56,9 @@ import { NotificationModule } from './main/notification/notification.module';
     BadgeModule,
     WebSubscribeModule,
     NotificationModule,
+    FeaturedPropertyModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService, MailService, TwilioService,SeederService,SessionCleanupService],
+  providers: [AppService, PrismaService, MailService, TwilioService, SeederService, SessionCleanupService],
 })
-export class AppModule {}
+export class AppModule { }

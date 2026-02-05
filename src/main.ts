@@ -1,6 +1,9 @@
+// alfredo_server/src/main.ts
+
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common'; // Add this
 import * as bodyParser from 'body-parser';
 import 'dotenv/config';
 import { join } from 'path';
@@ -13,22 +16,38 @@ async function bootstrap() {
 
   // Enable CORS
   app.enableCors({
-    origin: [
-      '*',
-      'http://localhost:5173',
-      'https://luxury-longma-7b4d22.netlify.app',
-      'https://vacanzagreece.gr/',
-      'http://localhost:3000',
-      'https://vacanza-dashboard.vercel.app',
-      'https://admin.vacanzagreece.gr',
-    ],
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'http://localhost:5173',
+        'https://vacanza-dashboard.vercel.app',
+        'https://admin.vacanzagreece.gr',
+        'https://vacanzagreece.gr',
+      ];
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+    allowedHeaders: 'Content-Type,Accept,Authorization,X-Requested-With',
   });
 
   // Global API prefix
   app.setGlobalPrefix('api');
 
-  // Swagger setup
+  // ✅ Add Global Validation Pipe
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
+  }));
+
+  // Swagger setup - 🚨 Change path to 'docs' to avoid conflict with 'api'
   const config = new DocumentBuilder()
     .setTitle('Alfredo Backend System')
     .setDescription('Authentication and necessary endpoints')
@@ -37,22 +56,22 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('docs', app, document); // Setup on /docs instead of /api
 
   // Stripe webhook: raw body middleware
   app.use(
-    'stripe-payment/webhook',
+    '/api/stripe-payment/webhook', // Add leading /api if you want it under prefix
     bodyParser.raw({ type: 'application/json' }),
   );
 
-  //  Serve uploaded files publicly
-  // Access via: http://localhost:8000/uploads/filename.jpg
   app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads',
   });
 
-  app.set('trust proxy', true); 
-  // Start server
-  await app.listen(process.env.PORT ?? 8000);
+  app.set('trust proxy', true);
+
+  const port = process.env.PORT || 8000;
+  console.log(`Backend is running on: http://localhost:${port}`);
+  await app.listen(port);
 }
 bootstrap();

@@ -180,6 +180,16 @@ model Property {
   amenities                Amenity[]         @relation("PropertyAmenities")
   surroundings             SurroundingType[] @relation("PropertySurroundings")
   transports               TransportOption[] @relation("PropertyTransports")
+  featuredProperty         FeaturedProperty?
+}
+
+model FeaturedProperty {
+  id          String   @id @default(uuid())
+  propertyId  String   @unique
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  property    Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 }
 
 model Review {
