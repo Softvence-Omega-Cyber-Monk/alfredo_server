@@ -56,7 +56,7 @@ async function bootstrap() {
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('docs', app, document); // Setup on /docs instead of /api
+  SwaggerModule.setup('api/docs', app, document); // Setup on /api/docs to match proxy forwarding
 
   // Stripe webhook: raw body middleware
   app.use(
