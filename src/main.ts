@@ -50,7 +50,7 @@ async function bootstrap() {
   // Swagger setup - 🚨 Change path to 'docs' to avoid conflict with 'api'
   const config = new DocumentBuilder()
     .setTitle('Alfredo Backend System')
-    .setDescription('Authentication and necessary endpoints')
+    .setDescription('Authentication and necessary endpoints.')
     .setVersion('1.0')
     .addBearerAuth()
     .build();
