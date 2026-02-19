@@ -5,6 +5,7 @@ import {
   HttpException,
   HttpStatus,
   ForbiddenException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -460,6 +461,9 @@ export class AuthService {
 
   async googleLogin(idToken: string, ipAddress: string) {
     // 1. Verify Firebase ID token
+    if (firebaseAdmin.apps.length === 0) {
+      throw new InternalServerErrorException('Firebase Admin is not initialized on the server');
+    }
     let decodedToken: firebaseAdmin.auth.DecodedIdToken;
     try {
       decodedToken = await firebaseAdmin.auth().verifyIdToken(idToken);

@@ -23,12 +23,14 @@ async function bootstrap() {
         'http://localhost:5173',
         'https://vacanza-dashboard.vercel.app',
         'https://admin.vacanzagreece.gr',
+        'https://admin.vacanzagreece.gr/',
         'https://vacanzagreece.gr',
+        'https://vacanzagreece.gr/',
       ];
-      // Allow requests with no origin (like mobile apps or curl requests)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
+        console.error(`CORS blocked for origin: ${origin}`);
         callback(new Error('Not allowed by CORS'));
       }
     },
