@@ -21,6 +21,7 @@ import { OtpService } from './services/otp.service';
 import { generateUniqueSessionId } from 'src/utils/multer/generateUniqueSessionId';
 import { BadgeService } from '../badge/badge.service';
 import { BadgeType } from '@prisma/client';
+import firebaseAdmin from '../../config/firebase-admin';
 
 @Injectable()
 export class AuthService {
@@ -29,14 +30,14 @@ export class AuthService {
     private jwtService: JwtService,
     private mailService: MailService,
     private otpService: OtpService,
-    private badge:BadgeService
-  ) {}
+    private badge: BadgeService
+  ) { }
 
   async register(dto: RegisterDto) {
     const emailExists = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
- 
+
 
     if (emailExists) throw new BadRequestException('Email already in use');
     const pendingEmail = await this.prisma.pendingUser.findUnique({
@@ -44,20 +45,20 @@ export class AuthService {
     });
     if (pendingEmail)
       throw new BadRequestException('Email already pending verification');
-       const isPhoneNumberExist=await this.prisma.user.findUnique({
-      where:{
-        phoneNumber:dto.phoneNumber
+    const isPhoneNumberExist = await this.prisma.user.findUnique({
+      where: {
+        phoneNumber: dto.phoneNumber
       }
     })
-    if(isPhoneNumberExist){
+    if (isPhoneNumberExist) {
       throw new BadRequestException("Phone number already in use")
     }
-    const pendingPhone=await this.prisma.pendingUser.findFirst({
-      where:{
-        phoneNumber:dto.phoneNumber
+    const pendingPhone = await this.prisma.pendingUser.findFirst({
+      where: {
+        phoneNumber: dto.phoneNumber
       }
     })
-    if(pendingPhone){
+    if (pendingPhone) {
       throw new BadRequestException("Phone already pending verification")
     }
     const hashedPassword = await bcrypt.hash(dto.password, 10);
@@ -70,7 +71,7 @@ export class AuthService {
         email: dto.email,
         password: hashedPassword,
         referralCode: dto.referralCode,
-        phoneNumber:dto.phoneNumber
+        phoneNumber: dto.phoneNumber
       },
     });
 
@@ -81,66 +82,66 @@ export class AuthService {
     };
   }
 
-// Assuming your service function signature changes to include the IP address:
-async login(dto: LoginDto, ipAddress: string) {
-  const user = await this.prisma.user.findUnique({
-    where: { email: dto.email },
-    include: { achievementBadges: true },
-  });
-
-  if (!user) throw new UnauthorizedException('Invalid credentials');
-  if (user.isSuspended)
-    throw new ForbiddenException(
-      `Account suspended: ${user.suspensionReason || 'Contact support for details.'}`
-    );
-
-  const valid = await bcrypt.compare(dto.password, user.password);
-  if (!valid) throw new UnauthorizedException('Invalid credentials');
-
-  // --- Enforce 3 unique devices limit ---
-  const MAX_SESSIONS = 3;
-
-  // Check if a session already exists from the same IP (same device)
-  const existingSession = await this.prisma.activeSession.findFirst({
-    where: { userId: user.id, ipAddress },
-  });
-
-  if (!existingSession) {
-    // Count total unique active sessions (different IPs)
-    const uniqueSessionCount = await this.prisma.activeSession.count({
-      where: { userId: user.id },
+  // Assuming your service function signature changes to include the IP address:
+  async login(dto: LoginDto, ipAddress: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: dto.email },
+      include: { achievementBadges: true },
     });
 
-    if (uniqueSessionCount >= MAX_SESSIONS) {
+    if (!user) throw new UnauthorizedException('Invalid credentials');
+    if (user.isSuspended)
       throw new ForbiddenException(
-        `Login denied. You are already logged in on ${MAX_SESSIONS} devices. Please log out from another device first.`
+        `Account suspended: ${user.suspensionReason || 'Contact support for details.'}`
       );
+
+    const valid = await bcrypt.compare(dto.password, user.password);
+    if (!valid) throw new UnauthorizedException('Invalid credentials');
+
+    // --- Enforce 3 unique devices limit ---
+    const MAX_SESSIONS = 3;
+
+    // Check if a session already exists from the same IP (same device)
+    const existingSession = await this.prisma.activeSession.findFirst({
+      where: { userId: user.id, ipAddress },
+    });
+
+    if (!existingSession) {
+      // Count total unique active sessions (different IPs)
+      const uniqueSessionCount = await this.prisma.activeSession.count({
+        where: { userId: user.id },
+      });
+
+      if (uniqueSessionCount >= MAX_SESSIONS) {
+        throw new ForbiddenException(
+          `Login denied. You are already logged in on ${MAX_SESSIONS} devices. Please log out from another device first.`
+        );
+      }
+
+      // Create a new session only if new device
+      await this.prisma.activeSession.create({
+        data: {
+          userId: user.id,
+          ipAddress,
+          sessionToken: await generateUniqueSessionId(),
+        },
+      });
+    } else {
+      // Optionally: update timestamp or token
+      await this.prisma.activeSession.update({
+        where: { id: existingSession.id },
+        data: { lastActivity: new Date() },
+      });
     }
 
-    // Create a new session only if new device
-    await this.prisma.activeSession.create({
-      data: {
-        userId: user.id,
-        ipAddress,
-        sessionToken: await generateUniqueSessionId(),
-      },
-    });
-  } else {
-    // Optionally: update timestamp or token
-    await this.prisma.activeSession.update({
-      where: { id: existingSession.id },
-      data: { lastActivity: new Date() },
-    });
+    // --- Return JWT token ---
+    const token = await this.signToken(user);
+    return token;
   }
-
-  // --- Return JWT token ---
-  const token = await this.signToken(user);
-  return token;
-}
 
 
   private async signToken(user: any) {
-    const payload = { id: user.id, email: user.email, role: user.role,sessionToken:user.sessionToken };
+    const payload = { id: user.id, email: user.email, role: user.role, sessionToken: user.sessionToken };
     const accessToken = await this.jwtService.signAsync(payload);
 
     const { password, ...userWithoutPassword } = user;
@@ -305,12 +306,12 @@ async login(dto: LoginDto, ipAddress: string) {
     }
     // 5. Create actual user
 
-    const isExistUser=await this.prisma.user.findUnique({
+    const isExistUser = await this.prisma.user.findUnique({
       where: {
         email: pending.email,
       },
     })
-    if(isExistUser){
+    if (isExistUser) {
       throw new BadRequestException('User already exist');
     }
     const user = await this.prisma.user.create({
@@ -319,29 +320,29 @@ async login(dto: LoginDto, ipAddress: string) {
         email: pending.email,
         password: pending.password,
         referredBy: pending.referralCode,
-        role:pending.role,
-        phoneNumber:pending.phoneNumber
+        role: pending.role,
+        phoneNumber: pending.phoneNumber
       },
     });
 
     if (referredByUser) {
-    const user=  await this.prisma.user.update({
+      const user = await this.prisma.user.update({
         where: { id: referredByUser.id },
         data: {
           balance: { increment: 3 },
           totalReferrals: { increment: 1 }
         },
       });
-      if(user.totalReferrals==1){
-        await this.badge.awardBadgeToUser(user.id,BadgeType.GOLDEN_HOST)
-      }else if(user.totalReferrals===3){
-        await this.badge.awardBadgeToUser(user.id,BadgeType.LOTS_OF_FRIENDS)
-      }else if(user.totalReferrals===10){
-        await this.badge.awardBadgeToUser(user.id,BadgeType.PURE_CHARISMA)
-      }else if(user.totalReferrals===50){
-        await this.badge.awardBadgeToUser(user.id,BadgeType.VIP)
-      }else if(user.totalReferrals===200){
-        await this.badge.awardBadgeToUser(user.id,BadgeType.DIAMOND_VIP)
+      if (user.totalReferrals == 1) {
+        await this.badge.awardBadgeToUser(user.id, BadgeType.GOLDEN_HOST)
+      } else if (user.totalReferrals === 3) {
+        await this.badge.awardBadgeToUser(user.id, BadgeType.LOTS_OF_FRIENDS)
+      } else if (user.totalReferrals === 10) {
+        await this.badge.awardBadgeToUser(user.id, BadgeType.PURE_CHARISMA)
+      } else if (user.totalReferrals === 50) {
+        await this.badge.awardBadgeToUser(user.id, BadgeType.VIP)
+      } else if (user.totalReferrals === 200) {
+        await this.badge.awardBadgeToUser(user.id, BadgeType.DIAMOND_VIP)
       }
     }
     // 6. Clean up related OTPs to avoid FK issues
@@ -383,32 +384,32 @@ async login(dto: LoginDto, ipAddress: string) {
 
 
 
-async createSuperAdmin(){
-  try{
-    const hassPassword = await bcrypt.hash(process.env.SUPER_ADMIN_PASSWORD as string, 10);
-  const existingSuperAdmin = await this.prisma.pendingUser.findUnique({
-    where: { email: process.env.SUPER_ADMIN_EMAIL as string },
-  });
+  async createSuperAdmin() {
+    try {
+      const hassPassword = await bcrypt.hash(process.env.SUPER_ADMIN_PASSWORD as string, 10);
+      const existingSuperAdmin = await this.prisma.pendingUser.findUnique({
+        where: { email: process.env.SUPER_ADMIN_EMAIL as string },
+      });
 
-  if (existingSuperAdmin) {
-    throw new HttpException('Super admin already exists',HttpStatus.BAD_REQUEST)
-  }
-  const superAdmin = await this.prisma.pendingUser.create({
-    data: {
-      fullName: 'Super Admin',
-      email:process.env.SUPER_ADMIN_EMAIL as string,
-      password: hassPassword,
-      role: 'SUPER_ADMIN',
+      if (existingSuperAdmin) {
+        throw new HttpException('Super admin already exists', HttpStatus.BAD_REQUEST)
+      }
+      const superAdmin = await this.prisma.pendingUser.create({
+        data: {
+          fullName: 'Super Admin',
+          email: process.env.SUPER_ADMIN_EMAIL as string,
+          password: hassPassword,
+          role: 'SUPER_ADMIN',
+        }
+      });
+      return superAdmin;
+    } catch (err) {
+      throw new HttpException(err.message, HttpStatus.BAD_REQUEST)
     }
-  });
-  return superAdmin;
-  }catch(err){
-    throw new HttpException(err.message,HttpStatus.BAD_REQUEST)
   }
-}
 
 
-async logout(userId: string, sessionToken: string) {
+  async logout(userId: string, sessionToken: string) {
     try {
       const result = await this.prisma.activeSession.deleteMany({
         where: {
@@ -426,34 +427,125 @@ async logout(userId: string, sessionToken: string) {
 
 
 
-async terminateAllSessions(userId: string): Promise<void> {
+  async terminateAllSessions(userId: string): Promise<void> {
 
-  const deleteResult = await this.prisma.activeSession.deleteMany({
-    where: { userId: userId },
-  });
+    const deleteResult = await this.prisma.activeSession.deleteMany({
+      where: { userId: userId },
+    });
 
-  await this.prisma.user.update({
-    where: { id: userId },
-    data: { 
-      isSuspended: false,
-      suspensionReason: null, 
-    },
-  });
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        isSuspended: false,
+        suspensionReason: null,
+      },
+    });
 
-  console.log(`User ${userId} unsuspended. Terminated ${deleteResult.count} sessions.`);
-}
+    console.log(`User ${userId} unsuspended. Terminated ${deleteResult.count} sessions.`);
+  }
 
 
 
-async validateUserCredentials(email: string, password: string) {
-  const user = await this.prisma.user.findUnique({
-    where: { email: email },
-  });
+  async validateUserCredentials(email: string, password: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { email: email },
+    });
 
-  if (!user) return null;
+    if (!user) return null;
 
-  const valid = await bcrypt.compare(password, user.password);
-  
-  return valid ? user : null;
-}
+    const valid = await bcrypt.compare(password, user.password);
+
+    return valid ? user : null;
+  }
+
+  async googleLogin(idToken: string, ipAddress: string) {
+    // 1. Verify Firebase ID token
+    let decodedToken: firebaseAdmin.auth.DecodedIdToken;
+    try {
+      decodedToken = await firebaseAdmin.auth().verifyIdToken(idToken);
+    } catch (error) {
+      console.error('Firebase token verification failed:', error.message);
+      throw new UnauthorizedException('Invalid or expired Google token');
+    }
+
+    const { email, name, picture } = decodedToken;
+
+    if (!email) {
+      throw new BadRequestException('Google account does not have an email');
+    }
+
+    // 2. Find or create user
+    let user = await this.prisma.user.findUnique({
+      where: { email },
+      include: { achievementBadges: true },
+    });
+
+    if (!user) {
+      // Create a new user for Google sign-in
+      const randomPassword = crypto.randomBytes(32).toString('hex');
+      const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+      user = await this.prisma.user.create({
+        data: {
+          fullName: name || email.split('@')[0],
+          email,
+          password: hashedPassword,
+          photo: picture || null,
+        },
+        include: { achievementBadges: true },
+      });
+    } else {
+      // Update existing user with Google info if missing or different
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: {
+          photo: user.photo || picture || undefined,
+          fullName: user.fullName || name || undefined,
+        },
+      });
+    }
+
+    // 3. Check suspension
+    if (user.isSuspended) {
+      throw new ForbiddenException(
+        `Account suspended: ${user.suspensionReason || 'Contact support for details.'}`,
+      );
+    }
+
+    // 4. Session management (same logic as regular login)
+    const MAX_SESSIONS = 3;
+
+    const existingSession = await this.prisma.activeSession.findFirst({
+      where: { userId: user.id, ipAddress },
+    });
+
+    if (!existingSession) {
+      const uniqueSessionCount = await this.prisma.activeSession.count({
+        where: { userId: user.id },
+      });
+
+      if (uniqueSessionCount >= MAX_SESSIONS) {
+        throw new ForbiddenException(
+          `Login denied. You are already logged in on ${MAX_SESSIONS} devices. Please log out from another device first.`,
+        );
+      }
+
+      await this.prisma.activeSession.create({
+        data: {
+          userId: user.id,
+          ipAddress,
+          sessionToken: await generateUniqueSessionId(),
+        },
+      });
+    } else {
+      await this.prisma.activeSession.update({
+        where: { id: existingSession.id },
+        data: { lastActivity: new Date() },
+      });
+    }
+
+    // 5. Return JWT token
+    const token = await this.signToken(user);
+    return token;
+  }
 }
