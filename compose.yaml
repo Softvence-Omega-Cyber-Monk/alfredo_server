@@ -13,7 +13,7 @@ services:
       - postgres
     volumes:
       - ./uploads:/app/uploads
-      - ./firebase-service-account.json:/app/firebase-service-account.json
+      - ./src/config/firebase-service-account.json:/app/src/config/firebase-service-account.json
 
   postgres:
     image: postgres:16-alpine

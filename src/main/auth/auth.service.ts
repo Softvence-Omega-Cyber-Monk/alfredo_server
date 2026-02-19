@@ -22,7 +22,8 @@ import { OtpService } from './services/otp.service';
 import { generateUniqueSessionId } from 'src/utils/multer/generateUniqueSessionId';
 import { BadgeService } from '../badge/badge.service';
 import { BadgeType } from '@prisma/client';
-import firebaseAdmin from '../../config/firebase-admin';
+import * as admin from 'firebase-admin';
+import { firebaseAdmin } from '../../config/firebase-admin';
 
 @Injectable()
 export class AuthService {
@@ -464,7 +465,7 @@ export class AuthService {
     if (firebaseAdmin.apps.length === 0) {
       throw new InternalServerErrorException('Firebase Admin is not initialized on the server');
     }
-    let decodedToken: firebaseAdmin.auth.DecodedIdToken;
+    let decodedToken: admin.auth.DecodedIdToken;
     try {
       decodedToken = await firebaseAdmin.auth().verifyIdToken(idToken);
     } catch (error) {
