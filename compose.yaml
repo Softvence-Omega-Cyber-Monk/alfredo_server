@@ -1,5 +1,5 @@
 services:
-  app: 
+  app:
     build: .
     image: ${DOCKER_USERNAME}/alfredo_backend:latest
     platform: linux/amd64
@@ -13,6 +13,7 @@ services:
       - postgres
     volumes:
       - ./uploads:/app/uploads
+      - ./firebase-service-account.json:/app/src/config/firebase-service-account.json
 
   postgres:
     image: postgres:16-alpine
@@ -28,7 +29,7 @@ services:
     ports:
       - '5432:5432'
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER} -d ${DB_NAME}']
+      test: [ 'CMD-SHELL', 'pg_isready -U ${DB_USER} -d ${DB_NAME}' ]
       interval: 10s
       timeout: 5s
       retries: 5
