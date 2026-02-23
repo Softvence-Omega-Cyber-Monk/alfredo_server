@@ -1,4 +1,5 @@
 // alfredo_server/src/main.ts
+import 'reflect-metadata';
 
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
@@ -61,10 +62,10 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document); // Setup on /api/docs to match proxy forwarding
 
   // Stripe webhook: raw body middleware
-  app.use(
-    '/api/stripe-payment/webhook', // Add leading /api if you want it under prefix
-    bodyParser.raw({ type: 'application/json' }),
-  );
+  //   app.use(
+  //     '/api/stripe-payment/webhook', // Add leading /api if you want it under prefix
+  //     bodyParser.raw({ type: 'application/json' }),
+  //   );
 
   app.useStaticAssets(join(process.cwd(), 'uploads'), {
     prefix: '/uploads',
