@@ -6,14 +6,17 @@ services:
     container_name: alfredo_backend
     restart: always
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"    # ✅ localhost only, Nginx proxies to this
     env_file:
       - .env
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     volumes:
       - ./uploads:/app/uploads
       - ./src/config/firebase-service-account.json:/app/src/config/firebase-service-account.json
+    networks:
+      - app-network
 
   postgres:
     image: postgres:16-alpine
@@ -27,9 +30,9 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - '5432:5432'
+      - "127.0.0.1:5432:5432"    # ✅ localhost only, not exposed to internet
     healthcheck:
-      test: [ 'CMD-SHELL', 'pg_isready -U ${DB_USER} -d ${DB_NAME}' ]
+      test: ['CMD-SHELL', 'pg_isready -U ${DB_USER} -d ${DB_NAME}']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -41,7 +44,13 @@ services:
       - 'shared_buffers=256MB'
       - '-c'
       - 'effective_cache_size=1GB'
+    networks:
+      - app-network
 
 volumes:
   postgres_data:
     driver: local
+
+networks:
+  app-network:
+    driver: bridge
