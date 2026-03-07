@@ -28,7 +28,7 @@ export class PromotionalMailService {
 
     try {
       const info = await this.transporter.sendMail({
-        from:process.env.SMPT_FROM ,
+        from: process.env.MAIL_FROM,
         to,
         subject,
         html,

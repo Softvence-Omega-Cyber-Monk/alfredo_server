@@ -8,14 +8,27 @@ export class MailService {
 
   constructor(private readonly configService: ConfigService) {
     // Correctly initialize transporter using ConfigService
+    const smtpPort = Number(this.configService.get<number>('SMTP_PORT', 587));
     this.transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
+      host: this.configService.get<string>('SMTP_HOST', 'smtp.gmail.com'),
+      port: smtpPort,
+      secure: smtpPort === 465, // true for 465, false for 587 (STARTTLS)
       auth: {
         user: this.configService.get<string>('SMTP_USER'),
         pass: this.configService.get<string>('SMTP_PASS'),
       },
+      tls: {
+        rejectUnauthorized: false
+      }
+    });
+
+    // Verify connection on startup
+    this.transporter.verify((error, success) => {
+      if (error) {
+        console.error('SMTP Connection Error:', error);
+      } else {
+        console.log('SMTP Server is ready to take our messages');
+      }
     });
   }
 
