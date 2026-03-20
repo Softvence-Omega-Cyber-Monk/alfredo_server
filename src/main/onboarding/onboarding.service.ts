@@ -2,6 +2,8 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { cloudinary } from 'src/config/cloudinary.config';
 import * as fs from 'fs';
+import sharp from 'sharp';
+import * as path from 'path';
 import { CreateOnboardingDto } from './dto/create-onboarding.dto';
 import { CreateTransportDto } from './dto/create-transport.dto';
 import { CreateAmenityDto } from './dto/create-animity.dto';
@@ -9,24 +11,64 @@ import { CreateSurroundingDto } from './dto/create-sorrouding.dto';
 import { BadgeService } from '../badge/badge.service';
 import { BadgeType } from '@prisma/client';
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB Cloudinary limit
+
 @Injectable()
 export class OnboardingService {
   constructor(private readonly prisma: PrismaService, private badge:BadgeService) {}
+
+  private async compressImage(filePath: string): Promise<string> {
+    const ext = path.extname(filePath).toLowerCase();
+    // Only compress image files
+    if (!['.jpg', '.jpeg', '.png', '.webp', '.tiff'].includes(ext)) {
+      return filePath;
+    }
+
+    const stats = fs.statSync(filePath);
+    // Only compress if file exceeds size limit
+    if (stats.size <= MAX_FILE_SIZE) {
+      return filePath;
+    }
+
+    console.log(`Compressing image ${filePath} (${(stats.size / 1024 / 1024).toFixed(2)} MB)...`);
+
+    const compressedPath = filePath.replace(/(\.[^.]+)$/, '-compressed.jpg');
+    await sharp(filePath)
+      .resize({ width: 2000, withoutEnlargement: true })
+      .jpeg({ quality: 80 })
+      .toFile(compressedPath);
+
+    // Remove original, return compressed path
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    const compressedStats = fs.statSync(compressedPath);
+    console.log(`Compressed to ${(compressedStats.size / 1024 / 1024).toFixed(2)} MB`);
+
+    return compressedPath;
+  }
 
   private async uploadFile(
     file: Express.Multer.File,
     folder: string,
   ): Promise<string> {
+    let uploadPath = file.path;
     try {
-      const result = await cloudinary.uploader.upload(file.path, {
+      // Compress large images before uploading
+      uploadPath = await this.compressImage(file.path);
+
+      const result = await cloudinary.uploader.upload(uploadPath, {
         folder,
         resource_type: 'auto',
       });
-      if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
+      if (fs.existsSync(uploadPath)) fs.unlinkSync(uploadPath);
       return result.secure_url;
     } catch (error) {
-      console.error(`Error uploading file ${file.path}:`, error);
-      throw new BadRequestException('Failed to upload file');
+      console.error(`Error uploading file ${uploadPath}:`, error);
+      // Clean up temp files on error
+      if (fs.existsSync(uploadPath)) fs.unlinkSync(uploadPath);
+      if (uploadPath !== file.path && fs.existsSync(file.path)) fs.unlinkSync(file.path);
+      throw new BadRequestException(
+        `Failed to upload file: ${error?.message || 'Unknown error'}`,
+      );
     }
   }
 
