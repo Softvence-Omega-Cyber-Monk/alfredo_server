@@ -65,6 +65,8 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           source: 'compose.yaml'
           target: '~/alfredo_backend'
+          timeout: 30s
+          command_timeout: 10m
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
