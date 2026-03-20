@@ -122,7 +122,11 @@ export class OnboardingService {
       where: { id: userId },
       data: { hasOnboarded: true,photo:uploadedImages[0]},
     });
-    await this.badge.awardBadgeToUser(userId,BadgeType.VERIFIED)
+    try {
+      await this.badge.awardBadgeToUser(userId, BadgeType.VERIFIED);
+    } catch (error) {
+      console.error('Failed to award verified badge:', error);
+    }
     return onboarding;
   }
 

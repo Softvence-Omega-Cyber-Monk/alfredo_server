@@ -71,7 +71,7 @@ export class BadgeService {
 
     await this.prisma.user.update({
       where: { id: userId },
-      data: { achievementBadges: { connect: { id: badge.id } } },
+      data: { achievementBadges: { connect: [{ id: badge.id }] } },
     });
 
     return { message: `Badge ${badge.displayName} awarded to user` };
