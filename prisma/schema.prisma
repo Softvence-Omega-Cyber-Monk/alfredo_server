@@ -318,6 +318,7 @@ model Contact {
   email       String
   phoneNumber String
   opinion     String
+  targetEmail String?
   createdAt   DateTime @default(now())
 }
 
