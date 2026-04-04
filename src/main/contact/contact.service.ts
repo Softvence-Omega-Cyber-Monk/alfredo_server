@@ -11,15 +11,35 @@ export class ContactService {
   ) {}
 
   async create(dto: CreateContactDto) {
-    const contact = await this.prisma.contact.create({
-      data: dto,
-    });
+    const { targetEmail, ...basicData } = dto;
+    console.log('Creating contact with data:', dto);
 
-    const targetEmail = dto.targetEmail || 'info@vacanzagreece.gr';
+    let contact;
+    try {
+      // First try saving with targetEmail
+      contact = await this.prisma.contact.create({
+        data: dto,
+      });
+      console.log('Contact saved to DB with targetEmail');
+    } catch (dbError) {
+      console.error('Failed to save contact with targetEmail, trying without it...', (dbError as Error).message);
+      try {
+        // Fallback to saving without targetEmail in case the column doesn't exist
+        contact = await this.prisma.contact.create({
+          data: basicData,
+        });
+        console.log('Contact saved to DB without targetEmail');
+      } catch (retryError) {
+        console.error('Final DB save failure:', retryError);
+        throw retryError; // This will cause a 500 if the DB itself is unreachable/broken
+      }
+    }
+
+    const emailToSendTo = targetEmail || 'info@vacanzagreece.gr';
 
     try {
       await this.mailService.sendMail({
-        to: targetEmail,
+        to: emailToSendTo,
         subject: `New Contact Message from ${dto.name}`,
         html: `
           <h3>New Contact Inquiry</h3>
@@ -30,9 +50,10 @@ export class ContactService {
           <p>${dto.opinion}</p>
         `,
       });
-    } catch (error) {
-      console.error('Failed to send contact email:', error);
-      // We don't throw here to ensure the contact is still saved in DB even if email fails
+      console.log(`Email successfully sent to ${emailToSendTo}`);
+    } catch (mailError) {
+      console.error('Failed to send contact email:', mailError);
+      // We don't throw here to ensure the contact is still considered "successfully processed" for the frontend
     }
 
     return contact;
