@@ -12,8 +12,8 @@ export class CreateAmenityDto {
   name?: string;
   
   @ApiProperty({
-   description: "Greek name",
-   example: "asta fala sha"
+    description: "Greek name",
+    example: "Παιδική χαρά"
   })
   @IsString()
   @IsOptional()
@@ -26,5 +26,5 @@ export class CreateAmenityDto {
     required: false,
   })
   @IsOptional()
-  icon?: Express.Multer.File;
+  icon?: any;
 }

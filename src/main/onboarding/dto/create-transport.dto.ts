@@ -12,8 +12,8 @@ export class CreateTransportDto {
   name?: string;
 
   @ApiProperty({
-    description: 'Name of the transport option',
-    example: 'Bus Station',
+    description: 'Greek Name of the transport option',
+    example: 'Στάση λεωφορείου',
   })
   @IsString()
   @IsOptional()
@@ -26,5 +26,5 @@ export class CreateTransportDto {
     required: false,
   })
   @IsOptional()
-  icon?: Express.Multer.File;
+  icon?: any;
 }

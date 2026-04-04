@@ -11,14 +11,14 @@ export class CreateSurroundingDto {
   @IsOptional()
   name?: string;
 
-
-   @ApiProperty({
-    description: 'greek Name of the surrounding',
-    example: 'asfldjfd',
+  @ApiProperty({
+    description: 'Greek Name of the surrounding',
+    example: 'Πάρκο',
   })
   @IsString()
   @IsOptional()
   greek_name?: string;
+
   @ApiProperty({
     description: 'Icon file for the surrounding',
     type: 'string',
@@ -26,5 +26,5 @@ export class CreateSurroundingDto {
     required: false,
   })
   @IsOptional()
-  icon?: Express.Multer.File;
+  icon?: any;
 }

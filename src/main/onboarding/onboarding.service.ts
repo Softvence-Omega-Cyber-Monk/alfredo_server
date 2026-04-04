@@ -367,6 +367,8 @@ export class OnboardingService {
 
   // -------------------- Amenity CRUD --------------------
   async createAmenity(dto: CreateAmenityDto, files?: Express.Multer.File[]) {
+    if (!dto.name) throw new BadRequestException('Amenity name is required');
+
     const existing = await this.prisma.amenity.findFirst({
       where: { name: dto.name },
     });
@@ -377,7 +379,7 @@ export class OnboardingService {
       : null;
 
     return this.prisma.amenity.create({
-      data: { name: dto.name,greek_name:dto.greek_name, icon: iconUrl },
+      data: { name: dto.name, greek_name: dto.greek_name, icon: iconUrl },
     });
   }
 
@@ -420,6 +422,8 @@ export class OnboardingService {
     dto: CreateTransportDto,
     files?: Express.Multer.File[],
   ) {
+    if (!dto.name) throw new BadRequestException('Transport name is required');
+
     const existing = await this.prisma.transportOption.findFirst({
       where: { name: dto.name },
     });
@@ -429,7 +433,7 @@ export class OnboardingService {
       ? await this.uploadFile(files[0], 'transport_icons')
       : null;
     return this.prisma.transportOption.create({
-      data: { name: dto.name,greek_name:dto.greek_name, icon: iconUrl },
+      data: { name: dto.name, greek_name: dto.greek_name, icon: iconUrl },
     });
   }
 
@@ -477,6 +481,8 @@ export class OnboardingService {
     dto: CreateSurroundingDto,
     files?: Express.Multer.File[],
   ) {
+    if (!dto.name) throw new BadRequestException('Surrounding name is required');
+
     const existing = await this.prisma.surroundingType.findFirst({
       where: { name: dto.name },
     });
@@ -486,7 +492,7 @@ export class OnboardingService {
       ? await this.uploadFile(files[0], 'surrounding_icons')
       : null;
     return this.prisma.surroundingType.create({
-      data: { name: dto.name,greek_name:dto.greek_name, icon: iconUrl },
+      data: { name: dto.name, greek_name: dto.greek_name, icon: iconUrl },
     });
   }
 
