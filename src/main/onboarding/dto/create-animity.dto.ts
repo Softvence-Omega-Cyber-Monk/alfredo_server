@@ -8,13 +8,16 @@ export class CreateAmenityDto {
     example: 'Swimming Pool',
   })
   @IsString()
-  name: string;
+  @IsOptional()
+  name?: string;
   
- @ApiProperty({
-  description: "Greek name",
-  example: "asta fala sha"
- })
- greek_name:string
+  @ApiProperty({
+   description: "Greek name",
+   example: "asta fala sha"
+  })
+  @IsString()
+  @IsOptional()
+  greek_name?: string;
 
   @ApiProperty({
     description: 'Icon file for the amenity',

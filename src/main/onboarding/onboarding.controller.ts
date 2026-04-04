@@ -231,10 +231,23 @@ export class OnboardingController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()
   @Roles(Role.Admin,Role.SuperAdmin)
-  @ApiBearerAuth()
   @Patch('amenities/:id')
-  async updateAmenity(@Param('id') id: string, @Body() dto: CreateAmenityDto) {
-    const res = await this.onboardingService.updateAmenity(id, dto);
+  @UseInterceptors(
+    FilesInterceptor('icon', 1, {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) =>
+          cb(null, `${Date.now()}-${file.originalname}`),
+      }),
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
+  async updateAmenity(
+    @Param('id') id: string,
+    @Body() dto: CreateAmenityDto,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    const res = await this.onboardingService.updateAmenity(id, dto, files);
     return {
       status: HttpStatus.OK,
       success: true,
@@ -294,11 +307,22 @@ export class OnboardingController {
   @ApiBearerAuth()
   @Roles(Role.Admin,Role.SuperAdmin)
   @Patch('transports/:id')
+  @UseInterceptors(
+    FilesInterceptor('icon', 1, {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) =>
+          cb(null, `${Date.now()}-${file.originalname}`),
+      }),
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
   async updateTransport(
     @Param('id') id: string,
     @Body() dto: CreateTransportDto,
+    @UploadedFiles() files: Express.Multer.File[],
   ) {
-    const res = await this.onboardingService.updateTransport(id, dto);
+    const res = await this.onboardingService.updateTransport(id, dto, files);
     return {
       status: HttpStatus.OK,
       success: true,
@@ -357,11 +381,22 @@ export class OnboardingController {
   @ApiBearerAuth()
   @Roles(Role.Admin,Role.SuperAdmin)
   @Patch('surroundings/:id')
+  @UseInterceptors(
+    FilesInterceptor('icon', 1, {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) =>
+          cb(null, `${Date.now()}-${file.originalname}`),
+      }),
+    }),
+  )
+  @ApiConsumes('multipart/form-data')
   async updateSurrounding(
     @Param('id') id: string,
     @Body() dto: CreateSurroundingDto,
+    @UploadedFiles() files: Express.Multer.File[],
   ) {
-    const res = await this.onboardingService.updateSurrounding(id, dto);
+    const res = await this.onboardingService.updateSurrounding(id, dto, files);
     return {
       status: HttpStatus.OK,
       success: true,

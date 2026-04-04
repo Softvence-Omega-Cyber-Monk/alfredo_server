@@ -8,14 +8,16 @@ export class CreateTransportDto {
     example: 'Bus Station',
   })
   @IsString()
-  name: string;
+  @IsOptional()
+  name?: string;
 
   @ApiProperty({
     description: 'Name of the transport option',
     example: 'Bus Station',
   })
   @IsString()
-  greek_name: string;
+  @IsOptional()
+  greek_name?: string;
   
   @ApiProperty({
     description: 'Icon file for the transport option',

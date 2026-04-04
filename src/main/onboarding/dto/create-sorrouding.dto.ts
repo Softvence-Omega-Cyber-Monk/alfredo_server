@@ -8,7 +8,8 @@ export class CreateSurroundingDto {
     example: 'Park',
   })
   @IsString()
-  name: string;
+  @IsOptional()
+  name?: string;
 
 
    @ApiProperty({
@@ -16,7 +17,8 @@ export class CreateSurroundingDto {
     example: 'asfldjfd',
   })
   @IsString()
-  greek_name: string;
+  @IsOptional()
+  greek_name?: string;
   @ApiProperty({
     description: 'Icon file for the surrounding',
     type: 'string',
