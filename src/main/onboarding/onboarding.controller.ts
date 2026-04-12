@@ -49,7 +49,7 @@ export class OnboardingController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(
-    FilesInterceptor('homeImages', 5, {
+    FilesInterceptor('homeImages', 30, {
       storage: diskStorage({
         destination: './uploads',
         filename: (req, file, cb) => {

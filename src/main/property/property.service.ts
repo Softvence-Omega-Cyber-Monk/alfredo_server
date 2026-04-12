@@ -270,11 +270,11 @@ export class PropertyService {
       );
     }
 
-    // 🔥 Add new images (max 4 logic)
+    // 🔥 Add new images (max 30 logic)
     if (updateData.files?.length) {
       for (const file of updateData.files) {
-        // If already 4 images → remove last index
-        if (currentImages.length >= 4) {
+        // If already 30 images → remove last index
+        if (currentImages.length >= 30) {
           const lastImage = currentImages[currentImages.length - 1];
 
           await this.deleteFromCloudinary(lastImage.publicId);

@@ -38,7 +38,7 @@ export class PropertyController {
   @UseGuards(JwtAuthGuard)
   @Post()
   @UseInterceptors(
-    FilesInterceptor('files', 5, {
+    FilesInterceptor('files', 30, {
       storage: diskStorage({
         destination: './uploads',
         filename: (req, file, cb) => {
@@ -79,7 +79,7 @@ export class PropertyController {
         },
         files: {
           type: 'array',
-          description: 'Up to 5 property images',
+          description: 'Up to 30 property images',
           items: { type: 'string', format: 'binary' },
         },
       },
@@ -179,7 +179,7 @@ export class PropertyController {
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   @UseInterceptors(
-    FilesInterceptor('files', 5, {
+    FilesInterceptor('files', 30, {
       storage: diskStorage({
         destination: './uploads',
         filename: (req, file, cb) => {
