@@ -23,6 +23,10 @@ export class CreateBadgeDto {
 
   @IsString()
   @IsOptional()
+  badge_type?: string;
+
+  @IsString()
+  @IsOptional()
   icon?: string; // will be set after upload
   @IsString()
   @IsOptional()

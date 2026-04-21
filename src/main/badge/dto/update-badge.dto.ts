@@ -12,7 +12,19 @@ export class UpdateBadgeDto {
 
   @IsOptional()
   @IsString()
+  greek_displayName?: string;
+
+  @IsOptional()
+  @IsString()
+  badge_type?: string;
+
+  @IsOptional()
+  @IsString()
   description?: string;
+
+  @IsOptional()
+  @IsString()
+  greek_discription?: string;
 
   @IsOptional()
   @IsString()
