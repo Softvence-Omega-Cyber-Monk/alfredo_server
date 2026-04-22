@@ -118,7 +118,7 @@ export class OnboardingService {
       where: { userId },
     });
     if (existing) {
-      throw new BadRequestException('User already has an onboarding record');
+      return this.updateOnboarding(userId, dto, files);
     }
 
     // 6️ Create onboarding safely
@@ -137,6 +137,7 @@ export class OnboardingService {
           : [],
         travelMostlyWith: dto.travelMostlyWith,
         isTravelWithPets,
+        address: dto.address,
         notes: dto.notes,
         propertyType: dto.propertyType,
         isMainResidence,
@@ -339,6 +340,7 @@ export class OnboardingService {
         favoriteDestinations: favoriteDestinationsArray,
         travelMostlyWith: dto.travelMostlyWith ?? existing.travelMostlyWith,
         isTravelWithPets,
+        address: dto.address ?? existing.address,
         notes: dto.notes ?? existing.notes,
         propertyType: dto.propertyType ?? existing.propertyType,
         isMainResidence,

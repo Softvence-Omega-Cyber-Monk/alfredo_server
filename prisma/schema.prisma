@@ -96,6 +96,7 @@ model Onboarding {
   favoriteDestinations   String[]
   travelMostlyWith       TravelGroup?
   isTravelWithPets       Boolean
+  address                String?
   notes                  String?
   maxPeople              Int?
   propertyType           PropertyType?

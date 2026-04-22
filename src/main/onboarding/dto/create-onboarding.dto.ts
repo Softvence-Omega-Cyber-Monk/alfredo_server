@@ -78,6 +78,11 @@ export class CreateOnboardingDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsString()
+  address?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
   notes?: string;
 
   // Step 3: Property Type Info
