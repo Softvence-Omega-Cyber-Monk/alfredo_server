@@ -44,7 +44,17 @@ export class UserService {
       include:{
         achievementBadges:true,
         onboarding:true,
-        properties:true
+        properties:true,
+        subscriptions: {
+          where: { status: "ACTIVE" },
+          include: {
+            plan: {
+              include: {
+                translations: true,
+              },
+            },
+          },
+        },
       
       }
     });
@@ -58,7 +68,17 @@ export class UserService {
       include:{
         achievementBadges:true,
         onboarding:true,
-        properties:true
+        properties:true,
+        subscriptions: {
+          where: { status: "ACTIVE" },
+          include: {
+            plan: {
+              include: {
+                translations: true,
+              },
+            },
+          },
+        },
       }
     });
 
