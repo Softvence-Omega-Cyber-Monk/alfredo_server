@@ -86,9 +86,9 @@ export class OnboardingController {
     } catch (error) {
       throw new BadRequestException('Invalid JSON in data field');
     }
-    console.log('User:', user);
-    console.log('Parsed DTO:', parsedDto);
-    console.log('Files:', files);
+    // console.log('User:', user);
+    // console.log('Parsed DTO:', parsedDto);
+    // console.log('Files:', files);
     try {
       return await this.onboardingService.createOnboarding(user.id, parsedDto, files);
     } catch (error) {
