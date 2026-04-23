@@ -81,4 +81,7 @@ export class UpdateUserDto {
 
   @ApiPropertyOptional({ description: 'Home name' })
   @IsOptional() @IsString() homeName?: string;
+
+  @ApiPropertyOptional({ description: 'Address' })
+  @IsOptional() @IsString() address?: string;
 }

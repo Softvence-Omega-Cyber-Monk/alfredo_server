@@ -140,6 +140,7 @@ async updateMe(userId: string, dto: UpdateUserDto, file?: Express.Multer.File) {
         propertyType: dto.propertyType ?? undefined,
         isMainResidence: parseBool(dto.isMainResidence),
         homeName: dto.homeName ?? undefined,
+        address: dto.address ?? undefined,
       },
     });
   }
