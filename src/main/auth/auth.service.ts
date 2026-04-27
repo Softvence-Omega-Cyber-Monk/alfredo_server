@@ -67,21 +67,37 @@ export class AuthService {
 
         const fullName = `${dto.firstName} ${dto.lastName}`;
 
+        // Generate email verification token
+        const emailVerificationToken = crypto.randomBytes(32).toString('hex');
+        const emailVerificationExpiry = new Date(Date.now() + 1000 * 60 * 60 * 24); // 24 hours
+
         const pending = await this.prisma.pendingUser.create({
             data: {
                 fullName,
                 email: dto.email,
                 password: hashedPassword,
                 referralCode: dto.referralCode,
-                phoneNumber: dto.phoneNumber
+                phoneNumber: dto.phoneNumber,
+                emailVerificationToken,
+                emailVerificationExpiry,
             },
         });
 
+        // Send verification email with link
+        await this.mailService.sendVerificationEmail(dto.email, emailVerificationToken, fullName);
+
         return {
             status: 'pending',
-            message: 'Registration successful. Please verify your account via OTP.',
+            message: 'Registration successful. A verification link has been sent to your email.',
             userId: pending.id,
         };
+
+        // --- OLD OTP FLOW (commented out for future use) ---
+        // return {
+        //     status: 'pending',
+        //     message: 'Registration successful. Please verify your account via OTP.',
+        //     userId: pending.id,
+        // };
     }
 
     // Assuming your service function signature changes to include the IP address:
@@ -235,69 +251,30 @@ export class AuthService {
         return { message: 'Password changed successfully' };
     }
 
-    // Called after registration to start OTP verification
-    async sendOtp(pendingUserId: string, method: 'email' | 'phone') {
-        const user = await this.prisma.pendingUser.findUnique({
-            where: { id: pendingUserId },
-        });
-        if (!user) throw new BadRequestException('Pending user not found');
+    // ========== EMAIL LINK VERIFICATION (New Flow) ==========
 
-        const otp = this.otpService.generateOtp();
-
-        await this.prisma.otpVerification.create({
-            data: {
-                id: randomUUID(),
-                otp,
-                userId: pendingUserId,
-                method,
-                expiresAt: new Date(Date.now() + 1000 * 60 * 5),
-            },
-        });
-
-        if (method === 'email') {
-            await this.otpService.sendOtpByEmail(user.email, otp);
-        } else {
-            await this.otpService.sendOtpByPhone(user.phoneNumber!, otp);
-        }
-
-        return { message: 'OTP sent successfully' };
-    }
-
-    async verifyOtp(pendingUserId: string, otp: string) {
-        // 1. Check if OTP is valid and not expired
-        const record = await this.prisma.otpVerification.findFirst({
+    async verifyEmailToken(token: string) {
+        // 1. Find the pending user by verification token
+        const pending = await this.prisma.pendingUser.findFirst({
             where: {
-                userId: pendingUserId,
-                otp,
-                expiresAt: { gte: new Date() },
-                verifiedAt: null,
+                emailVerificationToken: token,
+                emailVerificationExpiry: { gte: new Date() },
             },
-        });
-
-        if (!record) {
-            throw new BadRequestException('Invalid or expired OTP');
-        }
-
-        // 2. Mark OTP as verified
-        await this.prisma.otpVerification.update({
-            where: { id: record.id },
-            data: { verifiedAt: new Date() },
-        });
-
-        // 3. Fetch the pending user
-        const pending = await this.prisma.pendingUser.findUnique({
-            where: { id: pendingUserId },
         });
 
         if (!pending) {
-            throw new BadRequestException('Pending user not found....');
+            throw new BadRequestException('Invalid or expired verification link');
         }
 
-        // // 4. Ensure phoneNumber is not null (avoid runtime error)
-        // if (!pending.phoneNumber) {
-        //   throw new BadRequestException('Phone number is missing for the user');
-        // }
+        // 2. Check if user already exists (edge case: link clicked twice)
+        const isExistUser = await this.prisma.user.findUnique({
+            where: { email: pending.email },
+        });
+        if (isExistUser) {
+            throw new BadRequestException('User already exists. Please login.');
+        }
 
+        // 3. Handle referral code
         let referredByUser: any = null;
         if (pending.referralCode) {
             referredByUser = await this.prisma.user.findUnique({
@@ -306,16 +283,8 @@ export class AuthService {
                 },
             });
         }
-        // 5. Create actual user
 
-        const isExistUser = await this.prisma.user.findUnique({
-            where: {
-                email: pending.email,
-            },
-        })
-        if (isExistUser) {
-            throw new BadRequestException('User already exist');
-        }
+        // 4. Create actual user
         const user = await this.prisma.user.create({
             data: {
                 fullName: pending.fullName,
@@ -323,38 +292,40 @@ export class AuthService {
                 password: pending.password,
                 referredBy: pending.referralCode,
                 role: pending.role,
-                phoneNumber: pending.phoneNumber
+                phoneNumber: pending.phoneNumber,
             },
         });
 
+        // 5. Award referral badges
         if (referredByUser) {
-            const user = await this.prisma.user.update({
+            const updatedReferrer = await this.prisma.user.update({
                 where: { id: referredByUser.id },
                 data: {
                     balance: { increment: 3 },
-                    totalReferrals: { increment: 1 }
+                    totalReferrals: { increment: 1 },
                 },
             });
-            if (user.totalReferrals == 1) {
-                await this.badge.awardBadgeToUser(user.id, BadgeType.GOLDEN_HOST)
-            } else if (user.totalReferrals === 3) {
-                await this.badge.awardBadgeToUser(user.id, BadgeType.LOTS_OF_FRIENDS)
-            } else if (user.totalReferrals === 10) {
-                await this.badge.awardBadgeToUser(user.id, BadgeType.PURE_CHARISMA)
-            } else if (user.totalReferrals === 50) {
-                await this.badge.awardBadgeToUser(user.id, BadgeType.VIP)
-            } else if (user.totalReferrals === 200) {
-                await this.badge.awardBadgeToUser(user.id, BadgeType.DIAMOND_VIP)
+            if (updatedReferrer.totalReferrals == 1) {
+                await this.badge.awardBadgeToUser(updatedReferrer.id, BadgeType.GOLDEN_HOST);
+            } else if (updatedReferrer.totalReferrals === 3) {
+                await this.badge.awardBadgeToUser(updatedReferrer.id, BadgeType.LOTS_OF_FRIENDS);
+            } else if (updatedReferrer.totalReferrals === 10) {
+                await this.badge.awardBadgeToUser(updatedReferrer.id, BadgeType.PURE_CHARISMA);
+            } else if (updatedReferrer.totalReferrals === 50) {
+                await this.badge.awardBadgeToUser(updatedReferrer.id, BadgeType.VIP);
+            } else if (updatedReferrer.totalReferrals === 200) {
+                await this.badge.awardBadgeToUser(updatedReferrer.id, BadgeType.DIAMOND_VIP);
             }
         }
-        // 6. Clean up related OTPs to avoid FK issues
+
+        // 6. Clean up related OTPs (if any) to avoid FK issues
         await this.prisma.otpVerification.deleteMany({
-            where: { userId: pendingUserId },
+            where: { userId: pending.id },
         });
 
         // 7. Delete pending user entry
         await this.prisma.pendingUser.delete({
-            where: { id: pendingUserId },
+            where: { id: pending.id },
         });
 
         // 8. Generate token
@@ -362,27 +333,182 @@ export class AuthService {
 
         return {
             status: 'verified',
-            message: 'OTP verified successfully. User registered.',
+            message: 'Email verified successfully. User registered.',
             ...tokenData,
         };
     }
 
-    async resendOtp(userId: string, method: 'email' | 'phone') {
-        // Optional: Enforce 60-second delay
-        const lastOtp = await this.prisma.otpVerification.findFirst({
-            where: {
-                userId,
-                method,
-            },
-            orderBy: { createdAt: 'desc' },
+    async resendVerificationEmail(email: string) {
+        const pending = await this.prisma.pendingUser.findUnique({
+            where: { email },
         });
 
-        if (lastOtp && Date.now() - new Date(lastOtp.createdAt).getTime() < 60000) {
-            throw new BadRequestException('Please wait before resending OTP');
+        if (!pending) {
+            throw new BadRequestException('No pending registration found for this email');
         }
 
-        return this.sendOtp(userId, method);
+        // Generate new token
+        const emailVerificationToken = crypto.randomBytes(32).toString('hex');
+        const emailVerificationExpiry = new Date(Date.now() + 1000 * 60 * 60 * 24); // 24 hours
+
+        await this.prisma.pendingUser.update({
+            where: { id: pending.id },
+            data: {
+                emailVerificationToken,
+                emailVerificationExpiry,
+            },
+        });
+
+        await this.mailService.sendVerificationEmail(pending.email, emailVerificationToken, pending.fullName);
+
+        return { message: 'Verification email resent successfully' };
     }
+
+    // ========== OTP VERIFICATION (Old Flow - Commented Out) ==========
+    // Keeping these methods for potential future use.
+
+    // // Called after registration to start OTP verification
+    // async sendOtp(pendingUserId: string, method: 'email' | 'phone') {
+    //     const user = await this.prisma.pendingUser.findUnique({
+    //         where: { id: pendingUserId },
+    //     });
+    //     if (!user) throw new BadRequestException('Pending user not found');
+    //
+    //     const otp = this.otpService.generateOtp();
+    //
+    //     await this.prisma.otpVerification.create({
+    //         data: {
+    //             id: randomUUID(),
+    //             otp,
+    //             userId: pendingUserId,
+    //             method,
+    //             expiresAt: new Date(Date.now() + 1000 * 60 * 5),
+    //         },
+    //     });
+    //
+    //     if (method === 'email') {
+    //         await this.otpService.sendOtpByEmail(user.email, otp);
+    //     } else {
+    //         await this.otpService.sendOtpByPhone(user.phoneNumber!, otp);
+    //     }
+    //
+    //     return { message: 'OTP sent successfully' };
+    // }
+
+    // async verifyOtp(pendingUserId: string, otp: string) {
+    //     // 1. Check if OTP is valid and not expired
+    //     const record = await this.prisma.otpVerification.findFirst({
+    //         where: {
+    //             userId: pendingUserId,
+    //             otp,
+    //             expiresAt: { gte: new Date() },
+    //             verifiedAt: null,
+    //         },
+    //     });
+    //
+    //     if (!record) {
+    //         throw new BadRequestException('Invalid or expired OTP');
+    //     }
+    //
+    //     // 2. Mark OTP as verified
+    //     await this.prisma.otpVerification.update({
+    //         where: { id: record.id },
+    //         data: { verifiedAt: new Date() },
+    //     });
+    //
+    //     // 3. Fetch the pending user
+    //     const pending = await this.prisma.pendingUser.findUnique({
+    //         where: { id: pendingUserId },
+    //     });
+    //
+    //     if (!pending) {
+    //         throw new BadRequestException('Pending user not found....');
+    //     }
+    //
+    //     let referredByUser: any = null;
+    //     if (pending.referralCode) {
+    //         referredByUser = await this.prisma.user.findUnique({
+    //             where: {
+    //                 referralCode: pending.referralCode,
+    //             },
+    //         });
+    //     }
+    //     // 5. Create actual user
+    //     const isExistUser = await this.prisma.user.findUnique({
+    //         where: {
+    //             email: pending.email,
+    //         },
+    //     })
+    //     if (isExistUser) {
+    //         throw new BadRequestException('User already exist');
+    //     }
+    //     const user = await this.prisma.user.create({
+    //         data: {
+    //             fullName: pending.fullName,
+    //             email: pending.email,
+    //             password: pending.password,
+    //             referredBy: pending.referralCode,
+    //             role: pending.role,
+    //             phoneNumber: pending.phoneNumber
+    //         },
+    //     });
+    //
+    //     if (referredByUser) {
+    //         const user = await this.prisma.user.update({
+    //             where: { id: referredByUser.id },
+    //             data: {
+    //                 balance: { increment: 3 },
+    //                 totalReferrals: { increment: 1 }
+    //             },
+    //         });
+    //         if (user.totalReferrals == 1) {
+    //             await this.badge.awardBadgeToUser(user.id, BadgeType.GOLDEN_HOST)
+    //         } else if (user.totalReferrals === 3) {
+    //             await this.badge.awardBadgeToUser(user.id, BadgeType.LOTS_OF_FRIENDS)
+    //         } else if (user.totalReferrals === 10) {
+    //             await this.badge.awardBadgeToUser(user.id, BadgeType.PURE_CHARISMA)
+    //         } else if (user.totalReferrals === 50) {
+    //             await this.badge.awardBadgeToUser(user.id, BadgeType.VIP)
+    //         } else if (user.totalReferrals === 200) {
+    //             await this.badge.awardBadgeToUser(user.id, BadgeType.DIAMOND_VIP)
+    //         }
+    //     }
+    //     // 6. Clean up related OTPs to avoid FK issues
+    //     await this.prisma.otpVerification.deleteMany({
+    //         where: { userId: pendingUserId },
+    //     });
+    //
+    //     // 7. Delete pending user entry
+    //     await this.prisma.pendingUser.delete({
+    //         where: { id: pendingUserId },
+    //     });
+    //
+    //     // 8. Generate token
+    //     const tokenData = await this.signToken(user);
+    //
+    //     return {
+    //         status: 'verified',
+    //         message: 'OTP verified successfully. User registered.',
+    //         ...tokenData,
+    //     };
+    // }
+
+    // async resendOtp(userId: string, method: 'email' | 'phone') {
+    //     // Optional: Enforce 60-second delay
+    //     const lastOtp = await this.prisma.otpVerification.findFirst({
+    //         where: {
+    //             userId,
+    //             method,
+    //         },
+    //         orderBy: { createdAt: 'desc' },
+    //     });
+    //
+    //     if (lastOtp && Date.now() - new Date(lastOtp.createdAt).getTime() < 60000) {
+    //         throw new BadRequestException('Please wait before resending OTP');
+    //     }
+    //
+    //     return this.sendOtp(userId, method);
+    // }
 
 
 

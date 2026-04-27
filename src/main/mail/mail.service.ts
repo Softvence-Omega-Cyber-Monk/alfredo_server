@@ -78,4 +78,82 @@ export class MailService {
 
     await this.sendMail(mailOptions);
   }
+
+  async sendVerificationEmail(email: string, token: string, fullName: string) {
+    const appUrl = this.configService.get<string>('CLIENT_URL');
+    const verifyUrl = `${appUrl}/verify-email?token=${token}`;
+    const mailOptions = {
+      to: email,
+      subject: '✉️ Verify Your Email - Alfredo',
+      html: `
+        <div style="
+          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+          background-color: #f5f7fa;
+          padding: 40px 0;
+        ">
+          <div style="
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            padding: 30px 40px;
+            max-width: 500px;
+            margin: 0 auto;
+          ">
+            <div style="text-align: center;">
+              <h2 style="
+                color: #1a73e8;
+                margin-bottom: 10px;
+                font-size: 24px;
+              ">
+                Verify Your Email
+              </h2>
+
+              <p style="
+                color: #555;
+                font-size: 15px;
+                margin-bottom: 30px;
+              ">
+                Hello ${fullName},<br/>
+                Thank you for signing up! Please click the button below to verify your email address.
+              </p>
+
+              <a href="${verifyUrl}" style="
+                display: inline-block;
+                background-color: #1a73e8;
+                color: #ffffff;
+                text-decoration: none;
+                padding: 14px 32px;
+                border-radius: 8px;
+                font-size: 16px;
+                font-weight: bold;
+                margin-bottom: 30px;
+              ">
+                Verify Email
+              </a>
+
+              <p style="
+                color: #777;
+                font-size: 14px;
+                margin-top: 25px;
+              ">
+                This link is valid for <strong>24 hours</strong>.<br/>
+                If you did not create an account, you can safely ignore this email.
+              </p>
+
+              <hr style="border: none; border-top: 1px solid #eee; margin: 25px 0;" />
+
+              <p style="
+                color: #aaa;
+                font-size: 12px;
+              ">
+                © ${new Date().getFullYear()} Alfredo. All rights reserved.
+              </p>
+            </div>
+          </div>
+        </div>
+      `,
+    };
+
+    await this.sendMail(mailOptions);
+  }
 }

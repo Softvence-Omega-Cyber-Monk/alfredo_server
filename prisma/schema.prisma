@@ -8,15 +8,17 @@ datasource db {
 }
 
 model PendingUser {
-  id           String            @id @default(uuid())
-  fullName     String
-  email        String            @unique
-  phoneNumber  String?           @unique
-  password     String
-  createdAt    DateTime          @default(now())
-  referralCode String?
-  role         Role              @default(USER)
-  otps         OtpVerification[] @relation("PendingUserOtp")
+  id                        String            @id @default(uuid())
+  fullName                  String
+  email                     String            @unique
+  phoneNumber               String?           @unique
+  password                  String
+  createdAt                 DateTime          @default(now())
+  referralCode              String?
+  role                      Role              @default(USER)
+  otps                      OtpVerification[] @relation("PendingUserOtp")
+  emailVerificationToken    String?           @unique
+  emailVerificationExpiry   DateTime?
 }
 
 model User {

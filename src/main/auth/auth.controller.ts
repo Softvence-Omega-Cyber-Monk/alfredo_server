@@ -58,23 +58,40 @@ export class AuthController {
     return this.authService.changePassword(req.user.sub, dto);
   }
 
-  @Post('send-otp')
-  @ApiOperation({ summary: 'Send OTP via email or phone' })
-  sendOtp(@Body() body: SendOtpDto) {
-    return this.authService.sendOtp(body.userId, body.method);
+  // ========== EMAIL LINK VERIFICATION (New Flow) ==========
+
+  @Post('verify-email-token')
+  @ApiOperation({ summary: 'Verify user email via verification link token' })
+  verifyEmailToken(@Body() body: { token: string }) {
+    return this.authService.verifyEmailToken(body.token);
   }
 
-  @Post('verify-otp')
-  @ApiOperation({ summary: 'Verify user OTP' })
-  verifyOtp(@Body() body: VerifyOtpDto) {
-    return this.authService.verifyOtp(body.userId, body.otp);
+  @Post('resend-verification-email')
+  @ApiOperation({ summary: 'Resend verification email' })
+  resendVerificationEmail(@Body() body: { email: string }) {
+    return this.authService.resendVerificationEmail(body.email);
   }
 
-  @Post('resend-otp')
-  @ApiOperation({ summary: 'Resend OTP (after 60s)' })
-  resendOtp(@Body() body: SendOtpDto) {
-    return this.authService.resendOtp(body.userId, body.method);
-  }
+  // ========== OTP VERIFICATION (Old Flow - Commented Out) ==========
+  // Keeping these endpoints for potential future use.
+
+  // @Post('send-otp')
+  // @ApiOperation({ summary: 'Send OTP via email or phone' })
+  // sendOtp(@Body() body: SendOtpDto) {
+  //   return this.authService.sendOtp(body.userId, body.method);
+  // }
+
+  // @Post('verify-otp')
+  // @ApiOperation({ summary: 'Verify user OTP' })
+  // verifyOtp(@Body() body: VerifyOtpDto) {
+  //   return this.authService.verifyOtp(body.userId, body.otp);
+  // }
+
+  // @Post('resend-otp')
+  // @ApiOperation({ summary: 'Resend OTP (after 60s)' })
+  // resendOtp(@Body() body: SendOtpDto) {
+  //   return this.authService.resendOtp(body.userId, body.method);
+  // }
 
 
   @Post('super-admin')
