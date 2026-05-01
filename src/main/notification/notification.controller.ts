@@ -42,7 +42,7 @@ export class NotificationController {
   @Get('unread-count')
   async unreadCount(@Req() req:any) {
    try{
-     const userId=req.user.userId
+     const userId=req.user.id
     const res=await this.service.countUnread(userId);
     return {
       status:HttpStatus.OK,
@@ -69,7 +69,7 @@ export class NotificationController {
   @Post('read-all')
   async readAll(@Req() req:any) {
    try{
-     const userId=req.user.userId
+     const userId=req.user.id
     const res=await this.service.markAllAsRead(userId);
     return {
       status:HttpStatus.OK,
@@ -101,7 +101,7 @@ export class NotificationController {
   @Delete('delete-myAllNotification')
   async deleteMyAllNotification(@Req() req:any) {
     try{
-      const id=req.user.userId
+      const id=req.user.id
       const res=await this.service.deleteMyAllNotification(id);
       return {
         status:HttpStatus.OK,

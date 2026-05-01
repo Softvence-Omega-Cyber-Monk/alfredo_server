@@ -179,6 +179,13 @@ async acceptExchangeRequest(id: string) {
     },
   });
 
+  // Notify the user who sent the request
+  await this.notification.createNotification(
+    existing.fromUserId,
+    'Exchange Request Accepted',
+    `Your home exchange request for "${res.toProperty.title}" has been accepted by ${toUser.fullName}`
+  );
+
   // 4. Mark both properties as exchanged
   await this.prisma.property.update({
     where: { id: existing.fromPropertyId },

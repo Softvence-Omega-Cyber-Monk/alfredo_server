@@ -3,12 +3,15 @@ import { PrismaService } from '../prisma/prisma.service';
 import { ChatMessage } from '@prisma/client';
 import { MailService } from '../mail/mail.service';
 import { MesageAlertMailTemplatesService } from '../mail/messageAlert';
+import { NotificationService } from '../notification/notification.service';
 
 @Injectable()
 export class ChatService {
-  constructor(private prisma: PrismaService,
-    private readonly mailService:MailService,
-    private readonly MessageAlert:MesageAlertMailTemplatesService
+  constructor(
+    private prisma: PrismaService,
+    private readonly mailService: MailService,
+    private readonly MessageAlert: MesageAlertMailTemplatesService,
+    private readonly notification: NotificationService
   ) {}
 
   // Save a message with validation
@@ -41,12 +44,9 @@ export class ChatService {
         );
       }
     }
-    const mailToRevicer=await this.mailService.sendMail({
-      to:receiverExists.email,
-      subject:"New Message",
-      html:await this.MessageAlert.getUserAlertTemplate(receiverExists.fullName,receiverExists.email)
-    })
-    return this.prisma.chatMessage.create({
+
+    // Save message
+    const message = await this.prisma.chatMessage.create({
       data: {
         senderId: data.senderId,
         receiverId: data.receiverId,
@@ -54,6 +54,22 @@ export class ChatService {
         exchangeRequestId: data.exchangeRequestId ?? null,
       },
     });
+
+    // Send Mail alert
+    await this.mailService.sendMail({
+      to: receiverExists.email,
+      subject: "New Message",
+      html: await this.MessageAlert.getUserAlertTemplate(receiverExists.fullName, receiverExists.email)
+    });
+
+    // Send real-time notification
+    await this.notification.createNotification(
+      data.receiverId,
+      `New message from ${senderExists.fullName}`,
+      data.content.length > 50 ? data.content.substring(0, 50) + "..." : data.content
+    );
+
+    return message;
   }
 
   // Fetch all messages for a user

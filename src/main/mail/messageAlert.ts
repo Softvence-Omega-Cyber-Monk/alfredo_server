@@ -6,7 +6,7 @@ export class MesageAlertMailTemplatesService {
     name: string,
     email: string,
   ): Promise<string> {
-    const alertText = `${name} (${email}) has sent you a message. Please check it out.`;
+    const alertText = `${name} (${email}) An user has sent you a message. Please check it out.`;
 
     const html = `
       <!DOCTYPE html>
@@ -82,7 +82,7 @@ export class MesageAlertMailTemplatesService {
       <body>
           <div class="container">
               <div class="header">
-                  <h1>New User Alert</h1>
+                  <h1>New User Message</h1>
               </div>
 
               <div class="content">

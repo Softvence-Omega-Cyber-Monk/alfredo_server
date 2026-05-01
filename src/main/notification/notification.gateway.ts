@@ -24,6 +24,6 @@ export class NotificationGateway implements OnGatewayConnection, OnGatewayDiscon
   }
 
   sendToUser(userId: string, data: any) {
-    this.server.to(userId).emit('notification', data);
+    this.server.to(userId).emit('new_notification', data);
   }
 }
