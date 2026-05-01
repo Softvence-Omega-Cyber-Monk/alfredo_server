@@ -7,7 +7,7 @@ import { DbEventsService } from './db.event.service';
 
 @Module({
   controllers: [NotificationController],
-  providers: [NotificationService,NotificationGateway,JwtService,DbEventsService],
-  exports:[]
+  providers: [NotificationService, NotificationGateway, JwtService, DbEventsService],
+  exports: [NotificationService, NotificationGateway]
 })
 export class NotificationModule {}

@@ -5,8 +5,10 @@ import { ChatController } from './chat.controller';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
 import { MesageAlertMailTemplatesService } from '../mail/messageAlert';
+import { NotificationModule } from '../notification/notification.module';
 
 @Module({
+  imports: [NotificationModule],
   providers: [ChatService, 
      ChatGateway,
      PrismaService,
