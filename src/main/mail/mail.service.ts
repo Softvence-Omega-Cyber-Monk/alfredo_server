@@ -84,7 +84,7 @@ export class MailService {
     const verifyUrl = `${appUrl}/verify-email?token=${token}`;
     const mailOptions = {
       to: email,
-      subject: '✉️ Verify Your Email - Alfredo',
+      subject: '✉️ Verify Your Email - Vacanza',
       html: `
         <div style="
           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -146,7 +146,7 @@ export class MailService {
                 color: #aaa;
                 font-size: 12px;
               ">
-                © ${new Date().getFullYear()} Alfredo. All rights reserved.
+                © ${new Date().getFullYear()} Vacanza. All rights reserved.
               </p>
             </div>
           </div>
