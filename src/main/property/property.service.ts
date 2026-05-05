@@ -29,6 +29,15 @@ export class PropertyService {
       }
     }
 
+    // Resolve coverImage from index if provided
+    let resolvedCoverImage = propertyData.coverImage;
+    if (typeof propertyData.coverImage === 'number' && uploadedImages[propertyData.coverImage]) {
+      resolvedCoverImage = uploadedImages[propertyData.coverImage].url;
+    } else if (uploadedImages.length > 0 && !resolvedCoverImage) {
+      // Default to first image if no cover specified
+      resolvedCoverImage = uploadedImages[0].url;
+    }
+
     // Validate relations
     const validAmenities = propertyData.amenities?.length
       ? await this.prisma.amenity.findMany({
@@ -69,6 +78,7 @@ export class PropertyService {
         availabilityEndDate: propertyData.availabilityEndDate
           ? new Date(propertyData.availabilityEndDate)
           : null,
+        coverImage: resolvedCoverImage,
 
         // Relations
         amenities: { connect: validAmenities.map((a) => ({ id: a.id })) },
@@ -286,6 +296,12 @@ export class PropertyService {
       }
     }
 
+    // Resolve coverImage from index if provided
+    let resolvedCoverImage = updateData.coverImage;
+    if (typeof updateData.coverImage === 'number' && currentImages[updateData.coverImage]) {
+      resolvedCoverImage = currentImages[updateData.coverImage].url;
+    }
+
     // Validate relations
     const validAmenities = updateData.amenities?.length
       ? await this.prisma.amenity.findMany({
@@ -327,6 +343,8 @@ export class PropertyService {
         availabilityEndDate: updateData.availabilityEndDate
           ? new Date(updateData.availabilityEndDate)
           : existing.availabilityEndDate,
+
+        coverImage: resolvedCoverImage ?? existing.coverImage,
 
         amenities: { set: validAmenities.map((a) => ({ id: a.id })) },
         transports: { set: validTransports.map((t) => ({ id: t.id })) },

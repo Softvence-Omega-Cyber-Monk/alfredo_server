@@ -110,6 +110,7 @@ model Onboarding {
   isAvailableForExchange Boolean           @default(true)
   availabilityStartDate  DateTime?
   availabilityEndDate    DateTime?
+  coverImage             String?
   user                   User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   amenities              Amenity[]         @relation("OnboardingAmenities")
   surroundings           SurroundingType[] @relation("OnboardingSurroundings")
@@ -175,6 +176,7 @@ model Property {
   availabilityEndDate      DateTime?
   createdAt                DateTime          @default(now())
   updatedAt                DateTime          @updatedAt
+  coverImage               String?
   exchangeRequestsSent     ExchangeRequest[] @relation("FromProperty")
   exchangeRequestsReceived ExchangeRequest[] @relation("ToProperty")
   favoritedBy              Favorite[]

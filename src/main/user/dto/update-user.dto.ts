@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsOptional, IsString, IsBoolean, IsArray, IsEnum, IsDateString, IsNumber } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { EmploymentStatus, IdentificationType, Language, PropertyType, TravelGroup } from '@prisma/client';
 
 export class UpdateUserDto {
@@ -12,6 +13,9 @@ export class UpdateUserDto {
 
   @ApiPropertyOptional({ description: 'Phone number of the user' })
   @IsOptional() @IsString() phoneNumber?: string;
+  
+  @ApiPropertyOptional({ description: 'Photo URL or selection' })
+  @IsOptional() @IsString() photo?: string;
 
   @ApiPropertyOptional({ description: 'City of the user' })
   @IsOptional() @IsString() city?: string;
@@ -34,7 +38,10 @@ export class UpdateUserDto {
   @IsOptional() @IsEnum(Language) languagePreference?: Language;
 
   @ApiPropertyOptional({ description: 'Is subscribed?' })
-  @IsOptional() @IsBoolean() isSubscribed?: boolean;
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  isSubscribed?: boolean;
 
   // ===== Onboarding fields =====
   @ApiPropertyOptional({ description: 'Home address' })
@@ -47,7 +54,10 @@ export class UpdateUserDto {
   @IsOptional() @IsArray() favoriteDestinations?: string[];
 
   @ApiPropertyOptional({ description: 'Traveling with pets?' })
-  @IsOptional() @IsBoolean() isTravelWithPets?: boolean;
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  isTravelWithPets?: boolean;
 
   @ApiPropertyOptional({ description: 'Notes about onboarding' })
   @IsOptional() @IsString() notes?: string;
@@ -59,7 +69,10 @@ export class UpdateUserDto {
   @IsOptional() @IsString() aboutNeighborhood?: string;
 
   @ApiPropertyOptional({ description: 'Is available for exchange?' })
-  @IsOptional() @IsBoolean() isAvailableForExchange?: boolean;
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  isAvailableForExchange?: boolean;
 
   @ApiPropertyOptional({ description: 'Availability start date', type: String, format: 'date-time' })
   @IsOptional() @IsDateString() availabilityStartDate?: Date;
@@ -77,7 +90,10 @@ export class UpdateUserDto {
   @IsOptional() travelMostlyWith?: TravelGroup;
 
   @ApiPropertyOptional({ description: 'Is main residence?' })
-  @IsOptional() @IsBoolean() isMainResidence?: boolean;
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  @IsBoolean()
+  isMainResidence?: boolean;
 
   @ApiPropertyOptional({ description: 'Home name' })
   @IsOptional() @IsString() homeName?: string;

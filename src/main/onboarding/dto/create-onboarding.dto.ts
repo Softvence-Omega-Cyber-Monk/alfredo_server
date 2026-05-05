@@ -164,4 +164,9 @@ export class CreateOnboardingDto {
   @IsOptional()
   @IsDateString()
   availabilityEndDate?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  coverImage?: string;
 }

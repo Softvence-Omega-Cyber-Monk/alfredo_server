@@ -130,7 +130,7 @@ async updateMe(userId: string, dto: UpdateUserDto, file?: Express.Multer.File) {
       dateOfBirth: dto.dateOfBirth ?? undefined,
       identification: dto.identification ?? undefined,
       languagePreference: dto.languagePreference ?? undefined,
-      photo: photoUrl ?? undefined,
+      photo: photoUrl ?? (typeof dto.photo === 'string' ? dto.photo : undefined),
     },
   });
 

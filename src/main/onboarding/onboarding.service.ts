@@ -20,7 +20,7 @@ export class OnboardingService {
   private async compressImage(filePath: string): Promise<string> {
     const ext = path.extname(filePath).toLowerCase();
     // Only compress image files
-    if (!['.jpg', '.jpeg', '.png', '.webp', '.tiff'].includes(ext)) {
+    if (!['.jpg', '.jpeg', '.png', '.webp', '.tiff', '.heic', '.heif'].includes(ext)) {
       return filePath;
     }
 
@@ -148,6 +148,7 @@ export class OnboardingService {
         isAvailableForExchange,
         availabilityStartDate: dto.availabilityStartDate,
         availabilityEndDate: dto.availabilityEndDate,
+        coverImage: dto.coverImage,
 
         // Connect only existing relations
         amenities: { connect: validAmenities.map((a) => ({ id: a.id })) },
@@ -353,6 +354,7 @@ export class OnboardingService {
           dto.availabilityStartDate ?? existing.availabilityStartDate,
         availabilityEndDate:
           dto.availabilityEndDate ?? existing.availabilityEndDate,
+        coverImage: dto.coverImage ?? existing.coverImage,
         amenities: { set: validAmenities.map((a) => ({ id: a.id })) },
         transports: { set: validTransports.map((t) => ({ id: t.id })) },
         surroundings: { set: validSurroundings.map((s) => ({ id: s.id })) },
