@@ -111,7 +111,11 @@ export class PropertyService {
     return this.prisma.property.findMany({
       where: { ownerId: userId, isDeleted: false },
       include: {
-        owner: true,
+        owner: {
+          include: {
+            onboarding: true,
+          },
+        },
         amenities: true,
         transports: true,
         surroundings: true,
@@ -213,7 +217,11 @@ export class PropertyService {
       this.prisma.property.findMany({
         where,
         include: {
-          owner: true,
+          owner: {
+            include: {
+              onboarding: true,
+            },
+          },
           amenities: true,
           transports: true,
           surroundings: true,
@@ -244,8 +252,9 @@ export class PropertyService {
       include: {
         owner: {
           include: {
-            achievementBadges: true
-          }
+            achievementBadges: true,
+            onboarding: true,
+          },
         },
         amenities: true,
         transports: true,
