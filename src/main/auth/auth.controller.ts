@@ -8,6 +8,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from 'src/common/guard/jwt.guard';
 import { GoogleLoginDto } from './dto/google-login.dto';
+import { FacebookLoginDto } from './dto/facebook-login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -137,6 +138,22 @@ export class AuthController {
     return {
       success: true,
       message: 'Google login successful',
+      ...result,
+    };
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('facebook')
+  @ApiOperation({ summary: 'Login or register with Facebook via Firebase' })
+  async facebookLogin(
+    @Body() dto: FacebookLoginDto,
+    @Req() req: any,
+  ) {
+    const ipAddress = req.ip || req.header('x-forwarded-for')?.split(',')[0] || 'Unknown';
+    const result = await this.authService.facebookLogin(dto.idToken, ipAddress);
+    return {
+      success: true,
+      message: 'Facebook login successful',
       ...result,
     };
   }
