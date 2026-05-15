@@ -47,21 +47,20 @@ export class AuthService {
         });
         if (pendingEmail)
             throw new BadRequestException('Email already pending verification');
-        const isPhoneNumberExist = await this.prisma.user.findUnique({
-            where: {
-                phoneNumber: dto.phoneNumber
-            }
-        })
-        if (isPhoneNumberExist) {
-            throw new BadRequestException("Phone number already in use")
-        }
-        const pendingPhone = await this.prisma.pendingUser.findFirst({
-            where: {
-                phoneNumber: dto.phoneNumber
-            }
-        })
-        if (pendingPhone) {
-            throw new BadRequestException("Phone already pending verification")
+        if (dto.phoneNumber) {
+            const isPhoneNumberExist = await this.prisma.user.findUnique({
+                where: {
+                    phoneNumber: dto.phoneNumber
+                }
+            })
+            if (isPhoneNumberExist) throw new BadRequestException('Phone number already in use');
+
+            const pendingPhone = await this.prisma.pendingUser.findFirst({
+                where: {
+                    phoneNumber: dto.phoneNumber
+                }
+            })
+            if (pendingPhone) throw new BadRequestException('Phone number already pending verification');
         }
         const hashedPassword = await bcrypt.hash(dto.password, 10);
 

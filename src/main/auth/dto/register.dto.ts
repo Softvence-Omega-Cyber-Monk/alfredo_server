@@ -54,10 +54,12 @@ export class RegisterDto {
   @ApiProperty({
     example: '1234567890',
     description: 'Phone number',
+    required: false,
   })
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  phoneNumber:string
+  phoneNumber?: string;
 }
 
 export class SendOtpDto {
