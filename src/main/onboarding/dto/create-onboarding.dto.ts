@@ -169,4 +169,13 @@ export class CreateOnboardingDto {
   @IsOptional()
   @IsString()
   coverImage?: string;
+
+  @ApiPropertyOptional({ type: [String], description: 'Existing home image URLs' })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  @Transform(({ value }) =>
+    typeof value === 'string' ? value.split(',').map((v) => v.trim()) : value,
+  )
+  homeImages?: string[];
 }

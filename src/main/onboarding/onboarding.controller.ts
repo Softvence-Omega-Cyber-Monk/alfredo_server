@@ -194,6 +194,53 @@ export class OnboardingController {
     };
   }
 
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Delete('gallery-image')
+  @ApiOperation({ summary: 'Delete a specific image from the onboarding gallery' })
+  async deleteGalleryImage(
+    @User() user: any,
+    @Body('imageUrl') imageUrl: string,
+  ) {
+    if (!imageUrl) throw new BadRequestException('imageUrl is required');
+    const updated = await this.onboardingService.deleteGalleryImage(user.id, imageUrl);
+    return {
+      status: HttpStatus.OK,
+      success: true,
+      message: 'Image deleted successfully',
+      data: updated,
+    };
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('gallery')
+  @ApiOperation({ summary: 'Upload new images to the onboarding gallery' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(
+    FilesInterceptor('homeImages', 10, {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          cb(null, `${Date.now()}-${file.originalname}`);
+        },
+      }),
+    }),
+  )
+  async uploadGalleryImages(
+    @User() user: any,
+    @UploadedFiles() files: Express.Multer.File[],
+  ) {
+    if (!files || files.length === 0) throw new BadRequestException('No files uploaded');
+    const updated = await this.onboardingService.uploadGalleryImages(user.id, files);
+    return {
+      status: HttpStatus.OK,
+      success: true,
+      message: 'Images uploaded successfully',
+      data: updated,
+    };
+  }
+
   // ------------------ Amenities ------------------
   @UseGuards(JwtAuthGuard, RolesGuard)
   @ApiBearerAuth()

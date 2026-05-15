@@ -255,7 +255,7 @@ export class OnboardingService {
     if (!existing) throw new BadRequestException('Onboarding not found');
 
     // 2️⃣ Handle image uploads
-    const uploadedImages: string[] = existing.homeImages || [];
+    const uploadedImages: string[] = dto.homeImages || existing.homeImages || [];
     if (files?.length) {
       for (const file of files) {
         const url = await this.uploadFile(file, 'onboarding_images');
@@ -367,6 +367,48 @@ export class OnboardingService {
     });
 
     return updated;
+  }
+
+  async deleteGalleryImage(userId: string, imageUrl: string) {
+    const existing = await this.prisma.onboarding.findUnique({
+      where: { userId },
+    });
+    if (!existing) throw new BadRequestException('Onboarding not found');
+
+    const updatedImages = (existing.homeImages || []).filter(
+      (img) => img !== imageUrl,
+    );
+
+    return this.prisma.onboarding.update({
+      where: { userId },
+      data: {
+        homeImages: updatedImages,
+      },
+    });
+  }
+
+  async uploadGalleryImages(userId: string, files: Express.Multer.File[]) {
+    const existing = await this.prisma.onboarding.findUnique({
+      where: { userId },
+    });
+    if (!existing) throw new BadRequestException('Onboarding not found');
+
+    const uploadedUrls: string[] = [];
+    if (files?.length) {
+      for (const file of files) {
+        const url = await this.uploadFile(file, 'onboarding_images');
+        uploadedUrls.push(url);
+      }
+    }
+
+    const updatedImages = [...(existing.homeImages || []), ...uploadedUrls];
+
+    return this.prisma.onboarding.update({
+      where: { userId },
+      data: {
+        homeImages: updatedImages,
+      },
+    });
   }
 
   // -------------------- Amenity CRUD --------------------
