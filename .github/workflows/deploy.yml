@@ -22,7 +22,6 @@ jobs:
         run: npx prisma generate
       - name: Build Project
         run: npm run build
-
   build-and-push:
     name: Build and Push Docker Image
     runs-on: ubuntu-latest
@@ -44,7 +43,6 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PACKAGE_NAME }}:latest
-
   deploy:
     name: Deploy
     runs-on: ubuntu-latest
@@ -52,31 +50,28 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - uses: actions/checkout@v4
-
       - name: Copy Compose File
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
-          username: root
+          username: juliano
           key: ${{ secrets.VPS_SSH_KEY }}
           source: 'compose.yaml'
-          target: '~/alfredo_backend'
+          target: '/home/juliano/alfredo_server'
           timeout: 30s
           command_timeout: 10m
-
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
-          username: root
+          username: juliano
           key: ${{ secrets.VPS_SSH_KEY }}
           command_timeout: 30m
           timeout: 30m
           script: |
-            cd ~/alfredo_backend
-            echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-            docker compose pull
-            docker compose down --remove-orphans
-            docker compose up -d
-            docker system prune -f
-
+            cd /root/alfredo_server
+            echo "${{ secrets.DOCKER_PASSWORD }}" | sudo docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+            sudo docker compose pull
+            sudo docker compose down --remove-orphans
+            sudo docker compose up -d
+            sudo docker system prune -f
