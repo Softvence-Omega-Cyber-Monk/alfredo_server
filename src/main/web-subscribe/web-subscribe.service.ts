@@ -30,11 +30,11 @@ export class WebSubscribeService {
             <td style="padding: 8px; border-bottom: 1px solid #ddd;">${createWebSubscribeDto.email}</td>
           </tr>
           ${
-            createWebSubscribeDto.email
+            createWebSubscribeDto.name
               ? `
           <tr>
             <td style="font-weight: bold; padding: 8px; border-bottom: 1px solid #ddd;">Name:</td>
-            <td style="padding: 8px; border-bottom: 1px solid #ddd;">${createWebSubscribeDto.email}</td>
+            <td style="padding: 8px; border-bottom: 1px solid #ddd;">${createWebSubscribeDto.name}</td>
           </tr>
           `
               : ''
@@ -66,6 +66,19 @@ export class WebSubscribeService {
   findAll() {
    const response= this.prisma.web_subscribe.findMany();
    return response;
+  }
+
+  async update(id: string, data: { name?: string; email?: string }) {
+    return this.prisma.web_subscribe.update({
+      where: { id },
+      data,
+    });
+  }
+
+  async remove(id: string) {
+    return this.prisma.web_subscribe.delete({
+      where: { id },
+    });
   }
 
 

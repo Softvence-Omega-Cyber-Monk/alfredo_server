@@ -1,12 +1,20 @@
-import { ApiProperty } from "@nestjs/swagger";
-import { IsNotEmpty, IsString } from "class-validator";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class CreateWebSubscribeDto {
+    @ApiPropertyOptional({
+        example: 'John Doe',
+        description: 'Name of the subscriber',
+    })
+    @IsOptional()
+    @IsString()
+    name?: string;
+
     @ApiProperty({
         example: 'John@gmail.com',
         description: 'provide your email',
     })
-   @IsString()
+    @IsString()
     email: string;
 }
 

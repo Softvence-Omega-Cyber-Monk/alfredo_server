@@ -27,6 +27,25 @@ export class WebSubscribeController {
     }
   }
 
+  @Patch(':id')
+  async update(@Param('id') id: string, @Body() body: { name?: string; email?: string }) {
+    const response = await this.webSubscribeService.update(id, body);
+    return {
+      status: 200,
+      message: 'Subscriber updated successfully',
+      data: response,
+    };
+  }
+
+  @Delete(':id')
+  async remove(@Param('id') id: string) {
+    await this.webSubscribeService.remove(id);
+    return {
+      status: 200,
+      message: 'Subscriber deleted successfully',
+    };
+  }
+
   @Post('/promotional-mail')
     @ApiBody({ type: CreatePromotionalEmailDto })
 

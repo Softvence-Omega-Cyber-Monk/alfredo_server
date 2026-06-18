@@ -365,6 +365,7 @@ model KeyPoint {
 
 model Web_subscribe {
   id    String @id @default(uuid())
+  name  String?
   email String
 }
 
