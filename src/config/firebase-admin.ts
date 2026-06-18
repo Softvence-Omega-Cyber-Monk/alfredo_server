@@ -6,7 +6,13 @@ const serviceAccountPath = [
     path.resolve(process.cwd(), 'firebase-service-account.json'),
     path.resolve(process.cwd(), 'src', 'config', 'firebase-service-account.json'),
     '/app/src/config/firebase-service-account.json', // Explicit Docker path
-].find(p => fs.existsSync(p));
+].find(p => {
+    try {
+        return fs.existsSync(p) && fs.statSync(p).isFile();
+    } catch {
+        return false;
+    }
+});
 
 if (serviceAccountPath) {
     try {
