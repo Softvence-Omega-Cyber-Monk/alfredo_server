@@ -6,9 +6,10 @@ import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
 import { MesageAlertMailTemplatesService } from '../mail/messageAlert';
 import { NotificationModule } from '../notification/notification.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [NotificationModule],
+  imports: [NotificationModule, ConfigModule],
   providers: [ChatService, 
      ChatGateway,
      PrismaService,
@@ -16,6 +17,6 @@ import { NotificationModule } from '../notification/notification.module';
      MesageAlertMailTemplatesService
     ],
   controllers: [ChatController],
-  exports: [ChatGateway],
+  exports: [ChatGateway, ChatService],
 })
 export class ChatModule {}

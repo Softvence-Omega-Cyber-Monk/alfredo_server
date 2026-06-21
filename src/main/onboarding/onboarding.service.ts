@@ -9,7 +9,7 @@ import { CreateTransportDto } from './dto/create-transport.dto';
 import { CreateAmenityDto } from './dto/create-animity.dto';
 import { CreateSurroundingDto } from './dto/create-sorrouding.dto';
 import { BadgeService } from '../badge/badge.service';
-import { BadgeType } from '@prisma/client';
+import { BadgeType, Gender } from '@prisma/client';
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB Cloudinary limit
 
@@ -78,7 +78,19 @@ export class OnboardingService {
     dto: any,
     files?: Express.Multer.File[],
   ) {
-    // 1️ Upload images if any
+    // 1 Check if onboarding already exists
+    const existing = await this.prisma.onboarding.findUnique({
+      where: { userId },
+    });
+    if (existing) {
+      return this.updateOnboarding(userId, dto, files);
+    }
+
+    // 2️ Ensure user exists
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new BadRequestException('User not found');
+
+    // 3️ Upload images if any
     const uploadedImages: string[] = [];
     if (files?.length) {
       for (const file of files) {
@@ -87,11 +99,7 @@ export class OnboardingService {
       }
     }
 
-    // 2️ Ensure user exists
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new BadRequestException('User not found');
-
-    // 3️ Validate relation IDs exist
+    // 4️ Validate relation IDs exist
     const validAmenities = dto.amenities?.length
       ? await this.prisma.amenity.findMany({
           where: { id: { in: dto.amenities } },
@@ -108,17 +116,22 @@ export class OnboardingService {
         })
       : [];
 
-    // 4 Set default booleans
+    // 5 Set default booleans
     const isMainResidence = dto.isMainResidence ?? false;
     const isTravelWithPets = dto.isTravelWithPets ?? false;
     const isAvailableForExchange = true;
 
-    //  Check if onboarding already exists
-    const existing = await this.prisma.onboarding.findUnique({
-      where: { userId },
-    });
-    if (existing) {
-      return this.updateOnboarding(userId, dto, files);
+    // Normalize gender enum
+    let gender: Gender | null | undefined = undefined;
+    if (typeof dto.gender === 'string') {
+      const normalized = dto.gender.toUpperCase().replace(/[-\s]/g, '_');
+      if (['MALE', 'FEMALE', 'NOT_SPECIFIED'].includes(normalized)) {
+        gender = normalized as Gender;
+      }
+    } else if (dto.gender === null) {
+      gender = null;
+    } else if (dto.gender !== undefined) {
+      gender = dto.gender as Gender;
     }
 
     // 6️ Create onboarding safely
@@ -129,7 +142,7 @@ export class OnboardingService {
         destination: dto.destination,
         ageRange: dto.ageRange,
         maxPeople: dto.maxPeople,
-        gender: dto.gender,
+        gender: gender,
         employmentStatus: dto.employmentStatus,
         travelType: dto.travelType,
         favoriteDestinations: Array.isArray(dto.favoriteDestinations)
@@ -255,7 +268,16 @@ export class OnboardingService {
     if (!existing) throw new BadRequestException('Onboarding not found');
 
     // 2️⃣ Handle image uploads
-    const uploadedImages: string[] = dto.homeImages || existing.homeImages || [];
+    let uploadedImages: string[] = [];
+    if (dto.homeImages) {
+      uploadedImages = Array.isArray(dto.homeImages)
+        ? dto.homeImages.filter((img: any) => typeof img === 'string')
+        : typeof dto.homeImages === 'string'
+          ? [dto.homeImages]
+          : [];
+    } else {
+      uploadedImages = existing.homeImages || [];
+    }
     if (files?.length) {
       for (const file of files) {
         const url = await this.uploadFile(file, 'onboarding_images');
@@ -327,6 +349,21 @@ export class OnboardingService {
         ? Boolean(dto.isAvailableForExchange)
         : existing.isAvailableForExchange;
 
+    // Normalize gender enum
+    let gender: Gender | null | undefined = undefined;
+    if (typeof dto.gender === 'string') {
+      const normalized = dto.gender.toUpperCase().replace(/[-\s]/g, '_');
+      if (['MALE', 'FEMALE', 'NOT_SPECIFIED'].includes(normalized)) {
+        gender = normalized as Gender;
+      }
+    } else if (dto.gender === null) {
+      gender = null;
+    } else if (dto.gender !== undefined) {
+      gender = dto.gender;
+    } else {
+      gender = existing.gender;
+    }
+
     // 6️⃣ Update record
     const updated = await this.prisma.onboarding.update({
       where: { userId },
@@ -335,7 +372,7 @@ export class OnboardingService {
         destination: dto.destination ?? existing.destination,
         ageRange: dto.ageRange ?? existing.ageRange,
         maxPeople: dto.maxPeople ?? existing.maxPeople,
-        gender: dto.gender ?? existing.gender,
+        gender: gender,
         employmentStatus: dto.employmentStatus ?? existing.employmentStatus,
         travelType: travelTypeArray,
         favoriteDestinations: favoriteDestinationsArray,

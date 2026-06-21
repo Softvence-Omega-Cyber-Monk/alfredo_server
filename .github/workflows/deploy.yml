@@ -69,7 +69,8 @@ jobs:
           command_timeout: 30m
           timeout: 30m
           script: |
-            cd /root/alfredo_server
+            set -e
+            cd /home/juliano/alfredo_server
             echo "${{ secrets.DOCKER_PASSWORD }}" | sudo docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
             sudo docker compose pull
             sudo docker compose down --remove-orphans

@@ -56,6 +56,9 @@ export class ChatGateway
       toUserId: string;
       content: string;
       exchangeRequestId?: string;
+      attachmentUrl?: string;
+      attachmentType?: string;
+      attachmentName?: string;
     },
     @ConnectedSocket() client: Socket,
   ) {
@@ -66,12 +69,25 @@ export class ChatGateway
     }
 
     try {
+      // Check if sending is blocked
+      const blocked = await this.chatService.isSendBlocked(data.senderId, data.toUserId);
+      if (blocked) {
+        client.emit('error', {
+          type: 'BLOCKED',
+          message: 'You have been blocked by this user',
+        });
+        return;
+      }
+
       // Save message in the database
       const savedMessage = await this.chatService.saveMessage({
         senderId: data.senderId,
         receiverId: data.toUserId,
         content: data.content,
         exchangeRequestId: data.exchangeRequestId,
+        attachmentUrl: data.attachmentUrl,
+        attachmentType: data.attachmentType,
+        attachmentName: data.attachmentName,
       });
 
       console.log('Message saved:', savedMessage);
@@ -83,7 +99,56 @@ export class ChatGateway
       client.emit('receive_message', savedMessage);
     } catch (error) {
       console.error('Error saving message:', error);
-      client.emit('error', { message: 'Failed to save message' });
+      if (error.status === 403) {
+        client.emit('error', {
+          type: 'BLOCKED',
+          message: error.message || 'You have been blocked by this user',
+        });
+      } else {
+        client.emit('error', { message: 'Failed to save message' });
+      }
+    }
+  }
+
+  /**
+   * Listen for "mark_read" events from clients
+   * When a user opens a chat, mark all messages from the other user as read
+   */
+  @SubscribeMessage('mark_read')
+  async handleMarkRead(
+    @MessageBody()
+    data: {
+      userId: string;     // The user who is reading (current user)
+      senderId: string;   // The user whose messages are being read
+    },
+    @ConnectedSocket() client: Socket,
+  ) {
+    if (!data.userId || !data.senderId) {
+      client.emit('error', { message: 'Invalid mark_read payload' });
+      return;
+    }
+
+    try {
+      const result = await this.chatService.markMessagesAsRead(
+        data.userId,
+        data.senderId,
+      );
+
+      if (result.count > 0) {
+        // Notify the sender that their messages have been read
+        this.server.to(data.senderId).emit('message_read', {
+          readBy: data.userId,
+          messageIds: result.messageIds,
+        });
+
+        // Also notify the reader for local UI update
+        client.emit('message_read', {
+          readBy: data.userId,
+          messageIds: result.messageIds,
+        });
+      }
+    } catch (error) {
+      console.error('Error marking messages as read:', error);
     }
   }
 }

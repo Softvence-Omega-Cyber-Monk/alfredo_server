@@ -170,7 +170,14 @@ export class OnboardingController {
     type: CreateOnboardingDto,
   })
   @UseInterceptors(
-    FileFieldsInterceptor([{ name: 'homeImages', maxCount: 10 }]),
+    FileFieldsInterceptor([{ name: 'homeImages', maxCount: 10 }], {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (req, file, cb) => {
+          cb(null, `${Date.now()}-${file.originalname}`);
+        },
+      }),
+    }),
   )
   async updateOnboarding(
     @User() user: any,
