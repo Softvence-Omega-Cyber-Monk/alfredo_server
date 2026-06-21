@@ -70,9 +70,9 @@ jobs:
           timeout: 30m
           script: |
             set -e
-            cd /home/juliano/alfredo_server
+            sudo cp /home/juliano/alfredo_server/compose.yaml /root/alfredo_server/compose.yaml
             echo "${{ secrets.DOCKER_PASSWORD }}" | sudo docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-            sudo docker-compose pull
-            sudo docker-compose down --remove-orphans
-            sudo docker-compose up -d
+            sudo docker-compose --project-directory /root/alfredo_server pull
+            sudo docker-compose --project-directory /root/alfredo_server down --remove-orphans
+            sudo docker-compose --project-directory /root/alfredo_server up -d
             sudo docker system prune -f
