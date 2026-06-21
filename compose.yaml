@@ -47,6 +47,20 @@ services:
     networks:
       - app-network
 
+  frontend:
+    image: vacanza/alfredo-dashboard:latest
+    container_name: alfredo_frontend
+    restart: always
+    ports:
+      - "127.0.0.1:5000:3000"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+    networks:
+      - app-network
+
 volumes:
   postgres_data:
     driver: local
