@@ -143,16 +143,30 @@ getSingleUser(@Param('id') userId: string) {
 @Roles(Role.Admin)
 @ApiBearerAuth()
 @ApiBody({ type: GiveBadgeDto })
-giveBadgeToUser(
-  @Param('id') id: string,
-  @Body() dto: GiveBadgeDto,
-) {
-  try {
-    return this.userService.giveBadgesToUser(id, dto.badgetype);
-  } catch (error) {
-    throw new InternalServerErrorException(error.message);
+  giveBadgeToUser(
+    @Param('id') id: string,
+    @Body() dto: GiveBadgeDto,
+  ) {
+    try {
+      return this.userService.giveBadgesToUser(id, dto.badgetype);
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
   }
-}
 
-
+  @Patch('subscription/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.Admin, Role.SuperAdmin)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Manually update user subscription' })
+  async updateSubscription(
+    @Param('id') id: string,
+    @Body() body: { isSubscribed: boolean; planId?: string },
+  ) {
+    try {
+      return await this.userService.updateSubscription(id, body.isSubscribed, body.planId);
+    } catch (error) {
+      throw new InternalServerErrorException(error.message);
+    }
+  }
 }

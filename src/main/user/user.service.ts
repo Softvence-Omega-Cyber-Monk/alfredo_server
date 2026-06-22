@@ -245,4 +245,81 @@ async updateMe(userId: string, dto: UpdateUserDto, file?: Express.Multer.File) {
     const badge=await this.badgeService.awardBadgeToUser(userId,badgeType)
     return badge
   }
+
+  async updateSubscription(userId: string, isSubscribed: boolean, planId?: string) {
+    const user = await this.prisma.user.findFirst({
+      where: { id: userId },
+    });
+    if (!user) {
+      throw new NotFoundException("User not found");
+    }
+
+    if (isSubscribed) {
+      if (!planId) {
+        throw new BadRequestException("Plan ID is required to subscribe");
+      }
+      const plan = await this.prisma.plan.findUnique({
+        where: { id: planId },
+        include: { translations: true },
+      });
+      if (!plan) {
+        throw new NotFoundException("Plan not found");
+      }
+
+      // Check duration
+      const durationDays = plan.translations[0]?.planType === 'YEARLY' ? 365 : 730;
+
+      // Update user
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { isSubscribed: true },
+      });
+
+      // Deactivate any existing active subscriptions first
+      await this.prisma.subscription.updateMany({
+        where: { userId, status: 'ACTIVE' },
+        data: { status: 'EXPIRED' },
+      });
+
+      // Create new subscription
+      const subscription = await this.prisma.subscription.create({
+        data: {
+          userId,
+          planId,
+          startDate: new Date(),
+          endDate: new Date(Date.now() + durationDays * 864e5),
+          status: 'ACTIVE',
+          payments: {
+            create: {
+              amount: plan.price,
+              currency: 'USD',
+              status: 'SUCCESS',
+            },
+          },
+        },
+      });
+
+      // Award badge
+      if (plan.translations[0]?.planType === "TWO_YEARLY") {
+        await this.badgeService.awardBadgeToUser(userId, 'PREMIUM_TRAVELER' as any);
+      } else {
+        await this.badgeService.awardBadgeToUser(userId, 'TRAVELER' as any);
+      }
+
+      return subscription;
+    } else {
+      // Unsubscribe: update user and deactivate active subscriptions
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { isSubscribed: false },
+      });
+
+      await this.prisma.subscription.updateMany({
+        where: { userId, status: 'ACTIVE' },
+        data: { status: 'EXPIRED' },
+      });
+
+      return { message: "User unsubscribed successfully" };
+    }
+  }
 }
