@@ -149,6 +149,9 @@ export class AuthController {
     @Body() dto: FacebookLoginDto,
     @Req() req: any,
   ) {
+     console.log('===== FACEBOOK LOGIN HIT =====');
+  console.log('ID TOKEN EXISTS:', !!dto?.idToken);
+  console.log('TOKEN LENGTH:', dto?.idToken?.length);
     const ipAddress = req.ip || req.header('x-forwarded-for')?.split(',')[0] || 'Unknown';
     const result = await this.authService.facebookLogin(dto.idToken, ipAddress);
     return {
