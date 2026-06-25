@@ -9,6 +9,7 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 import { JwtAuthGuard } from 'src/common/guard/jwt.guard';
 import { GoogleLoginDto } from './dto/google-login.dto';
 import { FacebookLoginDto } from './dto/facebook-login.dto';
+// import { FacebookLoginDto } from './dto/facebook-login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -142,23 +143,46 @@ export class AuthController {
     };
   }
 
-  @HttpCode(HttpStatus.OK)
-  @Post('facebook')
-  @ApiOperation({ summary: 'Login or register with Facebook via Firebase' })
-  async facebookLogin(
-    @Body() dto: FacebookLoginDto,
-    @Req() req: any,
-  ) {
-     console.log('===== FACEBOOK LOGIN HIT =====');
-  console.log('ID TOKEN EXISTS:', !!dto?.idToken);
-  console.log('TOKEN LENGTH:', dto?.idToken?.length);
-    const ipAddress = req.ip || req.header('x-forwarded-for')?.split(',')[0] || 'Unknown';
-    const result = await this.authService.facebookLogin(dto.idToken, ipAddress);
-    return {
-      success: true,
-      message: 'Facebook login successful',
-      ...result,
-    };
-  }
+  // @HttpCode(HttpStatus.OK)
+  // @Post('facebook')
+  // @ApiOperation({ summary: 'Login or register with Facebook via Firebase' })
+  // async facebookLogin(
+  //   @Body() dto: FacebookLoginDto,
+  //   @Req() req: any,
+  // ) {
+  //    console.log('===== FACEBOOK LOGIN HIT =====');
+  // console.log('ID TOKEN EXISTS:', !!dto?.idToken);
+  // console.log('TOKEN LENGTH:', dto?.idToken?.length);
+  //   const ipAddress = req.ip || req.header('x-forwarded-for')?.split(',')[0] || 'Unknown';
+  //   const result = await this.authService.facebookLogin(dto.idToken, ipAddress);
+  //   return {
+  //     success: true,
+  //     message: 'Facebook login successful',
+  //     ...result,
+  //   };
+  // }
+
+
+
+@HttpCode(HttpStatus.OK)
+@Post('facebook')
+@ApiOperation({ summary: 'Login or register with Facebook' })
+async facebookLogin(@Body() dto: FacebookLoginDto, @Req() req: any) {
+  console.log('===== FACEBOOK LOGIN HIT =====');
+  console.log('ACCESS TOKEN EXISTS:', !!dto?.accessToken);
+  const ipAddress =
+    req.ip ||
+    req.header('x-forwarded-for')?.split(',')[0] ||
+    'Unknown';
+  const result = await this.authService.facebookLogin(
+    dto.accessToken,
+    ipAddress,
+  );
+  return {
+    success: true,
+    message: 'Facebook login successful',
+    ...result,
+  };
+}
 
 }

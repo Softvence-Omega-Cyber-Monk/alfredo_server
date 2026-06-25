@@ -679,98 +679,196 @@ export class AuthService {
         return token;
     }
 
-    async facebookLogin(idToken: string, ipAddress: string) {
-        // 1. Verify Firebase ID token
-        if (firebaseAdmin.apps.length === 0) {
-            throw new InternalServerErrorException('Firebase Admin is not initialized on the server');
-        }
-        let decodedToken: admin.auth.DecodedIdToken;
-        try {
-            decodedToken = await firebaseAdmin.auth().verifyIdToken(idToken);
-        } catch (error) {
-            console.error('Firebase token verification failed:', error.message);
-            throw new UnauthorizedException('Invalid or expired Facebook token');
-        }
+    // async facebookLogin(idToken: string, ipAddress: string) {
+    //     // 1. Verify Firebase ID token
+    //     if (firebaseAdmin.apps.length === 0) {
+    //         throw new InternalServerErrorException('Firebase Admin is not initialized on the server');
+    //     }
+    //     let decodedToken: admin.auth.DecodedIdToken;
+    //     try {
+    //         decodedToken = await firebaseAdmin.auth().verifyIdToken(idToken);
+    //     } catch (error) {
+    //         console.error('Firebase token verification failed:', error.message);
+    //         throw new UnauthorizedException('Invalid or expired Facebook token');
+    //     }
 
-        const { email, name, picture } = decodedToken;
+    //     const { email, name, picture } = decodedToken;
 
-        if (!email) {
-            throw new BadRequestException('Facebook account does not have an email');
-        }
+    //     if (!email) {
+    //         throw new BadRequestException('Facebook account does not have an email');
+    //     }
 
-        // 2. Find or create user
-        let user = await this.prisma.user.findUnique({
-            where: { email },
-            include: { achievementBadges: true },
-        });
+    //     // 2. Find or create user
+    //     let user = await this.prisma.user.findUnique({
+    //         where: { email },
+    //         include: { achievementBadges: true },
+    //     });
 
-        if (!user) {
-            // Create a new user for Facebook sign-in
-            const randomPassword = crypto.randomBytes(32).toString('hex');
-            const hashedPassword = await bcrypt.hash(randomPassword, 10);
+    //     if (!user) {
+    //         // Create a new user for Facebook sign-in
+    //         const randomPassword = crypto.randomBytes(32).toString('hex');
+    //         const hashedPassword = await bcrypt.hash(randomPassword, 10);
 
-            user = await this.prisma.user.create({
-                data: {
-                    fullName: name || email.split('@')[0],
-                    email,
-                    password: hashedPassword,
-                    photo: picture || null,
-                },
-                include: { achievementBadges: true },
-            });
-        } else {
-            // Update existing user with Facebook info if missing or different
-            await this.prisma.user.update({
-                where: { id: user.id },
-                data: {
-                    photo: user.photo || picture || undefined,
-                    fullName: user.fullName || name || undefined,
-                },
-            });
-        }
+    //         user = await this.prisma.user.create({
+    //             data: {
+    //                 fullName: name || email.split('@')[0],
+    //                 email,
+    //                 password: hashedPassword,
+    //                 photo: picture || null,
+    //             },
+    //             include: { achievementBadges: true },
+    //         });
+    //     } else {
+    //         // Update existing user with Facebook info if missing or different
+    //         await this.prisma.user.update({
+    //             where: { id: user.id },
+    //             data: {
+    //                 photo: user.photo || picture || undefined,
+    //                 fullName: user.fullName || name || undefined,
+    //             },
+    //         });
+    //     }
 
-        // 3. Check suspension
-        if (user.isSuspended) {
-            throw new ForbiddenException(
-                `Account suspended: ${user.suspensionReason || 'Contact support for details.'}`,
-            );
-        }
+    //     // 3. Check suspension
+    //     if (user.isSuspended) {
+    //         throw new ForbiddenException(
+    //             `Account suspended: ${user.suspensionReason || 'Contact support for details.'}`,
+    //         );
+    //     }
 
-        // 4. Session management
-        const MAX_SESSIONS = 3;
+    //     // 4. Session management
+    //     const MAX_SESSIONS = 3;
 
-        const existingSession = await this.prisma.activeSession.findFirst({
-            where: { userId: user.id, ipAddress },
-        });
+    //     const existingSession = await this.prisma.activeSession.findFirst({
+    //         where: { userId: user.id, ipAddress },
+    //     });
 
-        if (!existingSession) {
-            const uniqueSessionCount = await this.prisma.activeSession.count({
-                where: { userId: user.id },
-            });
+    //     if (!existingSession) {
+    //         const uniqueSessionCount = await this.prisma.activeSession.count({
+    //             where: { userId: user.id },
+    //         });
 
-            if (uniqueSessionCount >= MAX_SESSIONS) {
-                throw new ForbiddenException(
-                    `Login denied. You are already logged in on ${MAX_SESSIONS} devices. Please log out from another device first.`,
-                );
-            }
+    //         if (uniqueSessionCount >= MAX_SESSIONS) {
+    //             throw new ForbiddenException(
+    //                 `Login denied. You are already logged in on ${MAX_SESSIONS} devices. Please log out from another device first.`,
+    //             );
+    //         }
 
-            await this.prisma.activeSession.create({
-                data: {
-                    userId: user.id,
-                    ipAddress,
-                    sessionToken: await generateUniqueSessionId(),
-                },
-            });
-        } else {
-            await this.prisma.activeSession.update({
-                where: { id: existingSession.id },
-                data: { lastActivity: new Date() },
-            });
-        }
+    //         await this.prisma.activeSession.create({
+    //             data: {
+    //                 userId: user.id,
+    //                 ipAddress,
+    //                 sessionToken: await generateUniqueSessionId(),
+    //             },
+    //         });
+    //     } else {
+    //         await this.prisma.activeSession.update({
+    //             where: { id: existingSession.id },
+    //             data: { lastActivity: new Date() },
+    //         });
+    //     }
 
-        // 5. Return JWT token
-        const token = await this.signToken(user);
-        return token;
+    //     // 5. Return JWT token
+    //     const token = await this.signToken(user);
+    //     return token;
+    // }
+
+    async facebookLogin(accessToken: string, ipAddress: string) {
+  // 1. Verify token with Facebook Graph API
+  let fbUser: any;
+  try {
+    const fbResponse = await fetch(
+      `https://graph.facebook.com/me?fields=id,name,email,picture&access_token=${accessToken}`
+    );
+    fbUser = await fbResponse.json();
+
+    if (!fbUser.id || fbUser.error) {
+      throw new Error(fbUser.error?.message || 'Invalid token');
     }
+  } catch (error) {
+    console.error('Facebook token verification failed:', error.message);
+    throw new UnauthorizedException('Invalid or expired Facebook token');
+  }
+
+  const email = fbUser.email;
+  const name = fbUser.name;
+  const picture = fbUser.picture?.data?.url;
+
+  if (!email) {
+    throw new BadRequestException(
+      'Facebook account does not have an email. Please grant email permission.'
+    );
+  }
+
+  // 2. Find or create user
+  let user = await this.prisma.user.findUnique({
+    where: { email },
+    include: { achievementBadges: true },
+  });
+
+  if (!user) {
+    const randomPassword = crypto.randomBytes(32).toString('hex');
+    const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
+    user = await this.prisma.user.create({
+      data: {
+        fullName: name || email.split('@')[0],
+        email,
+        password: hashedPassword,
+        photo: picture || null,
+      },
+      include: { achievementBadges: true },
+    });
+  } else {
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        photo: user.photo || picture || undefined,
+        fullName: user.fullName || name || undefined,
+      },
+    });
+  }
+
+  // 3. Check suspension
+  if (user.isSuspended) {
+    throw new ForbiddenException(
+      `Account suspended: ${user.suspensionReason || 'Contact support for details.'}`
+    );
+  }
+
+  // 4. Session management
+  const MAX_SESSIONS = 3;
+  const existingSession = await this.prisma.activeSession.findFirst({
+    where: { userId: user.id, ipAddress },
+  });
+
+  if (!existingSession) {
+    const uniqueSessionCount = await this.prisma.activeSession.count({
+      where: { userId: user.id },
+    });
+
+    if (uniqueSessionCount >= MAX_SESSIONS) {
+      throw new ForbiddenException(
+        `Login denied. You are already logged in on ${MAX_SESSIONS} devices.`
+      );
+    }
+
+    await this.prisma.activeSession.create({
+      data: {
+        userId: user.id,
+        ipAddress,
+        sessionToken: await generateUniqueSessionId(),
+      },
+    });
+  } else {
+    await this.prisma.activeSession.update({
+      where: { id: existingSession.id },
+      data: { lastActivity: new Date() },
+    });
+  }
+
+  // 5. Return JWT
+  return this.signToken(user);
+}
 
 }

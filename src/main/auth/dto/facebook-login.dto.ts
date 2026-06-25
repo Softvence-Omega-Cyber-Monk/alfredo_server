@@ -1,9 +1,6 @@
-import { IsNotEmpty, IsString } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsString } from 'class-validator';
 
 export class FacebookLoginDto {
-    @ApiProperty({ description: 'Firebase ID token from Facebook sign-in' })
-    @IsString()
-    @IsNotEmpty()
-    idToken: string;
+  @IsString()
+  accessToken: string;
 }
