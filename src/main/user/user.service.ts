@@ -125,12 +125,13 @@ async updateMe(userId: string, dto: UpdateUserDto, file?: Express.Multer.File) {
     where: { id: userId },
     data: {
       fullName: dto.fullName ?? undefined,
-      phoneNumber: dto.phoneNumber ?? undefined,
+      // Treat empty string phoneNumber as undefined to avoid @unique constraint conflicts
+      phoneNumber: (dto.phoneNumber && dto.phoneNumber.trim() !== '') ? dto.phoneNumber : undefined,
       city: dto.city ?? undefined,
       dateOfBirth: dto.dateOfBirth ?? undefined,
       identification: dto.identification ?? undefined,
       languagePreference: dto.languagePreference ?? undefined,
-      photo: photoUrl ?? (typeof dto.photo === 'string' ? dto.photo : undefined),
+      photo: photoUrl ?? (typeof dto.photo === 'string' && dto.photo.trim() !== '' ? dto.photo : undefined),
     },
   });
 
