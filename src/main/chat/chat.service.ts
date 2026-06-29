@@ -378,14 +378,26 @@ export class ChatService {
     size: number;
   }> {
     const mimeType = file.mimetype || 'application/octet-stream';
-    const fileType = mimeType.startsWith('image/') ? 'image' : 'file';
+    let fileType: string;
+    let resourceType: string;
+
+    if (mimeType.startsWith('image/')) {
+      fileType = 'image';
+      resourceType = 'image';
+    } else if (mimeType.startsWith('video/')) {
+      fileType = 'video';
+      resourceType = 'video';
+    } else {
+      fileType = 'file';
+      resourceType = 'raw';
+    }
 
     // Upload to Cloudinary
     const result = await new Promise<any>((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         {
           folder: 'chat-attachments',
-          resource_type: fileType === 'image' ? 'image' : 'raw',
+          resource_type: resourceType as any,
         },
         (error, result) => {
           if (error) reject(error);

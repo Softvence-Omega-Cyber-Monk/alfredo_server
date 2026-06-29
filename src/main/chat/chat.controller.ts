@@ -241,13 +241,17 @@ export class ChatController {
   })
   @UseInterceptors(
     FileInterceptor('file', {
-      limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+      limits: { fileSize: 50 * 1024 * 1024 }, // 50MB (for video support)
       fileFilter: (req, file, callback) => {
         const allowedMimes = [
           'image/jpeg',
           'image/png',
           'image/gif',
           'image/webp',
+          'video/mp4',
+          'video/webm',
+          'video/ogg',
+          'video/quicktime',
           'application/pdf',
           'application/msword',
           'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
