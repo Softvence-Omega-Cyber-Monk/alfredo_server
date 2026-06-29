@@ -25,4 +25,12 @@ export class CreateExchangeRequestDto {
   @IsOptional()
   @IsString()
   message?: string;
+
+  @ApiProperty({ description: 'Exchange start date' })
+  @IsOptional()
+  exchangeStartDate?: Date;
+
+  @ApiProperty({ description: 'Exchange end date' })
+  @IsOptional()
+  exchangeEndDate?: Date;
 }

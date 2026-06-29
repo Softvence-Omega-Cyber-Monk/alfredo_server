@@ -272,6 +272,8 @@ model ExchangeRequest {
   toPropertyId   String
   status         ExchangeStatus @default(PENDING)
   message        String?
+  exchangeStartDate DateTime?
+  exchangeEndDate   DateTime?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
   chatMessages   ChatMessage[]

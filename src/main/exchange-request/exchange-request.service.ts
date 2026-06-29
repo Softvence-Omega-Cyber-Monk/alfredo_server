@@ -47,6 +47,8 @@ async create(createDto: CreateExchangeRequestDto) {
       toUserId: createDto.toUserId,
       fromPropertyId: createDto.fromPropertyId,
       toPropertyId: createDto.toPropertyId,
+      exchangeStartDate: createDto.exchangeStartDate ? new Date(createDto.exchangeStartDate) : null,
+      exchangeEndDate: createDto.exchangeEndDate ? new Date(createDto.exchangeEndDate) : null,
     },
     include: {
       fromUser: true,
