@@ -6,6 +6,7 @@ import { MesageAlertMailTemplatesService } from '../mail/messageAlert';
 import { NotificationService } from '../notification/notification.service';
 import { cloudinary } from 'src/config/cloudinary.config';
 import * as streamifier from 'streamifier';
+import { ReportUserDto } from './dto/report-user.dto';
 
 @Injectable()
 export class ChatService {
@@ -413,5 +414,37 @@ export class ChatService {
       name: file.originalname,
       size: file.size,
     };
+  }
+
+  // ==================== REPORT USER ====================
+
+  async reportUser(reporterId: string, targetId: string, dto: ReportUserDto) {
+    const reporter = await this.prisma.user.findUnique({
+      where: { id: reporterId },
+    });
+    const target = await this.prisma.user.findUnique({
+      where: { id: targetId },
+    });
+
+    if (!target) {
+      throw new BadRequestException('Reported user not found');
+    }
+
+    const emailHtml = `
+      <h2>New User Report Submitted</h2>
+      <p><strong>Reporter:</strong> ${reporter?.fullName || 'Unknown'} (${reporter?.email || 'N/A'}) [ID: ${reporterId}]</p>
+      <p><strong>Reported User:</strong> ${target.fullName} (${target.email}) [ID: ${targetId}]</p>
+      <p><strong>Reason:</strong> ${dto.reason}</p>
+      ${dto.details ? `<p><strong>Additional Details:</strong><br/>${dto.details}</p>` : ''}
+      <p><strong>Time:</strong> ${new Date().toISOString()}</p>
+    `;
+
+    await this.mailService.sendMail({
+      to: 'info@vacanzagreece.gr',
+      subject: `User Report: ${target.fullName} reported for ${dto.reason}`,
+      html: emailHtml,
+    });
+
+    return { message: 'Report submitted successfully' };
   }
 }

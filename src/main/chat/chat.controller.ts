@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { ChatGateway } from './chat.gateway';
+import { ReportUserDto } from './dto/report-user.dto';
 import { ChatMessage } from '@prisma/client';
 import {
   ApiTags,
@@ -135,6 +136,20 @@ export class ChatController {
     @Param('targetUserId') targetUserId: string,
   ) {
     return this.chatService.blockUser(user.id, targetUserId);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('report/:targetUserId')
+  @ApiOperation({ summary: 'Report a user' })
+  @ApiParam({ name: 'targetUserId', description: 'ID of the user to report' })
+  @ApiResponse({ status: 201, description: 'User reported successfully' })
+  async reportUser(
+    @User() user: any,
+    @Param('targetUserId') targetUserId: string,
+    @Body() dto: ReportUserDto,
+  ) {
+    return this.chatService.reportUser(user.id, targetUserId, dto);
   }
 
   @ApiBearerAuth()
