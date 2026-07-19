@@ -309,6 +309,11 @@ export class ChatService {
         fullName: true,
         email: true,
         photo: true,
+        onboarding: {
+          select: {
+            address:true,
+          }
+        }
       },
     });
 
