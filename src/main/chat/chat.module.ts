@@ -7,14 +7,16 @@ import { MailService } from '../mail/mail.service';
 import { MesageAlertMailTemplatesService } from '../mail/messageAlert';
 import { NotificationModule } from '../notification/notification.module';
 import { ConfigModule } from '@nestjs/config';
+import { StorageService } from 'src/common/services/storage.service';
 
 @Module({
   imports: [NotificationModule, ConfigModule],
-  providers: [ChatService, 
+  providers: [ChatService,
      ChatGateway,
      PrismaService,
      MailService,
-     MesageAlertMailTemplatesService
+     MesageAlertMailTemplatesService,
+     StorageService
     ],
   controllers: [ChatController],
   exports: [ChatGateway, ChatService],

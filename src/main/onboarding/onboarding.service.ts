@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { cloudinary } from 'src/config/cloudinary.config';
+import { StorageService } from 'src/common/services/storage.service';
 import * as fs from 'fs';
 import sharp from 'sharp';
 import * as path from 'path';
@@ -11,11 +11,17 @@ import { CreateSurroundingDto } from './dto/create-sorrouding.dto';
 import { BadgeService } from '../badge/badge.service';
 import { BadgeType, Gender } from '@prisma/client';
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB Cloudinary limit
+// R2 has no practical size cap; this is the threshold above which we recompress
+// to keep delivery bandwidth down.
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 @Injectable()
 export class OnboardingService {
-  constructor(private readonly prisma: PrismaService, private badge:BadgeService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private badge: BadgeService,
+    private storage: StorageService,
+  ) {}
 
   private async compressImage(filePath: string): Promise<string> {
     const ext = path.extname(filePath).toLowerCase();
@@ -55,16 +61,17 @@ export class OnboardingService {
       // Compress large images before uploading
       uploadPath = await this.compressImage(file.path);
 
-      const result = await cloudinary.uploader.upload(uploadPath, {
+      // uploadPath() removes the temp file whether or not the upload succeeds.
+      const { url } = await this.storage.uploadPath(
+        uploadPath,
         folder,
-        resource_type: 'auto',
-      });
-      if (fs.existsSync(uploadPath)) fs.unlinkSync(uploadPath);
-      return result.secure_url;
+        file.originalname,
+        file.mimetype,
+      );
+      return url;
     } catch (error) {
       console.error(`Error uploading file ${uploadPath}:`, error);
-      // Clean up temp files on error
-      if (fs.existsSync(uploadPath)) fs.unlinkSync(uploadPath);
+      // compressImage() may have written a second temp file alongside the original
       if (uploadPath !== file.path && fs.existsSync(file.path)) fs.unlinkSync(file.path);
       throw new BadRequestException(
         `Failed to upload file: ${error?.message || 'Unknown error'}`,

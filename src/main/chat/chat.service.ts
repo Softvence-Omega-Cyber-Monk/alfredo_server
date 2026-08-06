@@ -4,8 +4,7 @@ import { ChatMessage } from '@prisma/client';
 import { MailService } from '../mail/mail.service';
 import { MesageAlertMailTemplatesService } from '../mail/messageAlert';
 import { NotificationService } from '../notification/notification.service';
-import { cloudinary } from 'src/config/cloudinary.config';
-import * as streamifier from 'streamifier';
+import { StorageService } from 'src/common/services/storage.service';
 import { ReportUserDto } from './dto/report-user.dto';
 
 @Injectable()
@@ -14,7 +13,8 @@ export class ChatService {
     private prisma: PrismaService,
     private readonly mailService: MailService,
     private readonly MessageAlert: MesageAlertMailTemplatesService,
-    private readonly notification: NotificationService
+    private readonly notification: NotificationService,
+    private readonly storage: StorageService
   ) {}
 
   // ==================== BLOCK / UNBLOCK ====================
@@ -385,36 +385,20 @@ export class ChatService {
   }> {
     const mimeType = file.mimetype || 'application/octet-stream';
     let fileType: string;
-    let resourceType: string;
 
+    // R2 stores bytes as-is, so only the type recorded on the message matters here.
     if (mimeType.startsWith('image/')) {
       fileType = 'image';
-      resourceType = 'image';
     } else if (mimeType.startsWith('video/')) {
       fileType = 'video';
-      resourceType = 'video';
     } else {
       fileType = 'file';
-      resourceType = 'raw';
     }
 
-    // Upload to Cloudinary
-    const result = await new Promise<any>((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          folder: 'chat-attachments',
-          resource_type: resourceType as any,
-        },
-        (error, result) => {
-          if (error) reject(error);
-          else resolve(result);
-        },
-      );
-      streamifier.createReadStream(file.buffer).pipe(uploadStream);
-    });
+    const { url } = await this.storage.uploadFile(file, 'chat-attachments');
 
     return {
-      url: result.secure_url,
+      url,
       type: fileType,
       name: file.originalname,
       size: file.size,

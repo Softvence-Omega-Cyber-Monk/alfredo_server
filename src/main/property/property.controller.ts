@@ -210,10 +210,10 @@ export class PropertyController {
   "availabilityStartDate": "2025-09-15",
   "availabilityEndDate": "2025-12-31",
   "surroundings": ["surroundingId3"],
-  "removeImages": ["cloudinaryPublicId1", "cloudinaryPublicId2"]
+  "removeImages": ["storagePublicId1", "storagePublicId2"]
 }
 \`\`\`
-- \`removeImages\`: array of Cloudinary public IDs that should be deleted.`,
+- \`removeImages\`: array of storage object keys (the \`publicId\` field of each image) that should be deleted.`,
         },
         files: {
           type: 'array',

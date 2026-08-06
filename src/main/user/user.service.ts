@@ -7,35 +7,20 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Express } from 'express';
-import { v2 as cloudinary } from 'cloudinary';
-import * as streamifier from 'streamifier';
-import '../../config/cloudinary.config';
+import { StorageService } from 'src/common/services/storage.service';
 import { BadgeService } from '../badge/badge.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private prisma: PrismaService,
-    private readonly badgeService:BadgeService
+    private readonly badgeService:BadgeService,
+    private readonly storage: StorageService,
   ) {}
 
-  private async uploadPhotoToCloudinary(
-    file: Express.Multer.File,
-  ): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const uploadStream = cloudinary.uploader.upload_stream(
-        {
-          resource_type: 'image',
-          folder: 'user_photos',
-        },
-        (error, result) => {
-          if (error) reject(error);
-          else if (result?.secure_url) resolve(result.secure_url);
-          else reject(new Error('No secure URL returned from Cloudinary'));
-        },
-      );
-      streamifier.createReadStream(file.buffer).pipe(uploadStream);
-    });
+  private async uploadPhoto(file: Express.Multer.File): Promise<string> {
+    const { url } = await this.storage.uploadFile(file, 'user_photos');
+    return url;
   }
 
   // Get all users (without sensitive info)
@@ -117,7 +102,7 @@ async updateMe(userId: string, dto: UpdateUserDto, file?: Express.Multer.File) {
   // ---- File upload ----
   let photoUrl: string | undefined = undefined;
   if (file) {
-    photoUrl = await this.uploadPhotoToCloudinary(file);
+    photoUrl = await this.uploadPhoto(file);
   }
 
   // ---- Update User ----

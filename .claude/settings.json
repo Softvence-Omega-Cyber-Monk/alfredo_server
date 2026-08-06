@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s \"https://dns.google/resolve?name=vacanzagreece.gr&type=NS&do=1\")",
+      "Bash(curl -s -H \"accept: application/dns-json\" \"https://cloudflare-dns.com/dns-query?name=vacanzagreece.gr&type=NS\")",
+      "Bash(nslookup -type=NS vacanzagreece.gr grdns.ics.forth.gr)",
+      "Bash(grep -viE \"^$\")",
+      "PowerShell(foreach \\($p in 22,80,443,3000\\) { $r = Test-NetConnection -ComputerName 145.223.81.253 -Port $p -WarningAction SilentlyContinue -InformationLevel Quiet; \"{0,-6} {1}\" -f $p, $\\(if \\($r\\) { \"OPEN\" } else { \"blocked/timeout\" }\\) })",
+      "PowerShell(foreach \\($p in 22,80,443\\) { $r = Test-NetConnection -ComputerName 136.144.201.33 -Port $p -WarningAction SilentlyContinue -InformationLevel Quiet; \"136.144.201.33:{0,-5} {1}\" -f $p, $\\(if \\($r\\) { \"OPEN\" } else { \"blocked/timeout\" }\\) })",
+      "Bash(sed -E 's#=.*#=<hidden>#')",
+      "Read(//e/alfredo_server/**)",
+      "PowerShell(cd E:\\\\alfredo_server; $env:Path += \";C:\\\\Program Files\\\\nodejs\"; npm run migrate:upload 2>&1 | Out-String)",
+      "PowerShell(cd E:\\\\alfredo_server; $env:Path += \";C:\\\\Program Files\\\\nodejs\"; npm run migrate:verify-r2 2>&1 | Out-String)"
+    ]
+  }
+}

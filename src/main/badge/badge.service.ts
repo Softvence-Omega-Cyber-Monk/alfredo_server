@@ -3,12 +3,14 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateBadgeDto } from './dto/create-badge.dto';
 import { UpdateBadgeDto } from './dto/update-badge.dto';
 import { BadgeType } from '@prisma/client';
-import { cloudinary } from 'src/config/cloudinary.config';
-import * as fs from 'fs';
+import { StorageService } from 'src/common/services/storage.service';
 
 @Injectable()
 export class BadgeService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private storage: StorageService,
+  ) {}
 
   async create(dto: CreateBadgeDto) {
     const isExist = await this.prisma.badge.findFirst({ where: { type: dto.type } });
@@ -28,7 +30,7 @@ export class BadgeService {
 
     // Delete old icon if new file uploaded
     if (dto.iconPublicId && badge.iconPublicId) {
-      await this.deleteFromCloudinary(badge.iconPublicId);
+      await this.deleteFromStorage(badge.iconPublicId);
     }
 
     return this.prisma.badge.update({
@@ -40,7 +42,7 @@ export class BadgeService {
   async remove(id: string) {
     const badge = await this.prisma.badge.findUnique({ where: { id } });
     if (!badge) throw new NotFoundException(`Badge with ID ${id} not found`);
-    if (badge.iconPublicId) await this.deleteFromCloudinary(badge.iconPublicId);
+    if (badge.iconPublicId) await this.deleteFromStorage(badge.iconPublicId);
     return this.prisma.badge.delete({ where: { id } });
   }
 
@@ -77,21 +79,12 @@ export class BadgeService {
     return { message: `Badge ${badge.displayName} awarded to user` };
   }
 
-  // Cloudinary helpers
+  // R2 storage helpers
    async uploadFile(file: Express.Multer.File, folder: string) {
-    const result = await cloudinary.uploader.upload(file.path, {
-      folder,
-      resource_type: 'auto',
-    });
-    if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
-    return { url: result.secure_url, publicId: result.public_id };
+    return this.storage.uploadFile(file, folder);
   }
 
-  private async deleteFromCloudinary(publicId: string) {
-    try {
-      await cloudinary.uploader.destroy(publicId);
-    } catch (error) {
-      console.error('Failed to delete image from Cloudinary:', error);
-    }
+  private async deleteFromStorage(publicId: string) {
+    await this.storage.delete(publicId);
   }
 }

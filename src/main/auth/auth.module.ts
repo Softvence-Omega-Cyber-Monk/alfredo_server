@@ -10,6 +10,7 @@ import { JwtAuthGuard } from './jwt-auth.guard';
 import { OtpService } from './services/otp.service';
 import { AuthController } from './auth.controller';
 import { BadgeService } from '../badge/badge.service';
+import { StorageService } from 'src/common/services/storage.service';
 
 @Module({
   imports: [
@@ -31,8 +32,9 @@ import { BadgeService } from '../badge/badge.service';
     MailService,
     JwtAuthGuard,
     OtpService,
-    ConfigService, 
-    BadgeService// Add ConfigService to providers
+    ConfigService,
+    BadgeService,// Add ConfigService to providers
+    StorageService
   ],
   controllers: [AuthController],
 })

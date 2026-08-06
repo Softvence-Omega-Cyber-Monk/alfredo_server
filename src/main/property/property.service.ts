@@ -1,19 +1,21 @@
 import {
-  BadRequestException,
   HttpException,
   HttpStatus,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { cloudinary } from 'src/config/cloudinary.config';
-import * as fs from 'fs';
+import { StorageService } from 'src/common/services/storage.service';
 import { BadgeType } from '@prisma/client';
 import { BadgeService } from '../badge/badge.service';
 
 @Injectable()
 export class PropertyService {
-  constructor(private prisma: PrismaService, private badge: BadgeService) { }
+  constructor(
+    private prisma: PrismaService,
+    private badge: BadgeService,
+    private storage: StorageService,
+  ) { }
 
   /** CREATE */
   async createProperty(propertyData: any) {
@@ -282,7 +284,7 @@ export class PropertyService {
     // Remove requested images
     if (updateData.removeImages?.length) {
       for (const publicId of updateData.removeImages) {
-        await this.deleteFromCloudinary(publicId);
+        await this.deleteFromStorage(publicId);
       }
       currentImages = currentImages.filter(
         (img) => !updateData.removeImages.includes(img.publicId),
@@ -296,7 +298,7 @@ export class PropertyService {
         if (currentImages.length >= 30) {
           const lastImage = currentImages[currentImages.length - 1];
 
-          await this.deleteFromCloudinary(lastImage.publicId);
+          await this.deleteFromStorage(lastImage.publicId);
           currentImages.pop();
         }
 
@@ -422,25 +424,10 @@ export class PropertyService {
   }
 
   private async uploadFile(file: Express.Multer.File, folder: string) {
-    try {
-      const result = await cloudinary.uploader.upload(file.path, {
-        folder,
-        resource_type: 'auto',
-      });
-      if (fs.existsSync(file.path)) fs.unlinkSync(file.path);
-
-      return { url: result.secure_url, publicId: result.public_id };
-    } catch (error) {
-      console.error(`Error uploading file ${file.path}:`, error);
-      throw new BadRequestException('Failed to upload file');
-    }
+    return this.storage.uploadFile(file, folder);
   }
 
-  private async deleteFromCloudinary(publicId: string) {
-    try {
-      await cloudinary.uploader.destroy(publicId);
-    } catch (error) {
-      console.error(`Error deleting image ${publicId} from Cloudinary:`, error);
-    }
+  private async deleteFromStorage(publicId: string) {
+    await this.storage.delete(publicId);
   }
 }
