@@ -8,3 +8,15 @@ dist
 .gitignore
 .dockerignore
 uploads/*
+
+# Migration artefacts - gitignored, so CI never sees these, but a local
+# `docker build` would otherwise copy ~2GB of image backup into the image.
+cld-full-dump
+scripts/migration/out
+*.dump
+.claude
+
+# Bind-mounted at runtime by compose.yaml, and gitignored - so CI never bakes it in.
+# Excluded here so a local `docker build` cannot ship the key inside the image.
+src/config/firebase-service-account.json
+firebase-service-account.json
