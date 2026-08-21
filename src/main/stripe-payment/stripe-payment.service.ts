@@ -9,12 +9,16 @@ import { Request } from 'express';
 import { PrismaService } from '../prisma/prisma.service';
 import { BadgeType, SubscriptionStatus } from '@prisma/client';
 import { BadgeService } from '../badge/badge.service';
+import {
+  PROTECT_CHECKOUT_PURPOSE,
+  VacanzaProtectService,
+} from '../vacanza-protect/vacanza-protect.service';
 
 @Injectable()
 export class StripePaymentService {
   private stripe: Stripe;
 
-  constructor(private prisma: PrismaService,private badgeService: BadgeService) {
+  constructor(private prisma: PrismaService,private badgeService: BadgeService, private vacanzaProtectService: VacanzaProtectService) {
     this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
       
     });
@@ -69,6 +73,15 @@ async handleWebhook(req: RawBodyRequest<Request>) {
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session;
+
+      // Vacanza Protect purchases share this webhook but have their own records.
+      if (session.metadata?.purpose === PROTECT_CHECKOUT_PURPOSE) {
+        if (session.payment_status === 'paid') {
+          await this.vacanzaProtectService.handleCheckoutCompleted(session);
+        }
+        break;
+      }
+
       if (session.payment_status === 'paid') {
         const userId = session.metadata?.userId;
         const planId = session.metadata?.planId;
@@ -120,6 +133,16 @@ if (planTranslation?.planType === "TWO_YEARLY") {
       }
 
       console.log('💰 Checkout session completed and subscription created');
+      break;
+    }
+
+    case 'customer.subscription.deleted': {
+      const subscription = event.data.object as Stripe.Subscription;
+      if (subscription.metadata?.purpose === PROTECT_CHECKOUT_PURPOSE) {
+        await this.vacanzaProtectService.handleSubscriptionDeleted(
+          subscription.id,
+        );
+      }
       break;
     }
 

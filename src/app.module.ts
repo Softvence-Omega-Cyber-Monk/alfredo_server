@@ -30,6 +30,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { SessionCleanupService } from './utils/multer/taskService';
 import { NotificationModule } from './main/notification/notification.module';
 import { FeaturedPropertyModule } from './main/featured-property/featured-property.module';
+import { VacanzaProtectModule } from './main/vacanza-protect/vacanza-protect.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { FeaturedPropertyModule } from './main/featured-property/featured-proper
     WebSubscribeModule,
     NotificationModule,
     FeaturedPropertyModule,
+    VacanzaProtectModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, MailService, TwilioService, SeederService, SessionCleanupService],
